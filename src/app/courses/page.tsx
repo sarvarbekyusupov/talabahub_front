@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -84,11 +85,14 @@ export default function CoursesPage() {
           {paginatedCourses.map((course) => (
             <Card key={course.id} hover className="flex flex-col">
               {course.imageUrl && (
-                <img
-                  src={course.imageUrl}
-                  alt={course.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
+                <div className="relative w-full h-48">
+                  <Image
+                    src={course.imageUrl}
+                    alt={course.title}
+                    fill
+                    className="object-cover rounded-t-lg"
+                  />
+                </div>
               )}
               <div className="p-6 flex-1 flex flex-col">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">

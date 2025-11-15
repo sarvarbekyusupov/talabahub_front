@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -206,11 +207,14 @@ export default function DiscountsPage() {
             <Link key={discount.id} href={`/discounts/${discount.id}`}>
               <Card hover className="flex flex-col h-full">
                 {discount.imageUrl && (
-                  <img
-                    src={discount.imageUrl}
-                    alt={discount.title}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={discount.imageUrl}
+                      alt={discount.title}
+                      fill
+                      className="object-cover rounded-t-lg"
+                    />
+                  </div>
                 )}
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="flex items-start justify-between mb-3">

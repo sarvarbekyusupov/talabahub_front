@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -246,11 +247,14 @@ export default function JobsPage() {
                 <Card hover>
                   <div className="flex flex-col md:flex-row gap-6">
                     {job.company.logoUrl && (
-                      <img
-                        src={job.company.logoUrl}
-                        alt={job.company.name}
-                        className="w-24 h-24 object-contain rounded-lg"
-                      />
+                      <div className="relative w-24 h-24 flex-shrink-0">
+                        <Image
+                          src={job.company.logoUrl}
+                          alt={job.company.name}
+                          fill
+                          className="object-contain rounded-lg"
+                        />
+                      </div>
                     )}
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-3">

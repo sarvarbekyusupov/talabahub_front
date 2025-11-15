@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -95,11 +96,14 @@ export default function EventsPage() {
             return (
               <Card key={event.id} hover className="flex flex-col">
                 {event.imageUrl && (
-                  <img
-                    src={event.imageUrl}
-                    alt={event.title}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={event.imageUrl}
+                      alt={event.title}
+                      fill
+                      className="object-cover rounded-t-lg"
+                    />
+                  </div>
                 )}
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="flex items-start justify-between mb-3">
