@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
+import { SaveButton } from '@/components/ui/SaveButton';
 import { useToast } from '@/components/ui/Toast';
 import { api } from '@/lib/api';
 import { Job } from '@/types';
@@ -288,9 +289,13 @@ export default function JobDetailPage() {
                   Formani yopish
                 </Button>
               )}
-              <Button fullWidth variant="outline">
-                Saqlab qo'yish
-              </Button>
+              <div className="w-full">
+                <SaveButton
+                  itemType="job"
+                  itemId={job.id}
+                  className="w-full h-10 rounded-lg font-medium"
+                />
+              </div>
               <Button fullWidth variant="ghost">
                 Ulashish
               </Button>

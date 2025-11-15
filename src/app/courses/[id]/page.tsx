@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { SaveButton } from '@/components/ui/SaveButton';
 import { api } from '@/lib/api';
 import { Course } from '@/types';
 import { getToken } from '@/lib/auth';
@@ -139,9 +140,13 @@ export default function CourseDetailPage() {
               >
                 Kursga yozilish
               </Button>
-              <Button fullWidth variant="outline">
-                Saqlab qo'yish
-              </Button>
+              <div className="w-full">
+                <SaveButton
+                  itemType="course"
+                  itemId={course.id}
+                  className="w-full h-10 rounded-lg font-medium"
+                />
+              </div>
               <Button fullWidth variant="ghost">
                 Ulashish
               </Button>

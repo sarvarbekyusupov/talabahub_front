@@ -6,6 +6,7 @@ import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { SaveButton } from '@/components/ui/SaveButton';
 import { api } from '@/lib/api';
 import { Event } from '@/types';
 import { getToken } from '@/lib/auth';
@@ -184,9 +185,13 @@ export default function EventDetailPage() {
                 >
                   Ro'yxatdan o'tish
                 </Button>
-                <Button fullWidth variant="outline">
-                  Saqlab qo'yish
-                </Button>
+                <div className="w-full">
+                  <SaveButton
+                    itemType="event"
+                    itemId={event.id}
+                    className="w-full h-10 rounded-lg font-medium"
+                  />
+                </div>
                 <Button fullWidth variant="ghost">
                   Ulashish
                 </Button>

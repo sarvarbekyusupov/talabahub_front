@@ -155,3 +155,11 @@ export interface UserStats {
   registrations: number;
   courses: number;
 }
+
+export interface SavedItem {
+  id: string;
+  itemType: 'discount' | 'job' | 'event' | 'course';
+  itemId: string;
+  item: Discount | Job | Event | Course;
+  savedAt: string;
+}

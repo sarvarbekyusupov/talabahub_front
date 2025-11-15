@@ -6,6 +6,7 @@ import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { SaveButton } from '@/components/ui/SaveButton';
 import { api } from '@/lib/api';
 import { Discount } from '@/types';
 import { getToken } from '@/lib/auth';
@@ -45,15 +46,6 @@ export default function DiscountDetailPage() {
     }
   };
 
-  const handleSave = async () => {
-    const token = getToken();
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    // TODO: Implement save functionality
-    alert('Saqlash funksiyasi tez orada qo\'shiladi');
-  };
 
   if (loading) {
     return (
@@ -177,9 +169,13 @@ export default function DiscountDetailPage() {
               <Button fullWidth size="lg">
                 Chegirmadan foydalanish
               </Button>
-              <Button fullWidth variant="outline" onClick={handleSave}>
-                Saqlab qo'yish
-              </Button>
+              <div className="w-full">
+                <SaveButton
+                  itemType="discount"
+                  itemId={discount.id}
+                  className="w-full h-10 rounded-lg font-medium"
+                />
+              </div>
               <Button fullWidth variant="ghost">
                 Ulashish
               </Button>

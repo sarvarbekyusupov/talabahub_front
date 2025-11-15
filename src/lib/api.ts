@@ -174,6 +174,34 @@ class ApiClient {
   async getUserStats(token: string) {
     return this.request('/users/me/stats', { token });
   }
+
+  // Saved items endpoints
+  async getSavedItems(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/saved${query}`, { token });
+  }
+
+  async saveItem(token: string, itemType: string, itemId: string) {
+    return this.request('/saved', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ itemType, itemId }),
+    });
+  }
+
+  async unsaveItem(token: string, savedItemId: string) {
+    return this.request(`/saved/${savedItemId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async checkIfSaved(token: string, itemType: string, itemId: string) {
+    return this.request(
+      `/saved/check?itemType=${itemType}&itemId=${itemId}`,
+      { token }
+    );
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL);
