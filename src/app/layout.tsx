@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin", "cyrillic"] });
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "TALABA HUB",
-  description: "Talabalar uchun platforma",
+  title: "TALABA HUB - Talabalar uchun platforma",
+  description: "Chegirmalar, ish o'rinlari, tadbirlar va kurslar talabalar uchun",
 };
 
 export default function RootLayout({
@@ -16,7 +15,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="uz">
-      <body className={inter.className}>{children}</body>
+      <body className="font-sans bg-gray-50">
+        <Header />
+        <main className="min-h-screen">
+          {children}
+        </main>
+        <Footer />
+      </body>
     </html>
   );
 }
