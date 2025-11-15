@@ -9,17 +9,27 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
+import {
+  JobApplication,
+  EventRegistration,
+  CourseEnrollment,
+  UserStats,
+  PaginatedResponse
+} from '@/types';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'overview' | 'applications' | 'saved' | 'registrations' | 'courses'>('overview');
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<UserStats>({
     applications: 0,
     saved: 0,
     registrations: 0,
     courses: 0,
   });
+  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
+  const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
 
   useEffect(() => {
     const token = getToken();
@@ -31,17 +41,34 @@ export default function DashboardPage() {
   }, []);
 
   const loadDashboard = async () => {
+    const token = getToken();
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
     try {
-      // Load dashboard data
-      // This would come from API in real implementation
-      setStats({
-        applications: 5,
-        saved: 12,
-        registrations: 3,
-        courses: 2,
-      });
+      // Load all dashboard data in parallel
+      const [statsData, applicationsData, registrationsData, enrollmentsData] = await Promise.all([
+        api.getUserStats(token) as Promise<UserStats>,
+        api.getMyApplications(token, { limit: 50 }) as Promise<PaginatedResponse<JobApplication>>,
+        api.getMyRegistrations(token, { limit: 50 }) as Promise<PaginatedResponse<EventRegistration>>,
+        api.getMyEnrollments(token, { limit: 50 }) as Promise<PaginatedResponse<CourseEnrollment>>,
+      ]);
+
+      setStats(statsData);
+      setApplications(applicationsData.data);
+      setRegistrations(registrationsData.data);
+      setEnrollments(enrollmentsData.data);
     } catch (err) {
       console.error('Error loading dashboard:', err);
+      // Set empty data on error
+      setStats({
+        applications: 0,
+        saved: 0,
+        registrations: 0,
+        courses: 0,
+      });
     } finally {
       setLoading(false);
     }
@@ -236,22 +263,51 @@ export default function DashboardPage() {
         {activeTab === 'applications' && (
           <Card>
             <h3 className="text-lg font-semibold mb-4">Mening arizalarim</h3>
-            <div className="space-y-4">
-              <div className="border-b pb-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold">Frontend Developer</h4>
-                  <Badge variant="warning">Ko'rib chiqilmoqda</Badge>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">Tech Solutions - Tashkent</p>
-                <p className="text-xs text-gray-500">Yuborilgan: 2 soat oldin</p>
+            {applications.length > 0 ? (
+              <div className="space-y-4">
+                {applications.map((application) => {
+                  const statusVariant = {
+                    pending: 'warning',
+                    reviewed: 'info',
+                    accepted: 'success',
+                    rejected: 'danger',
+                  }[application.status] as any;
+
+                  const statusLabel = {
+                    pending: 'Ko\'rib chiqilmoqda',
+                    reviewed: 'Ko\'rib chiqildi',
+                    accepted: 'Qabul qilindi',
+                    rejected: 'Rad etildi',
+                  }[application.status];
+
+                  return (
+                    <div key={application.id} className="border-b pb-4 last:border-b-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <Link href={`/jobs/${application.job.id}`}>
+                          <h4 className="font-semibold hover:text-blue-600 transition">
+                            {application.job.title}
+                          </h4>
+                        </Link>
+                        <Badge variant={statusVariant}>{statusLabel}</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {application.job.company.name} - {application.job.location}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Yuborilgan: {new Date(application.appliedAt).toLocaleDateString('uz-UZ')}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="text-center py-8 text-gray-600">
-                <p>Boshqa arizalar yo'q</p>
+            ) : (
+              <div className="text-center py-12 text-gray-600">
+                <p>Hozircha arizalar yo'q</p>
                 <Link href="/jobs">
                   <Button variant="outline" className="mt-4">Ish o'rinlarini ko'rish</Button>
                 </Link>
               </div>
-            </div>
+            )}
           </Card>
         )}
 
@@ -271,24 +327,105 @@ export default function DashboardPage() {
         {activeTab === 'registrations' && (
           <Card>
             <h3 className="text-lg font-semibold mb-4">Ro'yxatdan o'tgan tadbirlar</h3>
-            <div className="text-center py-12 text-gray-600">
-              <p>Ro'yxatdan o'tgan tadbirlar yo'q</p>
-              <Link href="/events">
-                <Button variant="outline" className="mt-4">Tadbirlarni ko'rish</Button>
-              </Link>
-            </div>
+            {registrations.length > 0 ? (
+              <div className="space-y-4">
+                {registrations.map((registration) => (
+                  <div key={registration.id} className="border-b pb-4 last:border-b-0">
+                    <div className="flex items-start justify-between mb-2">
+                      <Link href={`/events/${registration.event.id}`}>
+                        <h4 className="font-semibold hover:text-blue-600 transition">
+                          {registration.event.title}
+                        </h4>
+                      </Link>
+                      {registration.attended !== undefined && (
+                        <Badge variant={registration.attended ? 'success' : 'info'}>
+                          {registration.attended ? 'Qatnashdi' : 'Kutilmoqda'}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {registration.event.location} • {new Date(registration.event.eventDate).toLocaleDateString('uz-UZ')}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Ro'yxatdan o'tgan: {new Date(registration.registeredAt).toLocaleDateString('uz-UZ')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-600">
+                <p>Ro'yxatdan o'tgan tadbirlar yo'q</p>
+                <Link href="/events">
+                  <Button variant="outline" className="mt-4">Tadbirlarni ko'rish</Button>
+                </Link>
+              </div>
+            )}
           </Card>
         )}
 
         {activeTab === 'courses' && (
           <Card>
             <h3 className="text-lg font-semibold mb-4">Mening kurslarim</h3>
-            <div className="text-center py-12 text-gray-600">
-              <p>Yozilgan kurslar yo'q</p>
-              <Link href="/courses">
-                <Button variant="outline" className="mt-4">Kurslarni ko'rish</Button>
-              </Link>
-            </div>
+            {enrollments.length > 0 ? (
+              <div className="space-y-4">
+                {enrollments.map((enrollment) => {
+                  const statusVariant = {
+                    active: 'info',
+                    completed: 'success',
+                    dropped: 'danger',
+                  }[enrollment.status] as any;
+
+                  const statusLabel = {
+                    active: 'Aktiv',
+                    completed: 'Tugatilgan',
+                    dropped: 'To\'xtatilgan',
+                  }[enrollment.status];
+
+                  return (
+                    <div key={enrollment.id} className="border-b pb-4 last:border-b-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <Link href={`/courses/${enrollment.course.id}`}>
+                          <h4 className="font-semibold hover:text-blue-600 transition">
+                            {enrollment.course.title}
+                          </h4>
+                        </Link>
+                        <Badge variant={statusVariant}>{statusLabel}</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">
+                        {enrollment.course.partner.name}
+                      </p>
+                      {enrollment.status === 'active' && (
+                        <div className="mb-2">
+                          <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                            <span>Jarayon:</span>
+                            <span>{enrollment.progress}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full transition-all"
+                              style={{ width: `${enrollment.progress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        Yozilgan: {new Date(enrollment.enrolledAt).toLocaleDateString('uz-UZ')}
+                        {enrollment.completedAt && (
+                          <> • Tugatilgan: {new Date(enrollment.completedAt).toLocaleDateString('uz-UZ')}</>
+                        )}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-600">
+                <p>Yozilgan kurslar yo'q</p>
+                <Link href="/courses">
+                  <Button variant="outline" className="mt-4">Kurslarni ko'rish</Button>
+                </Link>
+              </div>
+            )}
           </Card>
         )}
       </div>

@@ -154,6 +154,26 @@ class ApiClient {
     const query = params ? `?${new URLSearchParams(params)}` : '';
     return this.request(`/universities${query}`);
   }
+
+  // Dashboard endpoints
+  async getMyApplications(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/jobs/me/applications${query}`, { token });
+  }
+
+  async getMyRegistrations(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/events/me/registrations${query}`, { token });
+  }
+
+  async getMyEnrollments(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/courses/me/enrollments${query}`, { token });
+  }
+
+  async getUserStats(token: string) {
+    return this.request('/users/me/stats', { token });
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL);
