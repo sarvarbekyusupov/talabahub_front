@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
+import { GridSkeleton } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 import { Discount, PaginatedResponse } from '@/types';
 
@@ -92,8 +93,14 @@ export default function DiscountsPage() {
 
   if (loading) {
     return (
-      <Container className="py-20">
-        <div className="text-center text-gray-600">Yuklanmoqda...</div>
+      <Container className="py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Chegirmalar</h1>
+          <p className="text-lg text-gray-600">
+            Talabalar uchun maxsus chegirmalar va takliflar
+          </p>
+        </div>
+        <GridSkeleton count={12} />
       </Container>
     );
   }

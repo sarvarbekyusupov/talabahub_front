@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Pagination } from '@/components/ui/Pagination';
+import { GridSkeleton } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 import { Event, PaginatedResponse } from '@/types';
 
@@ -46,8 +47,14 @@ export default function EventsPage() {
 
   if (loading) {
     return (
-      <Container className="py-20">
-        <div className="text-center text-gray-600">Yuklanmoqda...</div>
+      <Container className="py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Tadbirlar</h1>
+          <p className="text-lg text-gray-600">
+            Konferensiyalar, seminarlar va networking tadbirlari
+          </p>
+        </div>
+        <GridSkeleton count={12} />
       </Container>
     );
   }

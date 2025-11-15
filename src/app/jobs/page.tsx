@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
+import { ListSkeleton } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 import { Job, PaginatedResponse } from '@/types';
 
@@ -114,8 +115,14 @@ export default function JobsPage() {
 
   if (loading) {
     return (
-      <Container className="py-20">
-        <div className="text-center text-gray-600">Yuklanmoqda...</div>
+      <Container className="py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Ish o'rinlari</h1>
+          <p className="text-lg text-gray-600">
+            Talabalar uchun part-time va full-time ish imkoniyatlari
+          </p>
+        </div>
+        <ListSkeleton count={10} />
       </Container>
     );
   }

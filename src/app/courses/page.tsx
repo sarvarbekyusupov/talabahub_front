@@ -5,6 +5,7 @@ import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Pagination } from '@/components/ui/Pagination';
+import { GridSkeleton } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 import { Course, PaginatedResponse } from '@/types';
 
@@ -37,8 +38,14 @@ export default function CoursesPage() {
 
   if (loading) {
     return (
-      <Container className="py-20">
-        <div className="text-center text-gray-600">Yuklanmoqda...</div>
+      <Container className="py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Kurslar</h1>
+          <p className="text-lg text-gray-600">
+            Kasbiy rivojlanish uchun o'quv kurslari va treninglar
+          </p>
+        </div>
+        <GridSkeleton count={12} />
       </Container>
     );
   }
