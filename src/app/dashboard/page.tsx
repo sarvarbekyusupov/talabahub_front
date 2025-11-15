@@ -14,6 +14,7 @@ import {
   EventRegistration,
   CourseEnrollment,
   UserStats,
+  SavedItem,
   PaginatedResponse
 } from '@/types';
 
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
+  const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
 
   useEffect(() => {
     const token = getToken();
@@ -49,17 +51,19 @@ export default function DashboardPage() {
 
     try {
       // Load all dashboard data in parallel
-      const [statsData, applicationsData, registrationsData, enrollmentsData] = await Promise.all([
+      const [statsData, applicationsData, registrationsData, enrollmentsData, savedItemsData] = await Promise.all([
         api.getUserStats(token) as Promise<UserStats>,
         api.getMyApplications(token, { limit: 50 }) as Promise<PaginatedResponse<JobApplication>>,
         api.getMyRegistrations(token, { limit: 50 }) as Promise<PaginatedResponse<EventRegistration>>,
         api.getMyEnrollments(token, { limit: 50 }) as Promise<PaginatedResponse<CourseEnrollment>>,
+        api.getSavedItems(token, { limit: 50 }) as Promise<PaginatedResponse<SavedItem>>,
       ]);
 
       setStats(statsData);
       setApplications(applicationsData.data);
       setRegistrations(registrationsData.data);
       setEnrollments(enrollmentsData.data);
+      setSavedItems(savedItemsData.data);
     } catch (err) {
       console.error('Error loading dashboard:', err);
       // Set empty data on error
@@ -314,13 +318,53 @@ export default function DashboardPage() {
         {activeTab === 'saved' && (
           <Card>
             <h3 className="text-lg font-semibold mb-4">Saqlangan e'lonlar</h3>
-            <div className="text-center py-12 text-gray-600">
-              <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-              <p>Saqlangan e'lonlar yo'q</p>
-              <p className="text-sm mt-2">E'lonlarni saqlab, keyinroq ko'ring</p>
-            </div>
+            {savedItems.length > 0 ? (
+              <div className="space-y-4">
+                {savedItems.map((savedItem) => {
+                  const item = savedItem.item as any;
+                  const typeLabel = {
+                    discount: 'Chegirma',
+                    job: 'Ish',
+                    event: 'Tadbir',
+                    course: 'Kurs',
+                  }[savedItem.itemType];
+
+                  const linkPath = {
+                    discount: `/discounts/${savedItem.itemId}`,
+                    job: `/jobs/${savedItem.itemId}`,
+                    event: `/events/${savedItem.itemId}`,
+                    course: `/courses/${savedItem.itemId}`,
+                  }[savedItem.itemType];
+
+                  return (
+                    <div key={savedItem.id} className="border-b pb-4 last:border-b-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <Link href={linkPath}>
+                          <h4 className="font-semibold hover:text-blue-600 transition">
+                            {item.title}
+                          </h4>
+                        </Link>
+                        <Badge variant="info">{typeLabel}</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                        {item.description}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Saqlangan: {new Date(savedItem.savedAt).toLocaleDateString('uz-UZ')}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-600">
+                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                <p>Saqlangan e'lonlar yo'q</p>
+                <p className="text-sm mt-2">E'lonlarni saqlab, keyinroq ko'ring</p>
+              </div>
+            )}
           </Card>
         )}
 

@@ -8,9 +8,13 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
+import { SaveButton } from '@/components/ui/SaveButton';
+import { RatingStars } from '@/components/ui/RatingStars';
+import { ReviewForm } from '@/components/ui/ReviewForm';
+import { ReviewList } from '@/components/ui/ReviewList';
 import { useToast } from '@/components/ui/Toast';
 import { api } from '@/lib/api';
-import { Job } from '@/types';
+import { Job, Review, Rating, PaginatedResponse } from '@/types';
 import { getToken } from '@/lib/auth';
 
 export default function JobDetailPage() {
@@ -28,10 +32,18 @@ export default function JobDetailPage() {
     cvUrl: '',
     coverLetter: '',
   });
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [rating, setRating] = useState<Rating | null>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
       loadJob();
+      loadReviews();
+      loadRating();
+      loadCurrentUser();
     }
   }, [id]);
 
@@ -44,6 +56,74 @@ export default function JobDetailPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadReviews = async () => {
+    try {
+      const data = await api.getReviews('jobs', id) as PaginatedResponse<Review>;
+      setReviews(data.data);
+    } catch (err) {
+      console.error('Error loading reviews:', err);
+    }
+  };
+
+  const loadRating = async () => {
+    try {
+      const data = await api.getRating('jobs', id) as Rating;
+      setRating(data);
+    } catch (err) {
+      console.error('Error loading rating:', err);
+    }
+  };
+
+  const loadCurrentUser = async () => {
+    const token = getToken();
+    if (token) {
+      try {
+        const user: any = await api.getProfile(token);
+        setCurrentUserId(user.id);
+      } catch (err) {
+        console.error('Error loading user:', err);
+      }
+    }
+  };
+
+  const handleSubmitReview = async (data: { rating: number; comment: string }) => {
+    const token = getToken();
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    if (editingReview) {
+      await api.updateReview(token, 'jobs', id, editingReview.id, data);
+      setEditingReview(null);
+    } else {
+      await api.createReview(token, 'jobs', id, data);
+    }
+
+    setShowReviewForm(false);
+    await loadReviews();
+    await loadRating();
+  };
+
+  const handleEditReview = (review: Review) => {
+    setEditingReview(review);
+    setShowReviewForm(true);
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    const token = getToken();
+    if (!token) return;
+
+    await api.deleteReview(token, 'jobs', id, reviewId);
+    await loadReviews();
+    await loadRating();
+  };
+
+  const handleCancelReview = () => {
+    setShowReviewForm(false);
+    setEditingReview(null);
   };
 
   const handleApply = async (e: React.FormEvent) => {
@@ -288,9 +368,13 @@ export default function JobDetailPage() {
                   Formani yopish
                 </Button>
               )}
-              <Button fullWidth variant="outline">
-                Saqlab qo'yish
-              </Button>
+              <div className="w-full">
+                <SaveButton
+                  itemType="job"
+                  itemId={job.id}
+                  className="w-full h-10 rounded-lg font-medium"
+                />
+              </div>
               <Button fullWidth variant="ghost">
                 Ulashish
               </Button>
@@ -320,6 +404,49 @@ export default function JobDetailPage() {
             </div>
           </Card>
         </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="mt-12">
+        <Card>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Sharhlar va baholar</h2>
+              {rating && (
+                <div className="flex items-center gap-3 mt-2">
+                  <RatingStars rating={rating.average} size="md" />
+                  <span className="text-lg font-semibold">{rating.average.toFixed(1)}</span>
+                  <span className="text-gray-600">({rating.count} ta sharh)</span>
+                </div>
+              )}
+            </div>
+            {!showReviewForm && (
+              <Button onClick={() => setShowReviewForm(true)}>
+                Sharh qoldirish
+              </Button>
+            )}
+          </div>
+
+          {showReviewForm && (
+            <div className="mb-8 p-6 bg-gray-50 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">
+                {editingReview ? 'Sharhni tahrirlash' : 'Sharh qoldiring'}
+              </h3>
+              <ReviewForm
+                onSubmit={handleSubmitReview}
+                onCancel={handleCancelReview}
+                existingReview={editingReview || undefined}
+              />
+            </div>
+          )}
+
+          <ReviewList
+            reviews={reviews}
+            currentUserId={currentUserId || undefined}
+            onEdit={handleEditReview}
+            onDelete={handleDeleteReview}
+          />
+        </Card>
       </div>
     </Container>
   );

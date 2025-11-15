@@ -174,6 +174,67 @@ class ApiClient {
   async getUserStats(token: string) {
     return this.request('/users/me/stats', { token });
   }
+
+  // Saved items endpoints
+  async getSavedItems(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/saved${query}`, { token });
+  }
+
+  async saveItem(token: string, itemType: string, itemId: string) {
+    return this.request('/saved', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ itemType, itemId }),
+    });
+  }
+
+  async unsaveItem(token: string, savedItemId: string) {
+    return this.request(`/saved/${savedItemId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async checkIfSaved(token: string, itemType: string, itemId: string) {
+    return this.request(
+      `/saved/check?itemType=${itemType}&itemId=${itemId}`,
+      { token }
+    );
+  }
+
+  // Reviews endpoints
+  async getReviews(itemType: string, itemId: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/${itemType}/${itemId}/reviews${query}`);
+  }
+
+  async createReview(token: string, itemType: string, itemId: string, data: { rating: number; comment: string }) {
+    return this.request(`/${itemType}/${itemId}/reviews`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateReview(token: string, itemType: string, itemId: string, reviewId: string, data: { rating: number; comment: string }) {
+    return this.request(`/${itemType}/${itemId}/reviews/${reviewId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteReview(token: string, itemType: string, itemId: string, reviewId: string) {
+    return this.request(`/${itemType}/${itemId}/reviews/${reviewId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async getRating(itemType: string, itemId: string) {
+    return this.request(`/${itemType}/${itemId}/rating`);
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL);
