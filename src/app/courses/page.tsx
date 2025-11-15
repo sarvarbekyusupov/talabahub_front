@@ -23,8 +23,8 @@ export default function CoursesPage() {
     return (
       <Container className="py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Kurslar</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-4xl font-bold text-dark mb-4">Kurslar</h1>
+          <p className="text-lg text-dark/60">
             Kasbiy rivojlanish uchun o'quv kurslari va treninglar
           </p>
         </div>
@@ -50,15 +50,15 @@ export default function CoursesPage() {
   return (
     <Container className="py-12">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Kurslar</h1>
-        <p className="text-lg text-gray-600">
+        <h1 className="text-4xl font-bold text-dark mb-4">Kurslar</h1>
+        <p className="text-lg text-dark/60">
           Kasbiy rivojlanish uchun o'quv kurslari va treninglar
         </p>
       </div>
 
       {courses.length === 0 ? (
         <Card>
-          <div className="text-center py-12 text-gray-600">
+          <div className="text-center py-12 text-dark/60">
             Hozircha kurslar mavjud emas
           </div>
         </Card>
@@ -72,33 +72,33 @@ export default function CoursesPage() {
                     src={course.imageUrl}
                     alt={course.title}
                     fill
-                    className="object-cover rounded-t-lg"
+                    className="object-cover rounded-t-2xl"
                   />
                 </div>
               )}
               <div className="p-6 flex-1 flex flex-col">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-dark mb-2">
                   {course.title}
                 </h3>
 
-                <p className="text-gray-600 mb-4 flex-1 line-clamp-3">
+                <p className="text-dark/60 mb-4 flex-1 line-clamp-3">
                   {course.description}
                 </p>
 
                 <div className="space-y-2 text-sm mb-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-500">Ta'lim markazi:</span>
-                    <span className="font-medium">{course.partner.name}</span>
+                    <span className="text-dark/50">Ta'lim markazi:</span>
+                    <span className="font-medium text-dark">{course.partner.name}</span>
                   </div>
                   {course.duration && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Davomiyligi:</span>
-                      <span className="font-medium">{course.duration}</span>
+                      <span className="text-dark/50">Davomiyligi:</span>
+                      <span className="font-medium text-dark">{course.duration}</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-500">Narxi:</span>
-                    <span className="font-bold text-blue-600">
+                    <span className="text-dark/50">Narxi:</span>
+                    <span className="font-bold text-brand">
                       {formatPrice(course.price)}
                     </span>
                   </div>

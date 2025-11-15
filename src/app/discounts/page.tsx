@@ -79,8 +79,8 @@ export default function DiscountsPage() {
     return (
       <Container className="py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Chegirmalar</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-4xl font-bold text-dark mb-4">Chegirmalar</h1>
+          <p className="text-lg text-dark/60">
             Talabalar uchun maxsus chegirmalar va takliflar
           </p>
         </div>
@@ -109,8 +109,8 @@ export default function DiscountsPage() {
   return (
     <Container className="py-12">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Chegirmalar</h1>
-        <p className="text-lg text-gray-600">
+        <h1 className="text-4xl font-bold text-dark mb-4">Chegirmalar</h1>
+        <p className="text-lg text-dark/60">
           Talabalar uchun maxsus chegirmalar va takliflar
         </p>
       </div>
@@ -133,7 +133,7 @@ export default function DiscountsPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border-2 border-lavender-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all"
             >
               <option value="all">Barcha kategoriyalar</option>
               {categories.map((category) => (
@@ -149,7 +149,7 @@ export default function DiscountsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border-2 border-lavender-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all"
             >
               <option value="newest">Eng yangi</option>
               <option value="highest_discount">Eng yuqori chegirma</option>
@@ -170,7 +170,7 @@ export default function DiscountsPage() {
 
       {/* Results Count */}
       <div className="mb-4">
-        <p className="text-gray-600">
+        <p className="text-dark/60">
           {filteredDiscounts.length} ta chegirma topildi
         </p>
       </div>
@@ -178,7 +178,7 @@ export default function DiscountsPage() {
       {/* Discounts Grid */}
       {filteredDiscounts.length === 0 ? (
         <Card>
-          <div className="text-center py-12 text-gray-600">
+          <div className="text-center py-12 text-dark/60">
             {discounts.length === 0
               ? 'Hozircha chegirmalar mavjud emas'
               : 'Hech narsa topilmadi. Boshqa so\'z bilan qidiring yoki filtrlarni o\'zgartiring.'}
@@ -195,13 +195,13 @@ export default function DiscountsPage() {
                       src={discount.imageUrl}
                       alt={discount.title}
                       fill
-                      className="object-cover rounded-t-lg"
+                      className="object-cover rounded-t-2xl"
                     />
                   </div>
                 )}
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-xl font-semibold text-gray-900 flex-1">
+                    <h3 className="text-xl font-semibold text-dark flex-1">
                       {discount.title}
                     </h3>
                     <Badge variant="success" size="md">
@@ -209,30 +209,30 @@ export default function DiscountsPage() {
                     </Badge>
                   </div>
 
-                  <p className="text-gray-600 mb-4 flex-1 line-clamp-3">
+                  <p className="text-dark/60 mb-4 flex-1 line-clamp-3">
                     {discount.description}
                   </p>
 
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Brend:</span>
-                      <span className="font-medium">{discount.brand.name}</span>
+                      <span className="text-dark/50">Brend:</span>
+                      <span className="font-medium text-dark">{discount.brand.name}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Kategoriya:</span>
-                      <span className="font-medium">{discount.category.nameUz}</span>
+                      <span className="text-dark/50">Kategoriya:</span>
+                      <span className="font-medium text-dark">{discount.category.nameUz}</span>
                     </div>
                     {discount.promoCode && (
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Promo kod:</span>
-                        <code className="bg-gray-100 px-2 py-1 rounded font-mono text-xs">
+                        <span className="text-dark/50">Promo kod:</span>
+                        <code className="bg-accent/10 text-accent-700 px-2 py-1 rounded-lg font-mono text-xs font-semibold">
                           {discount.promoCode}
                         </code>
                       </div>
                     )}
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Amal qiladi:</span>
-                      <span className="text-sm">
+                      <span className="text-dark/50">Amal qiladi:</span>
+                      <span className="text-sm text-dark">
                         {new Date(discount.validUntil).toLocaleDateString('uz-UZ')}
                       </span>
                     </div>

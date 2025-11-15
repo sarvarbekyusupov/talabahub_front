@@ -20,10 +20,10 @@ export const Card: React.FC<CardProps> = ({
     lg: 'p-8',
   };
 
-  const hoverClass = hover ? 'hover:shadow-lg transition-shadow duration-200' : '';
+  const hoverClass = hover ? 'hover:shadow-card-hover transition-all duration-300 hover:border-brand/20' : '';
 
   return (
-    <div className={`bg-white rounded-lg shadow ${paddingClasses[padding]} ${hoverClass} ${className}`}>
+    <div className={`bg-white rounded-2xl shadow-card border-2 border-transparent ${paddingClasses[padding]} ${hoverClass} ${className}`}>
       {children}
     </div>
   );

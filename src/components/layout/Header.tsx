@@ -27,15 +27,15 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
+    <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-lavender-200/50">
       <Container>
         <div className="flex items-center justify-between gap-4 h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-brand to-brand-700 rounded-xl flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-xl">T</span>
             </div>
-            <span className="text-xl font-bold text-gray-900 hidden sm:block">TALABA HUB</span>
+            <span className="text-xl font-bold text-dark hidden sm:block">TALABA HUB</span>
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -45,16 +45,16 @@ export const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/discounts" className="text-gray-600 hover:text-blue-600 transition">
+            <Link href="/discounts" className="text-dark/70 hover:text-brand transition font-medium">
               Chegirmalar
             </Link>
-            <Link href="/jobs" className="text-gray-600 hover:text-blue-600 transition">
+            <Link href="/jobs" className="text-dark/70 hover:text-brand transition font-medium">
               Ish o'rinlari
             </Link>
-            <Link href="/events" className="text-gray-600 hover:text-blue-600 transition">
+            <Link href="/events" className="text-dark/70 hover:text-brand transition font-medium">
               Tadbirlar
             </Link>
-            <Link href="/courses" className="text-gray-600 hover:text-blue-600 transition">
+            <Link href="/courses" className="text-dark/70 hover:text-brand transition font-medium">
               Kurslar
             </Link>
           </nav>
@@ -109,16 +109,16 @@ export const Header = () => {
               <SearchBar />
             </div>
             <nav className="flex flex-col space-y-4">
-              <Link href="/discounts" className="text-gray-600 hover:text-blue-600">
+              <Link href="/discounts" className="text-dark/70 hover:text-brand font-medium">
                 Chegirmalar
               </Link>
-              <Link href="/jobs" className="text-gray-600 hover:text-blue-600">
+              <Link href="/jobs" className="text-dark/70 hover:text-brand font-medium">
                 Ish o'rinlari
               </Link>
-              <Link href="/events" className="text-gray-600 hover:text-blue-600">
+              <Link href="/events" className="text-dark/70 hover:text-brand font-medium">
                 Tadbirlar
               </Link>
-              <Link href="/courses" className="text-gray-600 hover:text-blue-600">
+              <Link href="/courses" className="text-dark/70 hover:text-brand font-medium">
                 Kurslar
               </Link>
               <div className="pt-4 border-t space-y-2">
