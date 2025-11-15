@@ -123,3 +123,35 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+export interface JobApplication {
+  id: string;
+  job: Job;
+  cvUrl: string;
+  coverLetter?: string;
+  status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
+  appliedAt: string;
+}
+
+export interface EventRegistration {
+  id: string;
+  event: Event;
+  registeredAt: string;
+  attended?: boolean;
+}
+
+export interface CourseEnrollment {
+  id: string;
+  course: Course;
+  enrolledAt: string;
+  progress: number;
+  status: 'active' | 'completed' | 'dropped';
+  completedAt?: string;
+}
+
+export interface UserStats {
+  applications: number;
+  saved: number;
+  registrations: number;
+  courses: number;
+}
