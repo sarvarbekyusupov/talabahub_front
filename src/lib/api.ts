@@ -63,6 +63,42 @@ class ApiClient {
     });
   }
 
+  async verifyEmail(token: string) {
+    return this.request('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async resendVerificationEmail(email: string) {
+    return this.request('/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async forgotPassword(email: string) {
+    return this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    return this.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    });
+  }
+
+  async changePassword(token: string, oldPassword: string, newPassword: string) {
+    return this.request('/auth/change-password', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+  }
+
   // User endpoints
   async getProfile(token: string) {
     return this.request('/users/profile', { token });
