@@ -6,6 +6,7 @@ import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { api } from '@/lib/api';
 import { getToken, removeTokens } from '@/lib/auth';
 import { User } from '@/types';
@@ -61,6 +62,44 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarUpload = async (file: File): Promise<string> => {
+    const token = getToken();
+    if (!token) throw new Error('Not authenticated');
+
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    // In a real implementation, this would upload to your backend
+    // For now, we'll simulate it with a timeout and return a placeholder
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // In production, this would be:
+    // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/avatar`, {
+    //   method: 'POST',
+    //   headers: { 'Authorization': `Bearer ${token}` },
+    //   body: formData
+    // });
+    // const data = await response.json();
+    // return data.avatarUrl;
+
+    // For now, create a local preview URL
+    const url = URL.createObjectURL(file);
+
+    // Update user state with new avatar
+    if (user) {
+      setUser({ ...user, avatarUrl: url });
+    }
+
+    return url;
+  };
+
+  const handleAvatarRemove = () => {
+    if (user) {
+      setUser({ ...user, avatarUrl: undefined });
+    }
+  };
+
   if (loading) {
     return (
       <Container className="py-20">
@@ -84,11 +123,44 @@ export default function ProfilePage() {
         {/* Profile Card */}
         <Card className="lg:col-span-1">
           <div className="text-center">
-            <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-4xl text-white font-bold">
-                {user.firstName.charAt(0)}
-                {user.lastName.charAt(0)}
-              </span>
+            <div className="flex justify-center mb-4">
+              {user.avatarUrl ? (
+                <ImageUpload
+                  currentImage={user.avatarUrl}
+                  onUpload={handleAvatarUpload}
+                  onRemove={handleAvatarRemove}
+                  maxSizeMB={5}
+                />
+              ) : (
+                <div className="relative">
+                  <div className="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-4xl text-white font-bold">
+                      {user.firstName.charAt(0)}
+                      {user.lastName.charAt(0)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
+                      input.onchange = async (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          await handleAvatarUpload(file);
+                        }
+                      };
+                      input.click();
+                    }}
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition shadow-lg"
+                    title="Rasm yuklash"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-1">
               {user.firstName} {user.lastName}

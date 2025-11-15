@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Container } from '../ui/Container';
 import { Button } from '../ui/Button';
+import { SearchBar } from '../ui/SearchBar';
 import { isAuthenticated, removeTokens } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 
@@ -25,17 +26,22 @@ export const Header = () => {
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <Container>
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between gap-4 h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">T</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">TALABA HUB</span>
+            <span className="text-xl font-bold text-gray-900 hidden sm:block">TALABA HUB</span>
           </Link>
 
+          {/* Search Bar - Desktop */}
+          <div className="hidden lg:block flex-1 max-w-md">
+            <SearchBar />
+          </div>
+
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             <Link href="/discounts" className="text-gray-600 hover:text-blue-600 transition">
               Chegirmalar
             </Link>
@@ -91,6 +97,10 @@ export const Header = () => {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t">
+            {/* Search Bar - Mobile */}
+            <div className="mb-4">
+              <SearchBar />
+            </div>
             <nav className="flex flex-col space-y-4">
               <Link href="/discounts" className="text-gray-600 hover:text-blue-600">
                 Chegirmalar
