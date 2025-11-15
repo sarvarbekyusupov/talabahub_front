@@ -5,13 +5,17 @@ import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Pagination } from '@/components/ui/Pagination';
 import { api } from '@/lib/api';
 import { Event, PaginatedResponse } from '@/types';
+
+const ITEMS_PER_PAGE = 12;
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadEvents();
@@ -56,6 +60,12 @@ export default function EventsPage() {
     );
   }
 
+  // Pagination calculations
+  const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedEvents = events.slice(startIndex, endIndex);
+
   return (
     <Container className="py-12">
       <div className="mb-8">
@@ -73,7 +83,7 @@ export default function EventsPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {events.map((event) => {
+          {paginatedEvents.map((event) => {
             const typeBadge = getEventTypeBadge(event.eventType);
             return (
               <Card key={event.id} hover className="flex flex-col">
@@ -134,6 +144,17 @@ export default function EventsPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Pagination */}
+      {events.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={events.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+        />
       )}
     </Container>
   );

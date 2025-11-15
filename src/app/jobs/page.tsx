@@ -7,10 +7,13 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Pagination } from '@/components/ui/Pagination';
 import { api } from '@/lib/api';
 import { Job, PaginatedResponse } from '@/types';
 
 type SortOption = 'newest' | 'deadline' | 'salary_high';
+
+const ITEMS_PER_PAGE = 10;
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -21,6 +24,7 @@ export default function JobsPage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadJobs();
@@ -28,6 +32,7 @@ export default function JobsPage() {
 
   useEffect(() => {
     applyFiltersAndSort();
+    setCurrentPage(1); // Reset to first page when filters change
   }, [jobs, searchQuery, sortBy, selectedJobType, selectedLocation]);
 
   const loadJobs = async () => {
@@ -126,6 +131,12 @@ export default function JobsPage() {
   const locations = getUniqueLocations();
   const hasActiveFilters = searchQuery || sortBy !== 'newest' || selectedJobType !== 'all' || selectedLocation !== 'all';
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
+
   return (
     <Container className="py-12">
       <div className="mb-8">
@@ -221,7 +232,7 @@ export default function JobsPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredJobs.map((job) => {
+          {paginatedJobs.map((job) => {
             const typeBadge = getJobTypeBadge(job.jobType);
             return (
               <Link key={job.id} href={`/jobs/${job.id}`}>
@@ -276,6 +287,17 @@ export default function JobsPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Pagination */}
+      {filteredJobs.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filteredJobs.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+        />
       )}
     </Container>
   );

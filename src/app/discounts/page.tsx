@@ -7,10 +7,13 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Pagination } from '@/components/ui/Pagination';
 import { api } from '@/lib/api';
 import { Discount, PaginatedResponse } from '@/types';
 
 type SortOption = 'newest' | 'highest_discount' | 'ending_soon';
+
+const ITEMS_PER_PAGE = 12;
 
 export default function DiscountsPage() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
@@ -20,6 +23,7 @@ export default function DiscountsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadDiscounts();
@@ -27,6 +31,7 @@ export default function DiscountsPage() {
 
   useEffect(() => {
     applyFiltersAndSort();
+    setCurrentPage(1); // Reset to first page when filters change
   }, [discounts, searchQuery, sortBy, selectedCategory]);
 
   const loadDiscounts = async () => {
@@ -103,6 +108,12 @@ export default function DiscountsPage() {
 
   const categories = getUniqueCategories();
   const hasActiveFilters = searchQuery || sortBy !== 'newest' || selectedCategory !== 'all';
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredDiscounts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedDiscounts = filteredDiscounts.slice(startIndex, endIndex);
 
   return (
     <Container className="py-12">
@@ -184,7 +195,7 @@ export default function DiscountsPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDiscounts.map((discount) => (
+          {paginatedDiscounts.map((discount) => (
             <Link key={discount.id} href={`/discounts/${discount.id}`}>
               <Card hover className="flex flex-col h-full">
                 {discount.imageUrl && (
@@ -237,6 +248,17 @@ export default function DiscountsPage() {
             </Link>
           ))}
         </div>
+      )}
+
+      {/* Pagination */}
+      {filteredDiscounts.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filteredDiscounts.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+        />
       )}
     </Container>
   );
