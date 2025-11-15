@@ -163,3 +163,29 @@ export interface SavedItem {
   item: Discount | Job | Event | Course;
   savedAt: string;
 }
+
+export interface Review {
+  id: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  };
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Rating {
+  average: number;
+  count: number;
+  distribution: {
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+  };
+}

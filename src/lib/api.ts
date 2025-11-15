@@ -202,6 +202,39 @@ class ApiClient {
       { token }
     );
   }
+
+  // Reviews endpoints
+  async getReviews(itemType: string, itemId: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/${itemType}/${itemId}/reviews${query}`);
+  }
+
+  async createReview(token: string, itemType: string, itemId: string, data: { rating: number; comment: string }) {
+    return this.request(`/${itemType}/${itemId}/reviews`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateReview(token: string, itemType: string, itemId: string, reviewId: string, data: { rating: number; comment: string }) {
+    return this.request(`/${itemType}/${itemId}/reviews/${reviewId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteReview(token: string, itemType: string, itemId: string, reviewId: string) {
+    return this.request(`/${itemType}/${itemId}/reviews/${reviewId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async getRating(itemType: string, itemId: string) {
+    return this.request(`/${itemType}/${itemId}/rating`);
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL);
