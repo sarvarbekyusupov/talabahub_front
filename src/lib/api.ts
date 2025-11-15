@@ -235,6 +235,37 @@ class ApiClient {
   async getRating(itemType: string, itemId: string) {
     return this.request(`/${itemType}/${itemId}/rating`);
   }
+
+  // Notifications endpoints
+  async getNotifications(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/notifications${query}`, { token });
+  }
+
+  async markNotificationAsRead(token: string, notificationId: string) {
+    return this.request(`/notifications/${notificationId}/read`, {
+      method: 'PATCH',
+      token,
+    });
+  }
+
+  async markAllNotificationsAsRead(token: string) {
+    return this.request('/notifications/read-all', {
+      method: 'PATCH',
+      token,
+    });
+  }
+
+  async getUnreadNotificationCount(token: string) {
+    return this.request('/notifications/unread-count', { token });
+  }
+
+  async deleteNotification(token: string, notificationId: string) {
+    return this.request(`/notifications/${notificationId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL);

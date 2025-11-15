@@ -5,12 +5,15 @@ import { useState, useEffect } from 'react';
 import { Container } from '../ui/Container';
 import { Button } from '../ui/Button';
 import { SearchBar } from '../ui/SearchBar';
+import { NotificationBell } from '../ui/NotificationBell';
+import { NotificationPanel } from '../ui/NotificationPanel';
 import { isAuthenticated, removeTokens } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 
 export const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -60,6 +63,10 @@ export const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {isLoggedIn ? (
               <>
+                <NotificationBell onClick={() => setIsNotificationPanelOpen(true)} />
+                <Link href="/dashboard">
+                  <Button variant="ghost">Dashboard</Button>
+                </Link>
                 <Link href="/profile">
                   <Button variant="ghost">Profil</Button>
                 </Link>
@@ -139,6 +146,12 @@ export const Header = () => {
           </div>
         )}
       </Container>
+
+      {/* Notification Panel */}
+      <NotificationPanel
+        isOpen={isNotificationPanelOpen}
+        onClose={() => setIsNotificationPanelOpen(false)}
+      />
     </header>
   );
 };
