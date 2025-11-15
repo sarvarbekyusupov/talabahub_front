@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
@@ -10,45 +10,23 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
 import { ListSkeleton } from '@/components/ui/Skeleton';
-import { api } from '@/lib/api';
-import { Job, PaginatedResponse } from '@/types';
+import { useJobs } from '@/lib/hooks';
+import { Job } from '@/types';
 
 type SortOption = 'newest' | 'deadline' | 'salary_high';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function JobsPage() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { jobs, isLoading, error } = useJobs();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    loadJobs();
-  }, []);
-
-  useEffect(() => {
-    applyFiltersAndSort();
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [jobs, searchQuery, sortBy, selectedJobType, selectedLocation]);
-
-  const loadJobs = async () => {
-    try {
-      const data = await api.getJobs({ limit: 100 }) as PaginatedResponse<Job>;
-      setJobs(data.data);
-    } catch (err: any) {
-      setError('Ma\'lumotlarni yuklashda xatolik');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const applyFiltersAndSort = () => {
+  // Apply filters and sort using useMemo for performance
+  const filteredJobs = useMemo(() => {
     let result = [...jobs];
 
     // Apply search filter
@@ -89,8 +67,13 @@ export default function JobsPage() {
         break;
     }
 
-    setFilteredJobs(result);
-  };
+    return result;
+  }, [jobs, searchQuery, sortBy, selectedJobType, selectedLocation]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy, selectedJobType, selectedLocation]);
 
   const getUniqueLocations = (): string[] => {
     const locations = jobs.map((j) => j.location);
@@ -114,7 +97,7 @@ export default function JobsPage() {
     return types[type] || { label: type, variant: 'info' };
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Container className="py-12">
         <div className="mb-8">
@@ -131,7 +114,7 @@ export default function JobsPage() {
   if (error) {
     return (
       <Container className="py-20">
-        <div className="text-center text-red-600">{error}</div>
+        <div className="text-center text-red-600">Ma'lumotlarni yuklashda xatolik</div>
       </Container>
     );
   }

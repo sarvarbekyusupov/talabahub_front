@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
@@ -8,31 +8,13 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Pagination } from '@/components/ui/Pagination';
 import { GridSkeleton } from '@/components/ui/Skeleton';
-import { api } from '@/lib/api';
-import { Event, PaginatedResponse } from '@/types';
+import { useEvents } from '@/lib/hooks';
 
 const ITEMS_PER_PAGE = 12;
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { events, isLoading, error } = useEvents();
   const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => {
-    loadEvents();
-  }, []);
-
-  const loadEvents = async () => {
-    try {
-      const data = await api.getEvents({ limit: 20 }) as PaginatedResponse<Event>;
-      setEvents(data.data);
-    } catch (err: any) {
-      setError('Ma\'lumotlarni yuklashda xatolik');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getEventTypeBadge = (type: string) => {
     const types: Record<string, { label: string; variant: any }> = {
@@ -46,7 +28,7 @@ export default function EventsPage() {
     return types[type] || { label: type, variant: 'info' };
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Container className="py-12">
         <div className="mb-8">
@@ -63,7 +45,7 @@ export default function EventsPage() {
   if (error) {
     return (
       <Container className="py-20">
-        <div className="text-center text-red-600">{error}</div>
+        <div className="text-center text-red-600">Ma'lumotlarni yuklashda xatolik</div>
       </Container>
     );
   }
