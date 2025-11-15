@@ -8,12 +8,23 @@ TalabaHub is a comprehensive platform connecting students with exclusive discoun
 
 ## Features
 
-- **Student Discounts** - Exclusive deals from partner brands
-- **Job Board** - Part-time and full-time opportunities
-- **Events** - Conferences, workshops, and networking
-- **Courses** - Educational programs and training
-- **User Profiles** - Personalized student profiles
-- **Authentication** - Secure JWT-based auth
+### Core Features
+- **Student Discounts** - Exclusive deals from partner brands with filtering and sorting
+- **Job Board** - Part-time and full-time opportunities with advanced search
+- **Events** - Conferences, workshops, and networking with registration
+- **Courses** - Educational programs and training with enrollment
+- **User Profiles** - Personalized student profiles with avatar upload
+- **Authentication** - Secure JWT-based auth with email verification
+
+### Enhanced Features
+- **Global Search** - Search across all content types with autocomplete suggestions
+- **Advanced Filtering** - Filter discounts by category, jobs by type/location, etc.
+- **Sorting Options** - Sort by newest, highest discount, deadline, and more
+- **User Dashboard** - Track applications, saved items, and enrollments
+- **File Uploads** - Upload profile avatars and resume files
+- **Toast Notifications** - Real-time feedback for user actions
+- **Responsive Design** - Mobile-first approach with Tailwind CSS
+- **Detail Pages** - Comprehensive views for discounts, jobs, events, and courses
 
 ## Tech Stack
 
@@ -82,14 +93,20 @@ src/
 
 ## Pages
 
-- `/` - Home page
-- `/login` - User login
-- `/register` - User registration
-- `/discounts` - Browse discounts
-- `/jobs` - Job listings
-- `/events` - Upcoming events
-- `/courses` - Available courses
-- `/profile` - User profile
+- `/` - Home page with hero, features, stats, and call-to-action
+- `/login` - User login with JWT authentication
+- `/register` - User registration with student verification
+- `/discounts` - Browse discounts with filtering, sorting, and search
+- `/discounts/[id]` - Discount detail page with promo code copy
+- `/jobs` - Job listings with advanced filters (type, location)
+- `/jobs/[id]` - Job detail page with application form and resume upload
+- `/events` - Upcoming events with filtering
+- `/events/[id]` - Event detail page with registration
+- `/courses` - Available courses with filtering
+- `/courses/[id]` - Course detail page with enrollment
+- `/dashboard` - User dashboard with applications, saved items, and stats
+- `/profile` - User profile with avatar upload and edit functionality
+- `/search` - Global search results across all content types
 
 ## API Integration
 
@@ -109,16 +126,16 @@ const { accessToken } = await api.login(email, password);
 
 ## Components
 
-### Button
+### UI Components
 
+#### Button
 ```tsx
 <Button variant="primary" size="md" loading={false}>
   Click Me
 </Button>
 ```
 
-### Card
-
+#### Card
 ```tsx
 <Card hover padding="md">
   <h3>Title</h3>
@@ -126,8 +143,7 @@ const { accessToken } = await api.login(email, password);
 </Card>
 ```
 
-### Input
-
+#### Input
 ```tsx
 <Input
   label="Email"
@@ -136,6 +152,54 @@ const { accessToken } = await api.login(email, password);
   onChange={handleChange}
 />
 ```
+
+#### Badge
+```tsx
+<Badge variant="success" size="md">
+  -25%
+</Badge>
+```
+
+#### ImageUpload
+```tsx
+<ImageUpload
+  currentImage={avatarUrl}
+  onUpload={handleUpload}
+  onRemove={handleRemove}
+  maxSizeMB={5}
+/>
+```
+
+#### FileUpload
+```tsx
+<FileUpload
+  currentFile={resumeUrl}
+  onUpload={handleUpload}
+  onRemove={handleRemove}
+  maxSizeMB={10}
+  acceptedTypes={['.pdf', '.doc', '.docx']}
+  label="Upload Resume"
+/>
+```
+
+#### Toast
+```tsx
+import { useToast } from '@/components/ui/Toast';
+
+const { showToast } = useToast();
+showToast('Success!', 'success');
+```
+
+#### SearchBar
+```tsx
+<SearchBar placeholder="Qidirish..." />
+```
+
+### Layout Components
+
+- **Header** - Navigation with search bar and user menu
+- **Footer** - Site footer with links and information
+- **Container** - Responsive container wrapper
 
 ## Deployment
 
