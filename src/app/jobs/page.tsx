@@ -101,8 +101,8 @@ export default function JobsPage() {
     return (
       <Container className="py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Ish o'rinlari</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-4xl font-bold text-dark mb-4">Ish o'rinlari</h1>
+          <p className="text-lg text-dark/60">
             Talabalar uchun part-time va full-time ish imkoniyatlari
           </p>
         </div>
@@ -131,8 +131,8 @@ export default function JobsPage() {
   return (
     <Container className="py-12">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Ish o'rinlari</h1>
-        <p className="text-lg text-gray-600">
+        <h1 className="text-4xl font-bold text-dark mb-4">Ish o'rinlari</h1>
+        <p className="text-lg text-dark/60">
           Talabalar uchun part-time va full-time ish imkoniyatlari
         </p>
       </div>
@@ -155,7 +155,7 @@ export default function JobsPage() {
             <select
               value={selectedJobType}
               onChange={(e) => setSelectedJobType(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border-2 border-lavender-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all"
             >
               <option value="all">Barcha turlar</option>
               <option value="full_time">To'liq vaqt</option>
@@ -170,7 +170,7 @@ export default function JobsPage() {
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border-2 border-lavender-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all"
             >
               <option value="all">Barcha joylar</option>
               {locations.map((location) => (
@@ -186,7 +186,7 @@ export default function JobsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border-2 border-lavender-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all"
             >
               <option value="newest">Eng yangi</option>
               <option value="deadline">Muddat yaqin</option>
@@ -207,7 +207,7 @@ export default function JobsPage() {
 
       {/* Results Count */}
       <div className="mb-4">
-        <p className="text-gray-600">
+        <p className="text-dark/60">
           {filteredJobs.length} ta ish o'rni topildi
         </p>
       </div>
@@ -215,7 +215,7 @@ export default function JobsPage() {
       {/* Jobs List */}
       {filteredJobs.length === 0 ? (
         <Card>
-          <div className="text-center py-12 text-gray-600">
+          <div className="text-center py-12 text-dark/60">
             {jobs.length === 0
               ? 'Hozircha ish o\'rinlari mavjud emas'
               : 'Hech narsa topilmadi. Boshqa so\'z bilan qidiring yoki filtrlarni o\'zgartiring.'}
@@ -235,41 +235,41 @@ export default function JobsPage() {
                           src={job.company.logoUrl}
                           alt={job.company.name}
                           fill
-                          className="object-contain rounded-lg"
+                          className="object-contain rounded-xl"
                         />
                       </div>
                     )}
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="text-2xl font-semibold text-gray-900 mb-1">
+                          <h3 className="text-2xl font-semibold text-dark mb-1">
                             {job.title}
                           </h3>
-                          <p className="text-lg text-gray-600">{job.company.name}</p>
+                          <p className="text-lg text-dark/60">{job.company.name}</p>
                         </div>
                         <Badge variant={typeBadge.variant}>
                           {typeBadge.label}
                         </Badge>
                       </div>
 
-                      <p className="text-gray-600 mb-4 line-clamp-2">
+                      <p className="text-dark/60 mb-4 line-clamp-2">
                         {job.description}
                       </p>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <div className="text-gray-500">Joylashuv</div>
-                          <div className="font-medium">{job.location}</div>
+                          <div className="text-dark/50">Joylashuv</div>
+                          <div className="font-medium text-dark">{job.location}</div>
                         </div>
                         {job.salary && (
                           <div>
-                            <div className="text-gray-500">Maosh</div>
-                            <div className="font-medium">{job.salary} so'm</div>
+                            <div className="text-dark/50">Maosh</div>
+                            <div className="font-medium text-dark">{job.salary} so'm</div>
                           </div>
                         )}
                         <div>
-                          <div className="text-gray-500">Muddat</div>
-                          <div className="font-medium">
+                          <div className="text-dark/50">Muddat</div>
+                          <div className="font-medium text-dark">
                             {new Date(job.applicationDeadline).toLocaleDateString('uz-UZ')}
                           </div>
                         </div>
