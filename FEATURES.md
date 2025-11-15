@@ -138,6 +138,15 @@ Last Updated: November 2025
   - Improved LCP (Largest Contentful Paint)
   - Reduced bandwidth usage
 
+- [x] **Request Caching with SWR**
+  - Implemented SWR (stale-while-revalidate) for data fetching
+  - Automatic request deduplication (prevents duplicate API calls)
+  - Client-side caching with smart revalidation
+  - Custom hooks for all list pages (useDiscounts, useJobs, useEvents, useCourses)
+  - useMemo for expensive filter/sort operations
+  - Better performance with cached responses
+  - Simplified state management
+
 ### Deployment
 - [x] **Production Ready**
   - Vercel deployment configuration
@@ -168,10 +177,9 @@ Last Updated: November 2025
 ## 📋 Remaining Features
 
 ### High Priority
-1. **Performance Optimization (Remaining)**
-   - Implement request caching with SWR or React Query
+1. **Additional Performance Improvements**
    - Code splitting optimization
-   - Convert remaining `<img>` tags on detail pages
+   - Convert remaining `<img>` tags on detail pages (optional)
 
 2. **Admin Dashboard** (if role = 'admin')
    - Content management (CRUD)

@@ -1,43 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Pagination } from '@/components/ui/Pagination';
 import { GridSkeleton } from '@/components/ui/Skeleton';
-import { api } from '@/lib/api';
-import { Course, PaginatedResponse } from '@/types';
+import { useCourses } from '@/lib/hooks';
 
 const ITEMS_PER_PAGE = 12;
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { courses, isLoading, error } = useCourses();
   const [currentPage, setCurrentPage] = useState(1);
-
-  useEffect(() => {
-    loadCourses();
-  }, []);
-
-  const loadCourses = async () => {
-    try {
-      const data = await api.getCourses({ limit: 20 }) as PaginatedResponse<Course>;
-      setCourses(data.data);
-    } catch (err: any) {
-      setError('Ma\'lumotlarni yuklashda xatolik');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Container className="py-12">
         <div className="mb-8">
@@ -54,7 +36,7 @@ export default function CoursesPage() {
   if (error) {
     return (
       <Container className="py-20">
-        <div className="text-center text-red-600">{error}</div>
+        <div className="text-center text-red-600">Ma'lumotlarni yuklashda xatolik</div>
       </Container>
     );
   }

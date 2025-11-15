@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
@@ -10,44 +10,22 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
 import { GridSkeleton } from '@/components/ui/Skeleton';
-import { api } from '@/lib/api';
-import { Discount, PaginatedResponse } from '@/types';
+import { useDiscounts } from '@/lib/hooks';
+import { Discount } from '@/types';
 
 type SortOption = 'newest' | 'highest_discount' | 'ending_soon';
 
 const ITEMS_PER_PAGE = 12;
 
 export default function DiscountsPage() {
-  const [discounts, setDiscounts] = useState<Discount[]>([]);
-  const [filteredDiscounts, setFilteredDiscounts] = useState<Discount[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { discounts, isLoading, error } = useDiscounts();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    loadDiscounts();
-  }, []);
-
-  useEffect(() => {
-    applyFiltersAndSort();
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [discounts, searchQuery, sortBy, selectedCategory]);
-
-  const loadDiscounts = async () => {
-    try {
-      const data = await api.getDiscounts({ limit: 100 }) as PaginatedResponse<Discount>;
-      setDiscounts(data.data);
-    } catch (err: any) {
-      setError('Ma\'lumotlarni yuklashda xatolik');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const applyFiltersAndSort = () => {
+  // Apply filters and sort using useMemo for performance
+  const filteredDiscounts = useMemo(() => {
     let result = [...discounts];
 
     // Apply search filter
@@ -78,8 +56,13 @@ export default function DiscountsPage() {
         break;
     }
 
-    setFilteredDiscounts(result);
-  };
+    return result;
+  }, [discounts, searchQuery, sortBy, selectedCategory]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy, selectedCategory]);
 
   const getUniqueCategories = (): string[] => {
     const categories = discounts.map((d) => d.category.nameUz);
@@ -92,7 +75,7 @@ export default function DiscountsPage() {
     setSelectedCategory('all');
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Container className="py-12">
         <div className="mb-8">
@@ -109,7 +92,7 @@ export default function DiscountsPage() {
   if (error) {
     return (
       <Container className="py-20">
-        <div className="text-center text-red-600">{error}</div>
+        <div className="text-center text-red-600">Ma'lumotlarni yuklashda xatolik</div>
       </Container>
     );
   }
