@@ -2,7 +2,7 @@
 
 Last Updated: November 2025
 
-## API Coverage: 41/158 Endpoints (25.9%)
+## API Coverage: 46/158 Endpoints (29.1%)
 
 ---
 
@@ -14,6 +14,10 @@ Last Updated: November 2025
   - Login/logout
   - JWT token management
   - Protected routes
+  - Email verification flow
+  - Forgot password flow
+  - Reset password with token
+  - Change password for logged-in users
 
 - [x] **User Profile Management**
   - View and edit profile
@@ -120,6 +124,20 @@ Last Updated: November 2025
   - Auto-reset to page 1 when filters change
   - Total items count display
 
+### Performance Optimizations
+- [x] **Loading Experience**
+  - Loading skeletons for all list pages
+  - GridSkeleton component for card layouts
+  - ListSkeleton component for list layouts
+  - Better perceived performance
+
+- [x] **Image Optimization**
+  - Converted img tags to next/image on list pages
+  - Automatic image lazy loading
+  - Responsive images with automatic srcset
+  - Improved LCP (Largest Contentful Paint)
+  - Reduced bandwidth usage
+
 ### Deployment
 - [x] **Production Ready**
   - Vercel deployment configuration
@@ -150,37 +168,30 @@ Last Updated: November 2025
 ## 📋 Remaining Features
 
 ### High Priority
-1. **Performance Optimization**
-   - Convert `<img>` to `next/image` for optimization
-   - Add loading skeletons
-   - Implement request caching
-   - Image lazy loading
+1. **Performance Optimization (Remaining)**
+   - Implement request caching with SWR or React Query
    - Code splitting optimization
+   - Convert remaining `<img>` tags on detail pages
 
-2. **Email Verification**
-   - Verification email flow
-   - Resend verification
-   - Verification status display
-
-3. **Password Management**
-   - Forgot password
-   - Reset password flow
-   - Change password
-
-### Medium Priority
-5. **Admin Dashboard** (if role = 'admin')
+2. **Admin Dashboard** (if role = 'admin')
    - Content management (CRUD)
    - User management
    - Analytics dashboard
    - Approval workflows
 
-6. **Partner Dashboard** (if role = 'partner')
+3. **Partner Dashboard** (if role = 'partner')
    - Manage own content
    - View analytics
    - Respond to applications
    - Track engagement
 
-7. **Social Features**
+4. **Payment Integration**
+   - Click.uz payment gateway
+   - Payme integration
+   - Transaction history
+   - Payment status tracking
+
+5. **Social Features**
    - Share buttons (WhatsApp, Telegram, Facebook)
    - Copy link functionality
    - Social media meta tags
