@@ -189,3 +189,14 @@ export interface Rating {
     5: number;
   };
 }
+
+export interface Notification {
+  id: string;
+  type: 'application' | 'registration' | 'enrollment' | 'review' | 'system';
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  relatedId?: string;
+  relatedType?: 'job' | 'event' | 'course' | 'discount';
+}

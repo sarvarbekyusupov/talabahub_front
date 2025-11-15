@@ -2,15 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Pagination } from '@/components/ui/Pagination';
+import { GridSkeleton } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 import { Discount, PaginatedResponse } from '@/types';
 
 type SortOption = 'newest' | 'highest_discount' | 'ending_soon';
+
+const ITEMS_PER_PAGE = 12;
 
 export default function DiscountsPage() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
@@ -20,6 +25,7 @@ export default function DiscountsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadDiscounts();
@@ -27,6 +33,7 @@ export default function DiscountsPage() {
 
   useEffect(() => {
     applyFiltersAndSort();
+    setCurrentPage(1); // Reset to first page when filters change
   }, [discounts, searchQuery, sortBy, selectedCategory]);
 
   const loadDiscounts = async () => {
@@ -87,8 +94,14 @@ export default function DiscountsPage() {
 
   if (loading) {
     return (
-      <Container className="py-20">
-        <div className="text-center text-gray-600">Yuklanmoqda...</div>
+      <Container className="py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Chegirmalar</h1>
+          <p className="text-lg text-gray-600">
+            Talabalar uchun maxsus chegirmalar va takliflar
+          </p>
+        </div>
+        <GridSkeleton count={12} />
       </Container>
     );
   }
@@ -103,6 +116,12 @@ export default function DiscountsPage() {
 
   const categories = getUniqueCategories();
   const hasActiveFilters = searchQuery || sortBy !== 'newest' || selectedCategory !== 'all';
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredDiscounts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedDiscounts = filteredDiscounts.slice(startIndex, endIndex);
 
   return (
     <Container className="py-12">
@@ -184,15 +203,18 @@ export default function DiscountsPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDiscounts.map((discount) => (
+          {paginatedDiscounts.map((discount) => (
             <Link key={discount.id} href={`/discounts/${discount.id}`}>
               <Card hover className="flex flex-col h-full">
                 {discount.imageUrl && (
-                  <img
-                    src={discount.imageUrl}
-                    alt={discount.title}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={discount.imageUrl}
+                      alt={discount.title}
+                      fill
+                      className="object-cover rounded-t-lg"
+                    />
+                  </div>
                 )}
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="flex items-start justify-between mb-3">
@@ -237,6 +259,17 @@ export default function DiscountsPage() {
             </Link>
           ))}
         </div>
+      )}
+
+      {/* Pagination */}
+      {filteredDiscounts.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filteredDiscounts.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+        />
       )}
     </Container>
   );

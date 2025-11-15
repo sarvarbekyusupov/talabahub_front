@@ -63,6 +63,42 @@ class ApiClient {
     });
   }
 
+  async verifyEmail(token: string) {
+    return this.request('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+  }
+
+  async resendVerificationEmail(email: string) {
+    return this.request('/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async forgotPassword(email: string) {
+    return this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    return this.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    });
+  }
+
+  async changePassword(token: string, oldPassword: string, newPassword: string) {
+    return this.request('/auth/change-password', {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ oldPassword, newPassword }),
+    });
+  }
+
   // User endpoints
   async getProfile(token: string) {
     return this.request('/users/profile', { token });
@@ -234,6 +270,37 @@ class ApiClient {
 
   async getRating(itemType: string, itemId: string) {
     return this.request(`/${itemType}/${itemId}/rating`);
+  }
+
+  // Notifications endpoints
+  async getNotifications(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/notifications${query}`, { token });
+  }
+
+  async markNotificationAsRead(token: string, notificationId: string) {
+    return this.request(`/notifications/${notificationId}/read`, {
+      method: 'PATCH',
+      token,
+    });
+  }
+
+  async markAllNotificationsAsRead(token: string) {
+    return this.request('/notifications/read-all', {
+      method: 'PATCH',
+      token,
+    });
+  }
+
+  async getUnreadNotificationCount(token: string) {
+    return this.request('/notifications/unread-count', { token });
+  }
+
+  async deleteNotification(token: string, notificationId: string) {
+    return this.request(`/notifications/${notificationId}`, {
+      method: 'DELETE',
+      token,
+    });
   }
 }
 

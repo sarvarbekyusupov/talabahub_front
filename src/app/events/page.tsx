@@ -1,17 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Pagination } from '@/components/ui/Pagination';
+import { GridSkeleton } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 import { Event, PaginatedResponse } from '@/types';
+
+const ITEMS_PER_PAGE = 12;
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadEvents();
@@ -42,8 +48,14 @@ export default function EventsPage() {
 
   if (loading) {
     return (
-      <Container className="py-20">
-        <div className="text-center text-gray-600">Yuklanmoqda...</div>
+      <Container className="py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Tadbirlar</h1>
+          <p className="text-lg text-gray-600">
+            Konferensiyalar, seminarlar va networking tadbirlari
+          </p>
+        </div>
+        <GridSkeleton count={12} />
       </Container>
     );
   }
@@ -55,6 +67,12 @@ export default function EventsPage() {
       </Container>
     );
   }
+
+  // Pagination calculations
+  const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedEvents = events.slice(startIndex, endIndex);
 
   return (
     <Container className="py-12">
@@ -73,16 +91,19 @@ export default function EventsPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {events.map((event) => {
+          {paginatedEvents.map((event) => {
             const typeBadge = getEventTypeBadge(event.eventType);
             return (
               <Card key={event.id} hover className="flex flex-col">
                 {event.imageUrl && (
-                  <img
-                    src={event.imageUrl}
-                    alt={event.title}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={event.imageUrl}
+                      alt={event.title}
+                      fill
+                      className="object-cover rounded-t-lg"
+                    />
+                  </div>
                 )}
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="flex items-start justify-between mb-3">
@@ -134,6 +155,17 @@ export default function EventsPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Pagination */}
+      {events.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={events.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+        />
       )}
     </Container>
   );

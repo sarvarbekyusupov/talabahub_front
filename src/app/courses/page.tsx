@@ -1,16 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Pagination } from '@/components/ui/Pagination';
+import { GridSkeleton } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 import { Course, PaginatedResponse } from '@/types';
+
+const ITEMS_PER_PAGE = 12;
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadCourses();
@@ -33,8 +39,14 @@ export default function CoursesPage() {
 
   if (loading) {
     return (
-      <Container className="py-20">
-        <div className="text-center text-gray-600">Yuklanmoqda...</div>
+      <Container className="py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Kurslar</h1>
+          <p className="text-lg text-gray-600">
+            Kasbiy rivojlanish uchun o'quv kurslari va treninglar
+          </p>
+        </div>
+        <GridSkeleton count={12} />
       </Container>
     );
   }
@@ -46,6 +58,12 @@ export default function CoursesPage() {
       </Container>
     );
   }
+
+  // Pagination calculations
+  const totalPages = Math.ceil(courses.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedCourses = courses.slice(startIndex, endIndex);
 
   return (
     <Container className="py-12">
@@ -64,14 +82,17 @@ export default function CoursesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course) => (
+          {paginatedCourses.map((course) => (
             <Card key={course.id} hover className="flex flex-col">
               {course.imageUrl && (
-                <img
-                  src={course.imageUrl}
-                  alt={course.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
+                <div className="relative w-full h-48">
+                  <Image
+                    src={course.imageUrl}
+                    alt={course.title}
+                    fill
+                    className="object-cover rounded-t-lg"
+                  />
+                </div>
               )}
               <div className="p-6 flex-1 flex flex-col">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -106,6 +127,17 @@ export default function CoursesPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Pagination */}
+      {courses.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={courses.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+        />
       )}
     </Container>
   );
