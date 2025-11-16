@@ -183,13 +183,13 @@ export default function PartnerDashboardPage() {
       <Card className="mb-6">
         <h2 className="text-2xl font-bold text-dark mb-6">Tezkor harakatlar</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button fullWidth variant="primary">
+          <Button fullWidth variant="primary" onClick={() => router.push('/partner/discounts/create')}>
             Yangi chegirma e'lon qilish
           </Button>
-          <Button fullWidth variant="primary">
+          <Button fullWidth variant="primary" onClick={() => router.push('/partner/jobs/create')}>
             Yangi ish o'rni e'lon qilish
           </Button>
-          <Button fullWidth variant="primary">
+          <Button fullWidth variant="primary" onClick={() => router.push('/partner/courses/create')}>
             Yangi kurs qo'shish
           </Button>
         </div>
