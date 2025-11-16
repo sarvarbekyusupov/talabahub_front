@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   useEffect(() => {
     const token = getToken();
@@ -41,6 +42,46 @@ export default function DashboardPage() {
     }
     loadDashboard();
   }, []);
+
+  const getTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Hozir';
+    if (minutes < 60) return `${minutes} daqiqa oldin`;
+    if (hours < 24) return `${hours} soat oldin`;
+    return `${days} kun oldin`;
+  };
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'application':
+        return 'bg-blue-600';
+      case 'registration':
+        return 'bg-purple-600';
+      case 'enrollment':
+        return 'bg-green-600';
+      default:
+        return 'bg-gray-600';
+    }
+  };
+
+  const getApplicationStatusCounts = () => {
+    const pending = applications.filter(a => a.status === 'pending').length;
+    const reviewed = applications.filter(a => a.status === 'reviewed').length;
+    const accepted = applications.filter(a => a.status === 'accepted').length;
+    const rejected = applications.filter(a => a.status === 'rejected').length;
+    return { pending, reviewed, accepted, rejected };
+  };
+
+  const getAverageCourseProgress = () => {
+    if (enrollments.length === 0) return 0;
+    const totalProgress = enrollments.reduce((sum, e) => sum + e.progress, 0);
+    return Math.round(totalProgress / enrollments.length);
+  };
 
   const loadDashboard = async () => {
     const token = getToken();
@@ -64,6 +105,29 @@ export default function DashboardPage() {
       setRegistrations(registrationsData.data);
       setEnrollments(enrollmentsData.data);
       setSavedItems(savedItemsData.data);
+
+      // Build recent activity from all data
+      const activities = [
+        ...applicationsData.data.slice(0, 3).map((app: JobApplication) => ({
+          type: 'application',
+          title: `${app.job.title} ishiga ariza topshirildi`,
+          time: new Date(app.appliedAt),
+          status: app.status,
+        })),
+        ...registrationsData.data.slice(0, 3).map((reg: EventRegistration) => ({
+          type: 'registration',
+          title: `${reg.event.title} tadbiriga ro'yxatdan o'tildi`,
+          time: new Date(reg.registeredAt),
+        })),
+        ...enrollmentsData.data.slice(0, 3).map((enr: CourseEnrollment) => ({
+          type: 'enrollment',
+          title: `${enr.course.title} kursiga yozilindi`,
+          time: new Date(enr.enrolledAt),
+          progress: enr.progress,
+        })),
+      ].sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 5);
+
+      setRecentActivity(activities);
     } catch (err) {
       console.error('Error loading dashboard:', err);
       // Set empty data on error
@@ -216,51 +280,149 @@ export default function DashboardPage() {
       {/* Tab Content */}
       <div>
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <h3 className="text-lg font-semibold mb-4">So'nggi faoliyat</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 pb-3 border-b">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Frontend Developer ishiga ariza topshirildi</p>
-                    <p className="text-xs text-gray-500">2 soat oldin</p>
-                  </div>
+          <div className="space-y-6">
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Arizalar holati</h3>
+                <div className="space-y-2">
+                  {(() => {
+                    const statusCounts = getApplicationStatusCounts();
+                    return (
+                      <>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-yellow-600">● Kutilmoqda</span>
+                          <span className="font-semibold">{statusCounts.pending}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-blue-600">● Ko'rib chiqildi</span>
+                          <span className="font-semibold">{statusCounts.reviewed}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-green-600">● Qabul qilindi</span>
+                          <span className="font-semibold">{statusCounts.accepted}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-red-600">● Rad etildi</span>
+                          <span className="font-semibold">{statusCounts.rejected}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
-                <div className="flex items-center gap-3 pb-3 border-b">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">React kursiga yozilindi</p>
-                    <p className="text-xs text-gray-500">1 kun oldin</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Tech Conference ga ro'yxatdan o'tildi</p>
-                    <p className="text-xs text-gray-500">2 kun oldin</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
+              </Card>
 
-            <Card>
-              <h3 className="text-lg font-semibold mb-4">Tezkor havolalar</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <Link href="/discounts">
-                  <Button fullWidth variant="outline">Chegirmalar</Button>
-                </Link>
-                <Link href="/jobs">
-                  <Button fullWidth variant="outline">Ish o'rinlari</Button>
-                </Link>
-                <Link href="/events">
-                  <Button fullWidth variant="outline">Tadbirlar</Button>
-                </Link>
-                <Link href="/courses">
-                  <Button fullWidth variant="outline">Kurslar</Button>
-                </Link>
-              </div>
-            </Card>
+              <Card>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Kurslar jarayoni</h3>
+                <div className="flex items-center justify-center py-6">
+                  <div className="relative w-32 h-32">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="#E5E7EB"
+                        strokeWidth="8"
+                        fill="none"
+                      />
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="#3B82F6"
+                        strokeWidth="8"
+                        fill="none"
+                        strokeDasharray={`${2 * Math.PI * 56}`}
+                        strokeDashoffset={`${2 * Math.PI * 56 * (1 - getAverageCourseProgress() / 100)}`}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-3xl font-bold text-gray-900">
+                        {getAverageCourseProgress()}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-center text-sm text-gray-600">
+                  O'rtacha tugallanish
+                </p>
+              </Card>
+
+              <Card>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Yaqin tadbirlar</h3>
+                <div className="space-y-3">
+                  {registrations
+                    .filter(r => new Date(r.event.eventDate) > new Date())
+                    .slice(0, 3)
+                    .map((reg) => (
+                      <div key={reg.id} className="text-sm">
+                        <p className="font-medium line-clamp-1">{reg.event.title}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(reg.event.eventDate).toLocaleDateString('uz-UZ')}
+                        </p>
+                      </div>
+                    ))}
+                  {registrations.filter(r => new Date(r.event.eventDate) > new Date()).length === 0 && (
+                    <p className="text-gray-500 text-center py-4 text-sm">
+                      Yaqin tadbirlar yo'q
+                    </p>
+                  )}
+                </div>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <h3 className="text-lg font-semibold mb-4">So'nggi faoliyat</h3>
+                {recentActivity.length > 0 ? (
+                  <div className="space-y-3">
+                    {recentActivity.map((activity, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-start gap-3 pb-3 ${
+                          index < recentActivity.length - 1 ? 'border-b' : ''
+                        }`}
+                      >
+                        <div className={`w-2 h-2 ${getActivityColor(activity.type)} rounded-full mt-1.5`}></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium line-clamp-1">{activity.title}</p>
+                          <p className="text-xs text-gray-500">{getTimeAgo(activity.time)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8 text-sm">
+                    Hali faoliyat yo'q
+                  </p>
+                )}
+              </Card>
+
+              <Card>
+                <h3 className="text-lg font-semibold mb-4">Tezkor havolalar</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link href="/discounts">
+                    <Button fullWidth variant="outline">Chegirmalar</Button>
+                  </Link>
+                  <Link href="/jobs">
+                    <Button fullWidth variant="outline">Ish o'rinlari</Button>
+                  </Link>
+                  <Link href="/events">
+                    <Button fullWidth variant="outline">Tadbirlar</Button>
+                  </Link>
+                  <Link href="/courses">
+                    <Button fullWidth variant="outline">Kurslar</Button>
+                  </Link>
+                  <Link href="/saved">
+                    <Button fullWidth variant="outline">Saqlangan</Button>
+                  </Link>
+                  <Link href="/applications">
+                    <Button fullWidth variant="outline">Arizalarim</Button>
+                  </Link>
+                </div>
+              </Card>
+            </div>
           </div>
         )}
 
