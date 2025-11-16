@@ -51,9 +51,14 @@ export default function AdminCategoriesPage() {
     isActive: true,
   });
 
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
   useEffect(() => {
     loadCategories();
-  }, [page]);
+  }, [page, searchQuery, filterType, filterStatus]);
 
   const loadCategories = async () => {
     const token = getToken();
@@ -64,7 +69,19 @@ export default function AdminCategoriesPage() {
 
     setLoading(true);
     try {
-      const data = await api.getCategories({ page, limit: 20 }) as PaginatedResponse;
+      const params: any = { page, limit: 20 };
+
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+      if (filterType) {
+        params.type = filterType;
+      }
+      if (filterStatus) {
+        params.isActive = filterStatus === 'active';
+      }
+
+      const data = await api.getCategories(params) as PaginatedResponse;
       setCategories(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
@@ -160,6 +177,15 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFilterType('');
+    setFilterStatus('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || filterType || filterStatus;
+
   if (loading && categories.length === 0) {
     return (
       <Container className="py-12">
@@ -187,6 +213,103 @@ export default function AdminCategoriesPage() {
           </Link>
         </div>
       </div>
+
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <div className="space-y-4">
+          {/* Search and Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Qidiruv
+              </label>
+              <input
+                type="text"
+                placeholder="Kategoriya nomi bo'yicha qidirish..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+
+            {/* Type Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Turi
+              </label>
+              <select
+                value={filterType}
+                onChange={(e) => {
+                  setFilterType(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              >
+                <option value="">Barcha turlar</option>
+                <option value="discount">Chegirma</option>
+                <option value="job">Ish</option>
+                <option value="event">Tadbir</option>
+                <option value="course">Kurs</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Holat
+              </label>
+              <select
+                value={filterStatus}
+                onChange={(e) => {
+                  setFilterStatus(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              >
+                <option value="">Barcha holatlar</option>
+                <option value="active">Faol</option>
+                <option value="inactive">Nofaol</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Active Filters and Reset */}
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium text-gray-700">Faol filtrlar:</span>
+                {searchQuery && (
+                  <Badge variant="info">
+                    Qidiruv: {searchQuery}
+                  </Badge>
+                )}
+                {filterType && (
+                  <Badge variant="info">
+                    Turi: {getTypeLabel(filterType)}
+                  </Badge>
+                )}
+                {filterStatus && (
+                  <Badge variant="info">
+                    Holat: {filterStatus === 'active' ? 'Faol' : 'Nofaol'}
+                  </Badge>
+                )}
+              </div>
+              <Button variant="outline" onClick={handleResetFilters} size="sm">
+                Tozalash
+              </Button>
+            </div>
+          )}
+
+          {/* Results Count */}
+          <div className="text-sm text-gray-600">
+            Jami: <span className="font-semibold">{categories.length}</span> ta kategoriya
+          </div>
+        </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">

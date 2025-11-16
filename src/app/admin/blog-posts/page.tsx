@@ -62,9 +62,14 @@ export default function AdminBlogPostsPage() {
     isPublished: false,
   });
 
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+
   useEffect(() => {
     loadPosts();
-  }, [page]);
+  }, [page, searchQuery, filterStatus, filterCategory]);
 
   const loadPosts = async () => {
     const token = getToken();
@@ -75,7 +80,19 @@ export default function AdminBlogPostsPage() {
 
     setLoading(true);
     try {
-      const data = await api.getBlogPosts({ page, limit: 20 }) as PaginatedResponse;
+      const params: any = { page, limit: 20 };
+
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+      if (filterStatus) {
+        params.isPublished = filterStatus === 'published';
+      }
+      if (filterCategory) {
+        params.categoryId = filterCategory;
+      }
+
+      const data = await api.getBlogPosts(params) as PaginatedResponse;
       setPosts(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
@@ -169,6 +186,15 @@ export default function AdminBlogPostsPage() {
     });
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFilterStatus('');
+    setFilterCategory('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || filterStatus || filterCategory;
+
   if (loading && posts.length === 0) {
     return (
       <Container className="py-12">
@@ -196,6 +222,99 @@ export default function AdminBlogPostsPage() {
           </Link>
         </div>
       </div>
+
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <div className="space-y-4">
+          {/* Search and Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Qidiruv
+              </label>
+              <input
+                type="text"
+                placeholder="Post nomi bo'yicha qidirish..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Holat
+              </label>
+              <select
+                value={filterStatus}
+                onChange={(e) => {
+                  setFilterStatus(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              >
+                <option value="">Barcha holatlar</option>
+                <option value="published">Nashr qilingan</option>
+                <option value="draft">Qoralama</option>
+              </select>
+            </div>
+
+            {/* Category Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Kategoriya
+              </label>
+              <input
+                type="text"
+                placeholder="Kategoriya ID..."
+                value={filterCategory}
+                onChange={(e) => {
+                  setFilterCategory(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Active Filters and Reset */}
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium text-gray-700">Faol filtrlar:</span>
+                {searchQuery && (
+                  <Badge variant="info">
+                    Qidiruv: {searchQuery}
+                  </Badge>
+                )}
+                {filterStatus && (
+                  <Badge variant="info">
+                    Holat: {filterStatus === 'published' ? 'Nashr qilingan' : 'Qoralama'}
+                  </Badge>
+                )}
+                {filterCategory && (
+                  <Badge variant="info">
+                    Kategoriya: {filterCategory}
+                  </Badge>
+                )}
+              </div>
+              <Button variant="outline" onClick={handleResetFilters} size="sm">
+                Tozalash
+              </Button>
+            </div>
+          )}
+
+          {/* Results Count */}
+          <div className="text-sm text-gray-600">
+            Jami: <span className="font-semibold">{posts.length}</span> ta post
+          </div>
+        </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">
