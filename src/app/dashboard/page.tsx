@@ -191,7 +191,8 @@ export default function DashboardPage() {
 
       setRecentActivity(activities);
     } catch (err) {
-      console.error('Error loading dashboard:', err);
+      // Silently fail - backend endpoints may not be fully available
+      console.warn('Some dashboard data could not be loaded');
       // Set empty data on error
       setStats({
         applications: 0,
