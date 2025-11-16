@@ -14,6 +14,9 @@ import { Event, PaginatedResponse } from '@/types';
 import { exportEventsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function AdminEventsPage() {
   const router = useRouter();
@@ -34,6 +37,16 @@ export default function AdminEventsPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
 
+  // Debounced search
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Confirm dialog state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; eventId: string; eventTitle: string }>({
+    isOpen: false,
+    eventId: '',
+    eventTitle: '',
+  });
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -53,7 +66,7 @@ export default function AdminEventsPage() {
   useEffect(() => {
     loadEvents();
     loadCategories();
-  }, [page, searchQuery, filterEventType, filterStatus, filterCategory]);
+  }, [page, debouncedSearch, filterEventType, filterStatus, filterCategory]);
 
   const loadEvents = async () => {
     const token = getToken();
@@ -68,8 +81,8 @@ export default function AdminEventsPage() {
       const params: any = { page, limit: 20 };
 
       // Add search query if provided
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
 
       // Add filters
@@ -181,17 +194,22 @@ export default function AdminEventsPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Haqiqatan ham bu tadbirni o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (event: Event) => {
+    setDeleteConfirm({
+      isOpen: true,
+      eventId: event.id,
+      eventTitle: event.title,
+    });
+  };
 
+  const handleDeleteConfirm = async () => {
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteEvent(token, id);
+      await api.deleteEvent(token, deleteConfirm.eventId);
       showToast('Tadbir muvaffaqiyatli o\'chirildi', 'success');
+      setDeleteConfirm({ isOpen: false, eventId: '', eventTitle: '' });
       loadEvents();
     } catch (error: any) {
       console.error('Error deleting event:', error);
@@ -271,6 +289,27 @@ export default function AdminEventsPage() {
             message={error}
             onRetry={loadEvents}
           />
+        </Card>
+      </Container>
+    );
+  }
+
+  // Empty state when no data and no loading/error
+  if (!loading && events.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          {searchQuery ? (
+            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+          ) : hasActiveFilters ? (
+            <NoFilterResults onClearFilters={handleResetFilters} />
+          ) : (
+            <EmptyState
+              title="Tadbirlar yo'q"
+              message="Hozircha hech qanday tadbir qo'shilmagan."
+              showAction={false}
+            />
+          )}
         </Card>
       </Container>
     );
@@ -532,7 +571,7 @@ export default function AdminEventsPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(event.id)}
+                        onClick={() => handleDeleteClick(event)}
                         className="text-red-600 hover:text-red-800 p-2"
                         title="O'chirish"
                       >
@@ -803,6 +842,14 @@ export default function AdminEventsPage() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, eventId: '', eventTitle: '' })}
+        onConfirm={handleDeleteConfirm}
+        itemName={deleteConfirm.eventTitle}
+      />
     </Container>
   );
 }

@@ -13,6 +13,9 @@ import { useToast } from '@/components/ui/Toast';
 import { exportBrandsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Brand {
   id: string;
@@ -55,6 +58,7 @@ export default function AdminBrandsPage() {
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [filterStatus, setFilterStatus] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -69,9 +73,14 @@ export default function AdminBrandsPage() {
     isActive: true,
   });
 
+  // Delete confirmation states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null);
+  const [deletingBrandName, setDeletingBrandName] = useState('');
+
   useEffect(() => {
     loadBrands();
-  }, [page, searchQuery, filterStatus]);
+  }, [page, debouncedSearch, filterStatus]);
 
   const loadBrands = async () => {
     const token = getToken();
@@ -85,8 +94,8 @@ export default function AdminBrandsPage() {
     try {
       const params: any = { page, limit: 20 };
 
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
       if (filterStatus) {
         params.isActive = filterStatus === 'active';
@@ -166,17 +175,24 @@ export default function AdminBrandsPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Haqiqatan ham bu brendni o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (id: string, name: string) => {
+    setDeletingBrandId(id);
+    setDeletingBrandName(name);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingBrandId) return;
 
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteBrand(token, id);
+      await api.deleteBrand(token, deletingBrandId);
       showToast('Brend muvaffaqiyatli o\'chirildi', 'success');
+      setDeleteConfirmOpen(false);
+      setDeletingBrandId(null);
+      setDeletingBrandName('');
       loadBrands();
     } catch (error: any) {
       console.error('Error deleting brand:', error);
@@ -336,20 +352,45 @@ export default function AdminBrandsPage() {
       </Card>
 
       <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Brend</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Aloqa</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Ijtimoiy tarmoqlar</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Yaratilgan</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {brands.map((brand) => (
+        {brands.length === 0 ? (
+          hasActiveFilters ? (
+            searchQuery ? (
+              <NoSearchResults
+                searchQuery={searchQuery}
+                onReset={handleResetFilters}
+              />
+            ) : (
+              <NoFilterResults onReset={handleResetFilters} />
+            )
+          ) : (
+            <EmptyState
+              title="Brendlar yo'q"
+              description="Hozircha hech qanday brend qo'shilmagan."
+              action={{
+                label: "Yangi brend",
+                onClick: () => {
+                  resetForm();
+                  setShowModal(true);
+                }
+              }}
+            />
+          )
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Brend</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Aloqa</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Ijtimoiy tarmoqlar</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Yaratilgan</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {brands.map((brand) => (
                 <tr key={brand.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
@@ -438,7 +479,7 @@ export default function AdminBrandsPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(brand.id)}
+                        onClick={() => handleDeleteClick(brand.id, brand.name)}
                         className="text-red-600 hover:text-red-800 p-2"
                         title="O'chirish"
                       >
@@ -449,32 +490,34 @@ export default function AdminBrandsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
-            <Button
-              variant="outline"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
-            >
-              Oldingi
-            </Button>
-            <span className="text-gray-600">
-              Sahifa {page} / {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              onClick={() => setPage(page + 1)}
-              disabled={page === totalPages}
-            >
-              Keyingi
-            </Button>
-          </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                >
+                  Oldingi
+                </Button>
+                <span className="text-gray-600">
+                  Sahifa {page} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(page + 1)}
+                  disabled={page === totalPages}
+                >
+                  Keyingi
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </Card>
 
@@ -658,6 +701,19 @@ export default function AdminBrandsPage() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setDeletingBrandId(null);
+          setDeletingBrandName('');
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Brendni o'chirish"
+        message={`Haqiqatan ham "${deletingBrandName}" brendini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`}
+      />
     </Container>
   );
 }

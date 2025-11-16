@@ -13,6 +13,9 @@ import { useToast } from '@/components/ui/Toast';
 import { exportUniversitiesToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface University {
   id: string;
@@ -61,10 +64,15 @@ export default function AdminUniversitiesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLocation, setFilterLocation] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Delete confirm states
+  const [deleteUniversityId, setDeleteUniversityId] = useState<string | null>(null);
+  const [deleteUniversityName, setDeleteUniversityName] = useState<string>('');
 
   useEffect(() => {
     loadUniversities();
-  }, [page, searchQuery, filterLocation, filterStatus]);
+  }, [page, debouncedSearch, filterLocation, filterStatus]);
 
   const loadUniversities = async () => {
     const token = getToken();
@@ -78,8 +86,8 @@ export default function AdminUniversitiesPage() {
     try {
       const params: any = { page, limit: 20 };
 
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
       if (filterLocation) {
         params.location = filterLocation;
@@ -154,17 +162,22 @@ export default function AdminUniversitiesPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Haqiqatan ham bu universitetni o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (university: University) => {
+    setDeleteUniversityId(university.id);
+    setDeleteUniversityName(university.name);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteUniversityId) return;
 
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteUniversity(token, id);
+      await api.deleteUniversity(token, deleteUniversityId);
       showToast('Universitet muvaffaqiyatli o\'chirildi', 'success');
+      setDeleteUniversityId(null);
+      setDeleteUniversityName('');
       loadUniversities();
     } catch (error: any) {
       console.error('Error deleting university:', error);
@@ -332,20 +345,33 @@ export default function AdminUniversitiesPage() {
       </Card>
 
       <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Universitet</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Qisqa nomi</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Joylashuv</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Yaratilgan</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {universities.map((university) => (
+        {universities.length === 0 ? (
+          <EmptyState
+            title="Universitetlar yo'q"
+            description="Hozircha hech qanday universitet qo'shilmagan."
+            action={{
+              label: "Yangi universitet qo'shish",
+              onClick: () => {
+                resetForm();
+                setShowModal(true);
+              }
+            }}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Universitet</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Qisqa nomi</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Joylashuv</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Yaratilgan</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {universities.map((university) => (
                 <tr key={university.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
@@ -403,7 +429,7 @@ export default function AdminUniversitiesPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(university.id)}
+                        onClick={() => handleDeleteClick(university)}
                         className="text-red-600 hover:text-red-800 p-2"
                         title="O'chirish"
                       >
@@ -414,13 +440,14 @@ export default function AdminUniversitiesPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {universities.length > 0 && totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
             <Button
               variant="outline"
@@ -583,6 +610,18 @@ export default function AdminUniversitiesPage() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirm Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteUniversityId !== null}
+        onClose={() => {
+          setDeleteUniversityId(null);
+          setDeleteUniversityName('');
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Universitetni o'chirish"
+        message={`Haqiqatan ham "${deleteUniversityName}" universitetini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`}
+      />
     </Container>
   );
 }

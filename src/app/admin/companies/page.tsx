@@ -12,6 +12,9 @@ import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 import { exportCompaniesToCSV } from '@/lib/export';
 interface Company {
   id: string;
@@ -59,8 +62,12 @@ export default function AdminCompaniesPage() {
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [filterIndustry, setFilterIndustry] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ companyId: string; companyName: string } | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -82,7 +89,7 @@ export default function AdminCompaniesPage() {
 
   useEffect(() => {
     loadCompanies();
-  }, [page, searchQuery, filterIndustry, filterStatus]);
+  }, [page, debouncedSearch, filterIndustry, filterStatus]);
 
   const loadCompanies = async () => {
     const token = getToken();
@@ -96,8 +103,8 @@ export default function AdminCompaniesPage() {
     try {
       const params: any = { page, limit: 20 };
 
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
       if (filterIndustry) {
         params.industry = filterIndustry;
@@ -190,17 +197,20 @@ export default function AdminCompaniesPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Haqiqatan ham bu kompaniyani o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (companyId: string, companyName: string) => {
+    setDeleteConfirm({ companyId, companyName });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
 
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteCompany(token, id);
+      await api.deleteCompany(token, deleteConfirm.companyId);
       showToast('Kompaniya muvaffaqiyatli o\'chirildi', 'success');
+      setDeleteConfirm(null);
       loadCompanies();
     } catch (error: any) {
       console.error('Error deleting company:', error);
@@ -399,72 +409,83 @@ export default function AdminCompaniesPage() {
               </tr>
             </thead>
             <tbody>
-              {companies.map((company) => (
-                <tr key={company.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      {company.logo ? (
-                        <img
-                          src={company.logo}
-                          alt={company.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <span className="text-blue-600 font-bold text-lg">{company.name[0]}</span>
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-medium text-gray-900">{company.name}</p>
-                        <p className="text-sm text-gray-500 line-clamp-1">{company.description}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-gray-700">{company.industry || '-'}</td>
-                  <td className="py-3 px-4 text-gray-700">{company.location || '-'}</td>
-                  <td className="py-3 px-4 text-gray-700">{company.employeeCount || '-'}</td>
-                  <td className="py-3 px-4">
-                    <Badge variant={company.isActive ? 'success' : 'danger'}>
-                      {company.isActive ? 'Faol' : 'Nofaol'}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center justify-end gap-2">
-                      {company.website && (
-                        <a
-                          href={company.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-green-600 hover:text-green-800 p-2"
-                          title="Veb-sayt"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </a>
-                      )}
-                      <button
-                        onClick={() => handleEdit(company)}
-                        className="text-blue-600 hover:text-blue-800 p-2"
-                        title="Tahrirlash"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(company.id)}
-                        className="text-red-600 hover:text-red-800 p-2"
-                        title="O'chirish"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
+              {companies.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12">
+                    <EmptyState
+                      title="Kompaniyalar yo'q"
+                      description="Hozircha hech qanday kompaniya qo'shilmagan."
+                    />
                   </td>
                 </tr>
-              ))}
+              ) : (
+                companies.map((company) => (
+                  <tr key={company.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        {company.logo ? (
+                          <img
+                            src={company.logo}
+                            alt={company.name}
+                            className="w-12 h-12 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <span className="text-blue-600 font-bold text-lg">{company.name[0]}</span>
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium text-gray-900">{company.name}</p>
+                          <p className="text-sm text-gray-500 line-clamp-1">{company.description}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-gray-700">{company.industry || '-'}</td>
+                    <td className="py-3 px-4 text-gray-700">{company.location || '-'}</td>
+                    <td className="py-3 px-4 text-gray-700">{company.employeeCount || '-'}</td>
+                    <td className="py-3 px-4">
+                      <Badge variant={company.isActive ? 'success' : 'danger'}>
+                        {company.isActive ? 'Faol' : 'Nofaol'}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center justify-end gap-2">
+                        {company.website && (
+                          <a
+                            href={company.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-green-600 hover:text-green-800 p-2"
+                            title="Veb-sayt"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        )}
+                        <button
+                          onClick={() => handleEdit(company)}
+                          className="text-blue-600 hover:text-blue-800 p-2"
+                          title="Tahrirlash"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(company.id, company.name)}
+                          className="text-red-600 hover:text-red-800 p-2"
+                          title="O'chirish"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -740,6 +761,15 @@ export default function AdminCompaniesPage() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteConfirm !== null}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Kompaniyani o'chirish"
+        message={`Haqiqatan ham "${deleteConfirm?.companyName}" kompaniyasini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`}
+      />
     </Container>
   );
 }

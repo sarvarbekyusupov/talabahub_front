@@ -14,6 +14,9 @@ import { useToast } from '@/components/ui/Toast';
 import { exportUsersToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -28,9 +31,19 @@ export default function AdminUsersPage() {
   const [filterRole, setFilterRole] = useState('');
   const [filterVerified, setFilterVerified] = useState('');
 
+  // Debounced search
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Confirm dialog state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; userId: string; userName: string }>({
+    isOpen: false,
+    userId: '',
+    userName: '',
+  });
+
   useEffect(() => {
     loadUsers();
-  }, [page, searchQuery, filterRole, filterVerified]);
+  }, [page, debouncedSearch, filterRole, filterVerified]);
 
   const loadUsers = async () => {
     const token = getToken();
@@ -43,8 +56,8 @@ export default function AdminUsersPage() {
     try {
       const params: any = { page, limit: 20 };
 
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
       if (filterRole) {
         params.role = filterRole;
@@ -67,17 +80,22 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Haqiqatan ham bu foydalanuvchini o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (user: User) => {
+    setDeleteConfirm({
+      isOpen: true,
+      userId: user.id,
+      userName: `${user.firstName} ${user.lastName}`,
+    });
+  };
 
+  const handleDeleteConfirm = async () => {
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteUser(token, userId);
+      await api.deleteUser(token, deleteConfirm.userId);
       showToast('Foydalanuvchi muvaffaqiyatli o\'chirildi', 'success');
+      setDeleteConfirm({ isOpen: false, userId: '', userName: '' });
       loadUsers();
     } catch (error: any) {
       console.error('Error deleting user:', error);
@@ -123,6 +141,27 @@ export default function AdminUsersPage() {
       <Container className="py-12">
         <Card>
           <TableSkeleton rows={10} columns={7} />
+        </Card>
+      </Container>
+    );
+  }
+
+  // Empty state when no data and no loading/error
+  if (!loading && users.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          {searchQuery ? (
+            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+          ) : hasActiveFilters ? (
+            <NoFilterResults onClearFilters={handleResetFilters} />
+          ) : (
+            <EmptyState
+              title="Foydalanuvchilar yo'q"
+              message="Hozircha hech qanday foydalanuvchi ro'yxatdan o'tmagan."
+              showAction={false}
+            />
+          )}
         </Card>
       </Container>
     );
@@ -320,7 +359,7 @@ export default function AdminUsersPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDeleteUser(user.id)}
+                        onClick={() => handleDeleteClick(user)}
                         className="text-red-600 hover:text-red-800 p-2"
                         title="O'chirish"
                       >
@@ -359,6 +398,14 @@ export default function AdminUsersPage() {
           </div>
         )}
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, userId: '', userName: '' })}
+        onConfirm={handleDeleteConfirm}
+        itemName={deleteConfirm.userName}
+      />
     </Container>
   );
 }

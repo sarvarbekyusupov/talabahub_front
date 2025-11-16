@@ -13,6 +13,9 @@ import { useToast } from '@/components/ui/Toast';
 import { exportBlogPostsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface BlogPost {
   id: string;
@@ -70,10 +73,15 @@ export default function AdminBlogPostsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Delete confirm states
+  const [deletePostId, setDeletePostId] = useState<string | null>(null);
+  const [deletePostTitle, setDeletePostTitle] = useState<string>('');
 
   useEffect(() => {
     loadPosts();
-  }, [page, searchQuery, filterStatus, filterCategory]);
+  }, [page, debouncedSearch, filterStatus, filterCategory]);
 
   const loadPosts = async () => {
     const token = getToken();
@@ -87,8 +95,8 @@ export default function AdminBlogPostsPage() {
     try {
       const params: any = { page, limit: 20 };
 
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
       if (filterStatus) {
         params.isPublished = filterStatus === 'published';
@@ -160,17 +168,22 @@ export default function AdminBlogPostsPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Haqiqatan ham bu postni o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (id: string, title: string) => {
+    setDeletePostId(id);
+    setDeletePostTitle(title);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletePostId) return;
 
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteBlogPost(token, id);
+      await api.deleteBlogPost(token, deletePostId);
       showToast('Post muvaffaqiyatli o\'chirildi', 'success');
+      setDeletePostId(null);
+      setDeletePostTitle('');
       loadPosts();
     } catch (error: any) {
       console.error('Error deleting blog post:', error);
@@ -339,21 +352,34 @@ export default function AdminBlogPostsPage() {
       </Card>
 
       <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Post</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Muallif</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Ko'rishlar</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Sana</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {posts.map((post) => (
-                <tr key={post.id} className="border-b border-gray-100 hover:bg-gray-50">
+        {posts.length === 0 ? (
+          <EmptyState
+            title="Blog postlari yo'q"
+            description="Hozircha hech qanday blog post qo'shilmagan."
+            action={{
+              label: 'Yangi post qo\'shish',
+              onClick: () => {
+                resetForm();
+                setShowModal(true);
+              },
+            }}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Post</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Muallif</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Ko'rishlar</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Sana</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {posts.map((post) => (
+                  <tr key={post.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
                       {post.coverImage && (
@@ -422,7 +448,7 @@ export default function AdminBlogPostsPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(post.id)}
+                        onClick={() => handleDeleteClick(post.id, post.title)}
                         className="text-red-600 hover:text-red-800 p-2"
                         title="O'chirish"
                       >
@@ -433,13 +459,14 @@ export default function AdminBlogPostsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {posts.length > 0 && totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
             <Button
               variant="outline"
@@ -604,6 +631,18 @@ export default function AdminBlogPostsPage() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirm Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deletePostId !== null}
+        onClose={() => {
+          setDeletePostId(null);
+          setDeletePostTitle('');
+        }}
+        onConfirm={handleDeleteConfirm}
+        itemName={deletePostTitle}
+        itemType="blog post"
+      />
     </Container>
   );
 }

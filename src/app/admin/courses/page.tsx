@@ -14,6 +14,9 @@ import { Course, PaginatedResponse } from '@/types';
 import { exportCoursesToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function AdminCoursesPage() {
   const router = useRouter();
@@ -35,6 +38,16 @@ export default function AdminCoursesPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPartner, setFilterPartner] = useState('');
 
+  // Debounced search
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Confirm dialog state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; courseId: string; courseTitle: string }>({
+    isOpen: false,
+    courseId: '',
+    courseTitle: '',
+  });
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -53,7 +66,7 @@ export default function AdminCoursesPage() {
   useEffect(() => {
     loadCourses();
     loadPartnersAndCategories();
-  }, [page, searchQuery, filterLevel, filterStatus, filterPartner]);
+  }, [page, debouncedSearch, filterLevel, filterStatus, filterPartner]);
 
   const loadCourses = async () => {
     const token = getToken();
@@ -68,8 +81,8 @@ export default function AdminCoursesPage() {
       const params: any = { page, limit: 20 };
 
       // Add search query if provided
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
 
       // Add filters
@@ -175,17 +188,22 @@ export default function AdminCoursesPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Haqiqatan ham bu kursni o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (course: Course) => {
+    setDeleteConfirm({
+      isOpen: true,
+      courseId: course.id,
+      courseTitle: course.title,
+    });
+  };
 
+  const handleDeleteConfirm = async () => {
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteCourse(token, id);
+      await api.deleteCourse(token, deleteConfirm.courseId);
       showToast('Kurs muvaffaqiyatli o\'chirildi', 'success');
+      setDeleteConfirm({ isOpen: false, courseId: '', courseTitle: '' });
       loadCourses();
     } catch (error: any) {
       console.error('Error deleting course:', error);
@@ -240,6 +258,27 @@ export default function AdminCoursesPage() {
             message={error}
             onRetry={loadCourses}
           />
+        </Card>
+      </Container>
+    );
+  }
+
+  // Empty state when no data and no loading/error
+  if (!loading && courses.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          {searchQuery ? (
+            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+          ) : hasActiveFilters ? (
+            <NoFilterResults onClearFilters={handleResetFilters} />
+          ) : (
+            <EmptyState
+              title="Kurslar yo'q"
+              message="Hozircha hech qanday kurs qo'shilmagan."
+              showAction={false}
+            />
+          )}
         </Card>
       </Container>
     );
@@ -486,7 +525,7 @@ export default function AdminCoursesPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(course.id)}
+                        onClick={() => handleDeleteClick(course)}
                         className="text-red-600 hover:text-red-800 p-2"
                         title="O'chirish"
                       >
@@ -752,6 +791,14 @@ export default function AdminCoursesPage() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, courseId: '', courseTitle: '' })}
+        onConfirm={handleDeleteConfirm}
+        itemName={deleteConfirm.courseTitle}
+      />
     </Container>
   );
 }

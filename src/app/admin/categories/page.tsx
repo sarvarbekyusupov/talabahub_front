@@ -13,6 +13,9 @@ import { useToast } from '@/components/ui/Toast';
 import { exportCategoriesToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Category {
   id: string;
@@ -59,10 +62,16 @@ export default function AdminCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Delete confirmation states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+  const [deletingCategoryName, setDeletingCategoryName] = useState<string>('');
 
   useEffect(() => {
     loadCategories();
-  }, [page, searchQuery, filterType, filterStatus]);
+  }, [page, debouncedSearch, filterType, filterStatus]);
 
   const loadCategories = async () => {
     const token = getToken();
@@ -76,8 +85,8 @@ export default function AdminCategoriesPage() {
     try {
       const params: any = { page, limit: 20 };
 
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
       if (filterType) {
         params.type = filterType;
@@ -134,17 +143,24 @@ export default function AdminCategoriesPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Haqiqatan ham bu kategoriyani o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (category: Category) => {
+    setDeletingCategoryId(category.id);
+    setDeletingCategoryName(category.name);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingCategoryId) return;
 
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteCategory(token, id);
+      await api.deleteCategory(token, deletingCategoryId);
       showToast('Kategoriya muvaffaqiyatli o\'chirildi', 'success');
+      setDeleteConfirmOpen(false);
+      setDeletingCategoryId(null);
+      setDeletingCategoryName('');
       loadCategories();
     } catch (error: any) {
       console.error('Error deleting category:', error);
@@ -333,21 +349,38 @@ export default function AdminCategoriesPage() {
         </div>
       </Card>
 
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Nomi</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Slug</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Turi</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Yaratilgan</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((category) => (
+      {/* Empty State */}
+      {!loading && categories.length === 0 && (
+        <Card>
+          <EmptyState
+            title="Kategoriyalar yo'q"
+            description="Hozircha hech qanday kategoriya qo'shilmagan."
+            actionLabel="Yangi kategoriya"
+            onAction={() => {
+              resetForm();
+              setShowModal(true);
+            }}
+          />
+        </Card>
+      )}
+
+      {/* Table */}
+      {!loading && categories.length > 0 && (
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Nomi</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Slug</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Turi</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Yaratilgan</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((category) => (
                 <tr key={category.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
@@ -386,7 +419,7 @@ export default function AdminCategoriesPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(category.id)}
+                        onClick={() => handleDeleteClick(category)}
                         className="text-red-600 hover:text-red-800 p-2"
                         title="O'chirish"
                       >
@@ -397,34 +430,35 @@ export default function AdminCategoriesPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
-            <Button
-              variant="outline"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
-            >
-              Oldingi
-            </Button>
-            <span className="text-gray-600">
-              Sahifa {page} / {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              onClick={() => setPage(page + 1)}
-              disabled={page === totalPages}
-            >
-              Keyingi
-            </Button>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </Card>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
+              <Button
+                variant="outline"
+                onClick={() => setPage(page - 1)}
+                disabled={page === 1}
+              >
+                Oldingi
+              </Button>
+              <span className="text-gray-600">
+                Sahifa {page} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => setPage(page + 1)}
+                disabled={page === totalPages}
+              >
+                Keyingi
+              </Button>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Create/Edit Modal */}
       {showModal && (
@@ -553,6 +587,19 @@ export default function AdminCategoriesPage() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setDeletingCategoryId(null);
+          setDeletingCategoryName('');
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Kategoriyani o'chirish"
+        message={`Haqiqatan ham "${deletingCategoryName}" kategoriyasini o'chirmoqchimisiz? Bu amalni bekor qilib bo'lmaydi.`}
+      />
     </Container>
   );
 }
