@@ -1,13 +1,11 @@
 import useSWR from 'swr';
 import { api } from './api';
 import { Discount, Job, Event, Course, PaginatedResponse } from '@/types';
+import { getToken as getAuthToken } from './auth';
 
 // Helper to get token from localStorage
 const getToken = () => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('token');
-  }
-  return null;
+  return getAuthToken();
 };
 
 // Fetchers for different endpoints
@@ -166,5 +164,138 @@ export function useCourse(id: string) {
     course: data,
     isLoading,
     error,
+  };
+}
+
+// User-specific hooks (requires authentication)
+export function useProfile() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['profile', token] : null,
+    () => api.getProfile(token!),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
+
+  return {
+    profile: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+export function useUserStats() {
+  const token = getToken();
+  const { data, error, isLoading } = useSWR(
+    token ? ['userStats', token] : null,
+    () => api.getUserStats(token!),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 120000, // 2 minutes
+    }
+  );
+
+  return {
+    stats: data,
+    isLoading,
+    error,
+  };
+}
+
+export function useLearningStreak() {
+  const token = getToken();
+  const { data, error, isLoading } = useSWR(
+    token ? ['learningStreak', token] : null,
+    () => api.getLearningStreak(token!),
+    {
+      revalidateOnFocus: true, // Revalidate on focus for fresh streak data
+      dedupingInterval: 60000, // 1 minute
+    }
+  );
+
+  return {
+    streak: data,
+    isLoading,
+    error,
+  };
+}
+
+// Analytics hooks
+export function usePartnerAnalytics(period: string = 'month') {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['partnerAnalytics', period, token] : null,
+    () => api.getPartnerAnalytics(token!, { period }),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 180000, // 3 minutes
+    }
+  );
+
+  return {
+    analytics: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+export function useApplicationAnalytics() {
+  const token = getToken();
+  const { data, error, isLoading } = useSWR(
+    token ? ['applicationAnalytics', token] : null,
+    () => api.getApplicationAnalytics(token!),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 120000, // 2 minutes
+    }
+  );
+
+  return {
+    analytics: data,
+    isLoading,
+    error,
+  };
+}
+
+// Notifications hook
+export function useNotifications() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['notifications', token] : null,
+    () => api.getNotifications(token!),
+    {
+      refreshInterval: 30000, // Poll every 30 seconds
+      revalidateOnFocus: true,
+    }
+  );
+
+  return {
+    notifications: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+export function useUnreadCount() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['unreadCount', token] : null,
+    () => api.getUnreadNotificationCount(token!),
+    {
+      refreshInterval: 30000, // Poll every 30 seconds
+      revalidateOnFocus: true,
+    }
+  );
+
+  return {
+    count: data?.count || 0,
+    isLoading,
+    error,
+    mutate,
   };
 }
