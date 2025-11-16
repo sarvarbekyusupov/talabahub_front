@@ -41,6 +41,33 @@ class ApiClient {
     return response.json();
   }
 
+  private async uploadRequest<T>(
+    endpoint: string,
+    formData: FormData,
+    token?: string
+  ): Promise<T> {
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({
+        message: 'An error occurred',
+      }));
+      throw error;
+    }
+
+    return response.json();
+  }
+
   // Auth endpoints
   async login(email: string, password: string) {
     return this.request('/auth/login', {
@@ -301,6 +328,245 @@ class ApiClient {
       method: 'DELETE',
       token,
     });
+  }
+
+  // File Upload endpoints
+  async uploadImage(file: File, token?: string) {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.uploadRequest('/upload/image', formData, token);
+  }
+
+  async uploadAvatar(file: File, token: string) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return this.uploadRequest('/upload/avatar', formData, token);
+  }
+
+  async uploadDocument(file: File, token: string) {
+    const formData = new FormData();
+    formData.append('document', file);
+    return this.uploadRequest('/upload/document', formData, token);
+  }
+
+  async uploadLogo(file: File, token: string) {
+    const formData = new FormData();
+    formData.append('logo', file);
+    return this.uploadRequest('/upload/logo', formData, token);
+  }
+
+  async uploadBanner(file: File, token: string) {
+    const formData = new FormData();
+    formData.append('banner', file);
+    return this.uploadRequest('/upload/banner', formData, token);
+  }
+
+  // Payment endpoints
+  async prepareClickPayment(token: string, data: { amount: number; itemType: string; itemId: string }) {
+    return this.request('/payment/click/prepare', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async completeClickPayment(token: string, data: { click_trans_id: string; merchant_trans_id: string }) {
+    return this.request('/payment/click/complete', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async preparePaymePayment(token: string, data: { amount: number; itemType: string; itemId: string }) {
+    return this.request('/payment/payme/prepare', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async completePaymePayment(token: string, data: { id: string }) {
+    return this.request('/payment/payme/complete', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getPayments(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/payment${query}`, { token });
+  }
+
+  // Course Progress tracking
+  async updateCourseProgress(token: string, enrollmentId: string, data: { progress: number; completedLessons?: string[] }) {
+    return this.request(`/courses/enrollments/${enrollmentId}/progress`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Discount view tracking
+  async trackDiscountView(discountId: string) {
+    return this.request(`/discounts/${discountId}/view`, {
+      method: 'POST',
+    });
+  }
+
+  // Admin - User Management
+  async getAllUsers(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/users${query}`, { token });
+  }
+
+  async getUserById(token: string, userId: string) {
+    return this.request(`/users/${userId}`, { token });
+  }
+
+  async updateUser(token: string, userId: string, data: any) {
+    return this.request(`/users/${userId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteUser(token: string, userId: string) {
+    return this.request(`/users/${userId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Admin - Discount Management
+  async createDiscount(token: string, data: any) {
+    return this.request('/discounts', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateDiscount(token: string, discountId: string, data: any) {
+    return this.request(`/discounts/${discountId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteDiscount(token: string, discountId: string) {
+    return this.request(`/discounts/${discountId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Admin - Job Management
+  async createJob(token: string, data: any) {
+    return this.request('/jobs', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateJob(token: string, jobId: string, data: any) {
+    return this.request(`/jobs/${jobId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteJob(token: string, jobId: string) {
+    return this.request(`/jobs/${jobId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async getJobApplications(token: string, jobId: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/jobs/${jobId}/applications${query}`, { token });
+  }
+
+  async updateApplicationStatus(token: string, jobId: string, applicationId: string, status: string) {
+    return this.request(`/jobs/${jobId}/applications/${applicationId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  // Admin - Event Management
+  async createEvent(token: string, data: any) {
+    return this.request('/events', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateEvent(token: string, eventId: string, data: any) {
+    return this.request(`/events/${eventId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteEvent(token: string, eventId: string) {
+    return this.request(`/events/${eventId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async getEventRegistrations(token: string, eventId: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/events/${eventId}/registrations${query}`, { token });
+  }
+
+  // Admin - Course Management
+  async createCourse(token: string, data: any) {
+    return this.request('/courses', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateCourse(token: string, courseId: string, data: any) {
+    return this.request(`/courses/${courseId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCourse(token: string, courseId: string) {
+    return this.request(`/courses/${courseId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async getCourseEnrollments(token: string, courseId: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/courses/${courseId}/enrollments${query}`, { token });
+  }
+
+  // Partner endpoints
+  async getPartnerStats(token: string) {
+    return this.request('/partners/me/stats', { token });
+  }
+
+  async getPartnerContent(token: string, contentType: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/partners/me/${contentType}${query}`, { token });
   }
 }
 

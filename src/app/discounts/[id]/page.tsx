@@ -42,6 +42,11 @@ export default function DiscountDetailPage() {
     try {
       const data = await api.getDiscount(id) as Discount;
       setDiscount(data);
+
+      // Track discount view
+      api.trackDiscountView(id).catch(err => {
+        console.error('Error tracking view:', err);
+      });
     } catch (err: any) {
       setError('Chegirma topilmadi');
     } finally {

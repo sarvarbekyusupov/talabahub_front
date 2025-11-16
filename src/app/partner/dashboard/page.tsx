@@ -40,14 +40,27 @@ export default function PartnerDashboardPage() {
 
         setUser(profile);
 
-        // Load partner statistics (mock data for now)
-        setStats({
-          activeDiscounts: 8,
-          activeJobs: 5,
-          activeCourses: 12,
-          totalViews: 1250,
-          totalApplications: 45,
-        });
+        // Load partner statistics from API
+        try {
+          const partnerStats = await api.getPartnerStats(token) as any;
+          setStats({
+            activeDiscounts: partnerStats.activeDiscounts || 0,
+            activeJobs: partnerStats.activeJobs || 0,
+            activeCourses: partnerStats.activeCourses || 0,
+            totalViews: partnerStats.totalViews || 0,
+            totalApplications: partnerStats.totalApplications || 0,
+          });
+        } catch (err) {
+          console.error('Error loading partner stats:', err);
+          // Use default values on error
+          setStats({
+            activeDiscounts: 0,
+            activeJobs: 0,
+            activeCourses: 0,
+            totalViews: 0,
+            totalApplications: 0,
+          });
+        }
       } catch (error) {
         console.error('Error loading partner data:', error);
         router.push('/login');

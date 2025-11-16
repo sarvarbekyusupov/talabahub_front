@@ -66,32 +66,21 @@ export default function ProfilePage() {
     const token = getToken();
     if (!token) throw new Error('Not authenticated');
 
-    // Create FormData for file upload
-    const formData = new FormData();
-    formData.append('avatar', file);
+    try {
+      // Upload avatar using the API
+      const response = await api.uploadAvatar(file, token) as { url: string };
+      const avatarUrl = response.url;
 
-    // In a real implementation, this would upload to your backend
-    // For now, we'll simulate it with a timeout and return a placeholder
-    await new Promise(resolve => setTimeout(resolve, 1500));
+      // Update user state with new avatar
+      if (user) {
+        setUser({ ...user, avatarUrl });
+      }
 
-    // In production, this would be:
-    // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/avatar`, {
-    //   method: 'POST',
-    //   headers: { 'Authorization': `Bearer ${token}` },
-    //   body: formData
-    // });
-    // const data = await response.json();
-    // return data.avatarUrl;
-
-    // For now, create a local preview URL
-    const url = URL.createObjectURL(file);
-
-    // Update user state with new avatar
-    if (user) {
-      setUser({ ...user, avatarUrl: url });
+      return avatarUrl;
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      throw error;
     }
-
-    return url;
   };
 
   const handleAvatarRemove = () => {
