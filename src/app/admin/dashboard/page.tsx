@@ -15,11 +15,23 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
+    activeUsers: 0,
     totalDiscounts: 0,
+    activeDiscounts: 0,
     totalJobs: 0,
+    activeJobs: 0,
     totalEvents: 0,
+    activeEvents: 0,
     totalCourses: 0,
+    activeCourses: 0,
+    totalApplications: 0,
+    totalRegistrations: 0,
+    totalEnrollments: 0,
+    totalBrands: 0,
+    totalCompanies: 0,
+    totalCategories: 0,
   });
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   useEffect(() => {
     const loadAdminData = async () => {
@@ -40,14 +52,80 @@ export default function AdminDashboardPage() {
 
         setUser(profile);
 
-        // Load admin statistics (mock data for now)
+        // Load admin statistics from API
+        const [
+          usersData,
+          discountsData,
+          jobsData,
+          eventsData,
+          coursesData,
+          brandsData,
+          companiesData,
+          categoriesData,
+        ] = await Promise.all([
+          api.getUsers(token, { limit: 1 }) as Promise<any>,
+          api.getDiscounts({ limit: 1 }) as Promise<any>,
+          api.getJobs({ limit: 1 }) as Promise<any>,
+          api.getEvents({ limit: 1 }) as Promise<any>,
+          api.getCourses({ limit: 1 }) as Promise<any>,
+          api.getBrands({ limit: 1 }) as Promise<any>,
+          api.getCompanies({ limit: 1 }) as Promise<any>,
+          api.getCategories({ limit: 1 }) as Promise<any>,
+        ]);
+
+        // Get active counts by fetching filtered data
+        const [activeDiscountsData, activeJobsData, activeEventsData, activeCoursesData] = await Promise.all([
+          api.getDiscounts({ isActive: true, limit: 1 }) as Promise<any>,
+          api.getJobs({ isActive: true, limit: 1 }) as Promise<any>,
+          api.getEvents({ isActive: true, limit: 1 }) as Promise<any>,
+          api.getCourses({ isActive: true, limit: 1 }) as Promise<any>,
+        ]);
+
         setStats({
-          totalUsers: 150,
-          totalDiscounts: 45,
-          totalJobs: 28,
-          totalEvents: 12,
-          totalCourses: 35,
+          totalUsers: usersData.meta?.total || 0,
+          activeUsers: usersData.meta?.total || 0, // All users are considered active
+          totalDiscounts: discountsData.meta?.total || 0,
+          activeDiscounts: activeDiscountsData.meta?.total || 0,
+          totalJobs: jobsData.meta?.total || 0,
+          activeJobs: activeJobsData.meta?.total || 0,
+          totalEvents: eventsData.meta?.total || 0,
+          activeEvents: activeEventsData.meta?.total || 0,
+          totalCourses: coursesData.meta?.total || 0,
+          activeCourses: activeCoursesData.meta?.total || 0,
+          totalApplications: 0, // Will be loaded separately
+          totalRegistrations: 0, // Will be loaded separately
+          totalEnrollments: 0, // Will be loaded separately
+          totalBrands: brandsData.meta?.total || 0,
+          totalCompanies: companiesData.meta?.total || 0,
+          totalCategories: categoriesData.meta?.total || 0,
         });
+
+        // Load recent discounts, jobs, events for activity feed
+        const [recentDiscountsData, recentJobsData, recentEventsData] = await Promise.all([
+          api.getDiscounts({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
+          api.getJobs({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
+          api.getEvents({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
+        ]);
+
+        const activities = [
+          ...(recentDiscountsData.data || []).map((d: any) => ({
+            type: 'discount',
+            title: `Yangi chegirma: ${d.title}`,
+            time: new Date(d.createdAt),
+          })),
+          ...(recentJobsData.data || []).map((j: any) => ({
+            type: 'job',
+            title: `Yangi ish: ${j.title}`,
+            time: new Date(j.createdAt),
+          })),
+          ...(recentEventsData.data || []).map((e: any) => ({
+            type: 'event',
+            title: `Yangi tadbir: ${e.title}`,
+            time: new Date(e.createdAt),
+          })),
+        ].sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 5);
+
+        setRecentActivity(activities);
       } catch (error) {
         console.error('Error loading admin data:', error);
         router.push('/login');
@@ -62,6 +140,32 @@ export default function AdminDashboardPage() {
   const handleLogout = () => {
     clearAuth();
     router.push('/');
+  };
+
+  const getTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Hozir';
+    if (minutes < 60) return `${minutes} daqiqa oldin`;
+    if (hours < 24) return `${hours} soat oldin`;
+    return `${days} kun oldin`;
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'discount':
+        return '🏷️';
+      case 'job':
+        return '💼';
+      case 'event':
+        return '📅';
+      default:
+        return '📌';
+    }
   };
 
   if (loading) {
@@ -93,11 +197,11 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="bg-gradient-to-br from-brand to-brand-700 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Jami foydalanuvchilar</p>
+              <p className="text-white/80 text-sm mb-1">Foydalanuvchilar</p>
               <h3 className="text-3xl font-bold">{stats.totalUsers}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -106,12 +210,15 @@ export default function AdminDashboardPage() {
               </svg>
             </div>
           </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>✓ Faol: {stats.activeUsers}</span>
+          </div>
         </Card>
 
         <Card className="bg-gradient-to-br from-accent to-accent-700 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Jami chegirmalar</p>
+              <p className="text-white/80 text-sm mb-1">Chegirmalar</p>
               <h3 className="text-3xl font-bold">{stats.totalDiscounts}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -120,12 +227,16 @@ export default function AdminDashboardPage() {
               </svg>
             </div>
           </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>✓ Faol: {stats.activeDiscounts}</span>
+            <span>• Nofaol: {stats.totalDiscounts - stats.activeDiscounts}</span>
+          </div>
         </Card>
 
         <Card className="bg-gradient-to-br from-green-500 to-green-700 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Jami ish o'rinlari</p>
+              <p className="text-white/80 text-sm mb-1">Ish o'rinlari</p>
               <h3 className="text-3xl font-bold">{stats.totalJobs}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -134,12 +245,16 @@ export default function AdminDashboardPage() {
               </svg>
             </div>
           </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>✓ Faol: {stats.activeJobs}</span>
+            <span>• Nofaol: {stats.totalJobs - stats.activeJobs}</span>
+          </div>
         </Card>
 
         <Card className="bg-gradient-to-br from-purple-500 to-purple-700 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Jami tadbirlar</p>
+              <p className="text-white/80 text-sm mb-1">Tadbirlar</p>
               <h3 className="text-3xl font-bold">{stats.totalEvents}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -148,12 +263,16 @@ export default function AdminDashboardPage() {
               </svg>
             </div>
           </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>✓ Faol: {stats.activeEvents}</span>
+            <span>• Nofaol: {stats.totalEvents - stats.activeEvents}</span>
+          </div>
         </Card>
 
         <Card className="bg-gradient-to-br from-blue-500 to-blue-700 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Jami kurslar</p>
+              <p className="text-white/80 text-sm mb-1">Kurslar</p>
               <h3 className="text-3xl font-bold">{stats.totalCourses}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -161,6 +280,61 @@ export default function AdminDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>✓ Faol: {stats.activeCourses}</span>
+            <span>• Nofaol: {stats.totalCourses - stats.activeCourses}</span>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-500 to-orange-700 text-white">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-white/80 text-sm mb-1">Kompaniyalar</p>
+              <h3 className="text-3xl font-bold">{stats.totalCompanies}</h3>
+            </div>
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>Hamkorlar</span>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-pink-500 to-pink-700 text-white">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-white/80 text-sm mb-1">Brendlar</p>
+              <h3 className="text-3xl font-bold">{stats.totalBrands}</h3>
+            </div>
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>Chegirma hamkorlari</span>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-white/80 text-sm mb-1">Kategoriyalar</p>
+              <h3 className="text-3xl font-bold">{stats.totalCategories}</h3>
+            </div>
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>Barcha turlar</span>
           </div>
         </Card>
       </div>
@@ -323,29 +497,26 @@ export default function AdminDashboardPage() {
       {/* Recent Activity */}
       <Card className="mt-6">
         <h2 className="text-2xl font-bold text-dark mb-6">So'nggi faollik</h2>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between py-3 border-b border-lavender-200">
-            <div>
-              <p className="font-medium text-dark">Yangi foydalanuvchi ro'yxatdan o'tdi</p>
-              <p className="text-sm text-dark/60">5 daqiqa oldin</p>
-            </div>
-            <span className="text-brand font-medium">+1</span>
+        {recentActivity.length > 0 ? (
+          <div className="space-y-4">
+            {recentActivity.map((activity, index) => (
+              <div
+                key={index}
+                className={`flex items-start gap-3 py-3 ${
+                  index < recentActivity.length - 1 ? 'border-b border-lavender-200' : ''
+                }`}
+              >
+                <span className="text-2xl">{getActivityIcon(activity.type)}</span>
+                <div className="flex-1">
+                  <p className="font-medium text-dark">{activity.title}</p>
+                  <p className="text-sm text-dark/60">{getTimeAgo(activity.time)}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="flex items-center justify-between py-3 border-b border-lavender-200">
-            <div>
-              <p className="font-medium text-dark">Yangi ish o'rniga ariza berildi</p>
-              <p className="text-sm text-dark/60">15 daqiqa oldin</p>
-            </div>
-            <span className="text-green-600 font-medium">+1</span>
-          </div>
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <p className="font-medium text-dark">Yangi tadbir ro'yxatdan o'tish</p>
-              <p className="text-sm text-dark/60">1 soat oldin</p>
-            </div>
-            <span className="text-purple-600 font-medium">+2</span>
-          </div>
-        </div>
+        ) : (
+          <p className="text-gray-500 text-center py-8">Hozircha faollik yo'q</p>
+        )}
       </Card>
     </Container>
   );

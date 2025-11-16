@@ -14,12 +14,22 @@ export default function PartnerDashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
+    totalDiscounts: 0,
     activeDiscounts: 0,
+    pendingDiscounts: 0,
+    totalJobs: 0,
     activeJobs: 0,
+    pendingJobs: 0,
+    totalCourses: 0,
     activeCourses: 0,
+    pendingCourses: 0,
     totalViews: 0,
     totalApplications: 0,
+    totalEnrollments: 0,
   });
+  const [recentDiscounts, setRecentDiscounts] = useState<any[]>([]);
+  const [recentJobs, setRecentJobs] = useState<any[]>([]);
+  const [recentCourses, setRecentCourses] = useState<any[]>([]);
 
   useEffect(() => {
     const loadPartnerData = async () => {
@@ -44,22 +54,38 @@ export default function PartnerDashboardPage() {
         try {
           const partnerStats = await api.getPartnerStats(token) as any;
           setStats({
+            totalDiscounts: partnerStats.totalDiscounts || 0,
             activeDiscounts: partnerStats.activeDiscounts || 0,
+            pendingDiscounts: partnerStats.pendingDiscounts || 0,
+            totalJobs: partnerStats.totalJobs || 0,
             activeJobs: partnerStats.activeJobs || 0,
+            pendingJobs: partnerStats.pendingJobs || 0,
+            totalCourses: partnerStats.totalCourses || 0,
             activeCourses: partnerStats.activeCourses || 0,
+            pendingCourses: partnerStats.pendingCourses || 0,
             totalViews: partnerStats.totalViews || 0,
             totalApplications: partnerStats.totalApplications || 0,
+            totalEnrollments: partnerStats.totalEnrollments || 0,
           });
         } catch (err) {
           console.error('Error loading partner stats:', err);
-          // Use default values on error
-          setStats({
-            activeDiscounts: 0,
-            activeJobs: 0,
-            activeCourses: 0,
-            totalViews: 0,
-            totalApplications: 0,
-          });
+        }
+
+        // Load partner's recent offerings
+        try {
+          // Assuming we need to get partner's content by filtering
+          // This would ideally be a dedicated endpoint in the backend
+          const [discountsData, jobsData, coursesData] = await Promise.all([
+            api.getDiscounts({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
+            api.getJobs({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
+            api.getCourses({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
+          ]);
+
+          setRecentDiscounts(discountsData.data || []);
+          setRecentJobs(jobsData.data || []);
+          setRecentCourses(coursesData.data || []);
+        } catch (err) {
+          console.error('Error loading recent offerings:', err);
         }
       } catch (error) {
         console.error('Error loading partner data:', error);
@@ -106,12 +132,12 @@ export default function PartnerDashboardPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="bg-gradient-to-br from-accent to-accent-700 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Faol chegirmalar</p>
-              <h3 className="text-3xl font-bold">{stats.activeDiscounts}</h3>
+              <p className="text-white/80 text-sm mb-1">Chegirmalar</p>
+              <h3 className="text-3xl font-bold">{stats.totalDiscounts}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,13 +145,17 @@ export default function PartnerDashboardPage() {
               </svg>
             </div>
           </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>✓ Faol: {stats.activeDiscounts}</span>
+            <span>• Kutilmoqda: {stats.pendingDiscounts}</span>
+          </div>
         </Card>
 
         <Card className="bg-gradient-to-br from-green-500 to-green-700 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Faol ish o'rinlari</p>
-              <h3 className="text-3xl font-bold">{stats.activeJobs}</h3>
+              <p className="text-white/80 text-sm mb-1">Ish o'rinlari</p>
+              <h3 className="text-3xl font-bold">{stats.totalJobs}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,13 +163,17 @@ export default function PartnerDashboardPage() {
               </svg>
             </div>
           </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>✓ Faol: {stats.activeJobs}</span>
+            <span>• Kutilmoqda: {stats.pendingJobs}</span>
+          </div>
         </Card>
 
         <Card className="bg-gradient-to-br from-blue-500 to-blue-700 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Faol kurslar</p>
-              <h3 className="text-3xl font-bold">{stats.activeCourses}</h3>
+              <p className="text-white/80 text-sm mb-1">Kurslar</p>
+              <h3 className="text-3xl font-bold">{stats.totalCourses}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,12 +181,33 @@ export default function PartnerDashboardPage() {
               </svg>
             </div>
           </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>✓ Faol: {stats.activeCourses}</span>
+            <span>• Kutilmoqda: {stats.pendingCourses}</span>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-700 text-white">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-white/80 text-sm mb-1">Kurs talabalar</p>
+              <h3 className="text-3xl font-bold">{stats.totalEnrollments}</h3>
+            </div>
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>Ro'yxatga olingan</span>
+          </div>
         </Card>
 
         <Card className="bg-gradient-to-br from-brand to-brand-700 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Jami ko'rishlar</p>
+              <p className="text-white/80 text-sm mb-1">Ko'rishlar</p>
               <h3 className="text-3xl font-bold">{stats.totalViews}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -162,12 +217,15 @@ export default function PartnerDashboardPage() {
               </svg>
             </div>
           </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>Barcha takliflar</span>
+          </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-700 text-white">
-          <div className="flex items-center justify-between">
+        <Card className="bg-gradient-to-br from-orange-500 to-orange-700 text-white">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white/80 text-sm mb-1">Jami arizalar</p>
+              <p className="text-white/80 text-sm mb-1">Ish arizalari</p>
               <h3 className="text-3xl font-bold">{stats.totalApplications}</h3>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -175,6 +233,28 @@ export default function PartnerDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>Jami topshirildi</span>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-pink-500 to-pink-700 text-white">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-white/80 text-sm mb-1">Tasdiqlash kutilmoqda</p>
+              <h3 className="text-3xl font-bold">
+                {stats.pendingDiscounts + stats.pendingJobs + stats.pendingCourses}
+              </h3>
+            </div>
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            <span>Admin tasdiqlashi</span>
           </div>
         </Card>
       </div>
@@ -196,65 +276,129 @@ export default function PartnerDashboardPage() {
       </Card>
 
       {/* My Offerings */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card>
-          <h2 className="text-2xl font-bold text-dark mb-6">Mening chegirmalarim</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b border-lavender-200">
-              <div>
-                <p className="font-medium text-dark">30% chegirma IT kurslarga</p>
-                <p className="text-sm text-dark/60">Amal qiladi: 2024-12-31</p>
+          <h2 className="text-2xl font-bold text-dark mb-6">So'nggi chegirmalarim</h2>
+          {recentDiscounts.length > 0 ? (
+            <>
+              <div className="space-y-4">
+                {recentDiscounts.map((discount, index) => (
+                  <div
+                    key={discount.id}
+                    className={`flex items-center justify-between py-3 ${
+                      index < recentDiscounts.length - 1 ? 'border-b border-lavender-200' : ''
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-dark line-clamp-1">{discount.title}</p>
+                      <p className="text-sm text-dark/60">
+                        {discount.discount}% chegirma
+                      </p>
+                    </div>
+                    <span
+                      className={`text-sm font-medium ${
+                        discount.isActive ? 'text-green-600' : 'text-yellow-600'
+                      }`}
+                    >
+                      {discount.isActive ? 'Faol' : 'Kutilmoqda'}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <span className="text-green-600 text-sm font-medium">Faol</span>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b border-lavender-200">
-              <div>
-                <p className="font-medium text-dark">20% chegirma barcha kurslar</p>
-                <p className="text-sm text-dark/60">Amal qiladi: 2024-11-30</p>
-              </div>
-              <span className="text-green-600 text-sm font-medium">Faol</span>
-            </div>
-            <div className="flex items-center justify-between py-3">
-              <div>
-                <p className="font-medium text-dark">15% chegirma yangi talabalar</p>
-                <p className="text-sm text-dark/60">Amal qiladi: 2024-10-31</p>
-              </div>
-              <span className="text-red-600 text-sm font-medium">Tugagan</span>
-            </div>
-          </div>
-          <Button variant="ghost" fullWidth className="mt-4">
-            Barchasini ko'rish
-          </Button>
+              <Button
+                variant="ghost"
+                fullWidth
+                className="mt-4"
+                onClick={() => router.push('/partner/discounts')}
+              >
+                Barchasini ko'rish
+              </Button>
+            </>
+          ) : (
+            <p className="text-gray-500 text-center py-8">Hali chegirmalar yo'q</p>
+          )}
         </Card>
 
         <Card>
-          <h2 className="text-2xl font-bold text-dark mb-6">Mening ish o'rinlarim</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b border-lavender-200">
-              <div>
-                <p className="font-medium text-dark">Frontend Developer</p>
-                <p className="text-sm text-dark/60">8 ta ariza</p>
+          <h2 className="text-2xl font-bold text-dark mb-6">So'nggi ish o'rinlarim</h2>
+          {recentJobs.length > 0 ? (
+            <>
+              <div className="space-y-4">
+                {recentJobs.map((job, index) => (
+                  <div
+                    key={job.id}
+                    className={`flex items-center justify-between py-3 ${
+                      index < recentJobs.length - 1 ? 'border-b border-lavender-200' : ''
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-dark line-clamp-1">{job.title}</p>
+                      <p className="text-sm text-dark/60">{job.location}</p>
+                    </div>
+                    <span
+                      className={`text-sm font-medium ${
+                        job.isActive ? 'text-green-600' : 'text-yellow-600'
+                      }`}
+                    >
+                      {job.isActive ? 'Faol' : 'Kutilmoqda'}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <span className="text-green-600 text-sm font-medium">Faol</span>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b border-lavender-200">
-              <div>
-                <p className="font-medium text-dark">Marketing Specialist</p>
-                <p className="text-sm text-dark/60">5 ta ariza</p>
+              <Button
+                variant="ghost"
+                fullWidth
+                className="mt-4"
+                onClick={() => router.push('/partner/jobs')}
+              >
+                Barchasini ko'rish
+              </Button>
+            </>
+          ) : (
+            <p className="text-gray-500 text-center py-8">Hali ish o'rinlari yo'q</p>
+          )}
+        </Card>
+
+        <Card>
+          <h2 className="text-2xl font-bold text-dark mb-6">So'nggi kurslarim</h2>
+          {recentCourses.length > 0 ? (
+            <>
+              <div className="space-y-4">
+                {recentCourses.map((course, index) => (
+                  <div
+                    key={course.id}
+                    className={`flex items-center justify-between py-3 ${
+                      index < recentCourses.length - 1 ? 'border-b border-lavender-200' : ''
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-dark line-clamp-1">{course.title}</p>
+                      <p className="text-sm text-dark/60">
+                        {course.price?.toLocaleString()} so'm
+                      </p>
+                    </div>
+                    <span
+                      className={`text-sm font-medium ${
+                        course.isActive ? 'text-green-600' : 'text-yellow-600'
+                      }`}
+                    >
+                      {course.isActive ? 'Faol' : 'Kutilmoqda'}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <span className="text-green-600 text-sm font-medium">Faol</span>
-            </div>
-            <div className="flex items-center justify-between py-3">
-              <div>
-                <p className="font-medium text-dark">Data Analyst Intern</p>
-                <p className="text-sm text-dark/60">12 ta ariza</p>
-              </div>
-              <span className="text-green-600 text-sm font-medium">Faol</span>
-            </div>
-          </div>
-          <Button variant="ghost" fullWidth className="mt-4">
-            Barchasini ko'rish
-          </Button>
+              <Button
+                variant="ghost"
+                fullWidth
+                className="mt-4"
+                onClick={() => router.push('/partner/courses')}
+              >
+                Barchasini ko'rish
+              </Button>
+            </>
+          ) : (
+            <p className="text-gray-500 text-center py-8">Hali kurslar yo'q</p>
+          )}
         </Card>
       </div>
     </Container>
