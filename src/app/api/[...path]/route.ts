@@ -52,21 +52,35 @@ export async function POST(
   const body = await request.text();
 
   try {
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+    const authHeader = request.headers.get('Authorization');
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': request.headers.get('Authorization') || '',
-      },
+      headers,
       body,
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Backend POST error:', response.status, errorText);
+      return NextResponse.json(
+        { message: errorText || 'Backend error' },
+        { status: response.status }
+      );
+    }
 
-    return NextResponse.json(data, { status: response.status });
+    const data = await response.json();
+    return NextResponse.json(data);
   } catch (error) {
+    console.error('Proxy POST error:', error);
     return NextResponse.json(
-      { message: 'Failed to post data' },
+      { message: 'Failed to post data', error: String(error) },
       { status: 500 }
     );
   }
