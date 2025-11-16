@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -107,10 +108,12 @@ export default function CompaniesPage() {
                 {/* Logo */}
                 <div className="flex items-center justify-center h-32 bg-gray-50 rounded-lg mb-4">
                   {company.logo ? (
-                    <img
+                    <Image
                       src={company.logo}
                       alt={company.name}
-                      className="max-h-24 max-w-full object-contain"
+                      width={96}
+                      height={96}
+                      className="object-contain"
                     />
                   ) : (
                     <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">

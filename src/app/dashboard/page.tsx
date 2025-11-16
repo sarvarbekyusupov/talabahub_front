@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -596,7 +597,7 @@ export default function DashboardPage() {
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="font-semibold text-gray-900 line-clamp-2 text-sm flex-1">{job.title}</h4>
                             {job.company?.logoUrl && (
-                              <img src={job.company.logoUrl} alt={job.company.name} className="w-10 h-10 rounded object-cover ml-2" />
+                              <Image src={job.company.logoUrl} alt={job.company.name} width={40} height={40} className="rounded object-cover ml-2" />
                             )}
                           </div>
                           {job.company && (
@@ -633,8 +634,8 @@ export default function DashboardPage() {
                       <Link key={event.id} href={`/events/${event.id}`}>
                         <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-purple-500 hover:shadow-md transition-all">
                           {event.imageUrl && (
-                            <div className="aspect-video bg-gray-100">
-                              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+                            <div className="aspect-video bg-gray-100 relative">
+                              <Image src={event.imageUrl} alt={event.title} fill className="object-cover" />
                             </div>
                           )}
                           <div className="p-4">
@@ -668,8 +669,8 @@ export default function DashboardPage() {
                       <Link key={course.id} href={`/courses/${course.id}`}>
                         <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-green-500 hover:shadow-md transition-all">
                           {course.imageUrl && (
-                            <div className="aspect-video bg-gray-100">
-                              <img src={course.imageUrl} alt={course.title} className="w-full h-full object-cover" />
+                            <div className="aspect-video bg-gray-100 relative">
+                              <Image src={course.imageUrl} alt={course.title} fill className="object-cover" />
                             </div>
                           )}
                           <div className="p-4">

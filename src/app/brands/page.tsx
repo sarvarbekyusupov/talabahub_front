@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -106,10 +107,12 @@ export default function BrandsPage() {
                 {/* Logo */}
                 <div className="w-full h-32 flex items-center justify-center bg-gray-50 rounded-lg mb-4">
                   {brand.logo ? (
-                    <img
+                    <Image
                       src={brand.logo}
                       alt={brand.name}
-                      className="max-h-24 max-w-full object-contain"
+                      width={96}
+                      height={96}
+                      className="object-contain"
                     />
                   ) : (
                     <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">

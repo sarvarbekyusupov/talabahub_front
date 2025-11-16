@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -340,11 +341,14 @@ export default function EventDetailPage() {
         <div className="lg:col-span-2">
           <Card>
             {event.imageUrl && (
-              <img
-                src={event.imageUrl}
-                alt={event.title}
-                className="w-full h-64 object-cover rounded-t-lg mb-6"
-              />
+              <div className="relative w-full h-64 mb-6">
+                <Image
+                  src={event.imageUrl}
+                  alt={event.title}
+                  fill
+                  className="object-cover rounded-t-lg"
+                />
+              </div>
             )}
 
             <div className="flex items-start justify-between mb-4">
@@ -448,11 +452,14 @@ export default function EventDetailPage() {
                       >
                         <div className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-all duration-200 hover:border-indigo-300">
                           {relatedEvent.imageUrl && (
-                            <img
-                              src={relatedEvent.imageUrl}
-                              alt={relatedEvent.title}
-                              className="w-full h-32 object-cover rounded-lg mb-3"
-                            />
+                            <div className="relative w-full h-32 mb-3">
+                              <Image
+                                src={relatedEvent.imageUrl}
+                                alt={relatedEvent.title}
+                                fill
+                                className="object-cover rounded-lg"
+                              />
+                            </div>
                           )}
                           <div className="flex items-start justify-between mb-2">
                             <h3 className="text-base font-semibold text-gray-900 group-hover:text-indigo-600 line-clamp-2">

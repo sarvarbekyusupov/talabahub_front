@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -157,10 +158,12 @@ export default function BlogPostPage() {
           <div className="flex items-center justify-between py-6 border-y border-gray-200 mb-8">
             <div className="flex items-center gap-3">
               {post.author.avatarUrl ? (
-                <img
+                <Image
                   src={post.author.avatarUrl}
                   alt={post.author.firstName}
-                  className="w-12 h-12 rounded-full object-cover"
+                  width={48}
+                  height={48}
+                  className="rounded-full object-cover"
                 />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -209,9 +212,11 @@ export default function BlogPostPage() {
           {/* Cover Image */}
           {post.coverImage && (
             <div className="mb-8 rounded-lg overflow-hidden">
-              <img
+              <Image
                 src={post.coverImage}
                 alt={post.title}
+                width={1200}
+                height={675}
                 className="w-full h-auto"
               />
             </div>

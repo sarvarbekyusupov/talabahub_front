@@ -20,6 +20,8 @@ export default function EventsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [selectedEventType, setSelectedEventType] = useState<string>('all');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
 
   // Apply filters using useMemo for performance
@@ -41,17 +43,29 @@ export default function EventsPage() {
       result = result.filter((event) => event.eventType === selectedEventType);
     }
 
+    // Apply date range filter
+    if (startDate || endDate) {
+      result = result.filter((event) => {
+        const eventDate = new Date(event.eventDate);
+        const start = startDate ? new Date(startDate) : new Date(0); // Beginning of time
+        const end = endDate ? new Date(endDate) : new Date(8640000000000000); // End of time
+        return eventDate >= start && eventDate <= end;
+      });
+    }
+
     return result;
-  }, [events, debouncedSearch, selectedEventType]);
+  }, [events, debouncedSearch, selectedEventType, startDate, endDate]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, selectedEventType]);
+  }, [debouncedSearch, selectedEventType, startDate, endDate]);
 
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedEventType('all');
+    setStartDate('');
+    setEndDate('');
   };
 
   const getEventTypeBadge = (type: string) => {
@@ -88,7 +102,7 @@ export default function EventsPage() {
     );
   }
 
-  const hasActiveFilters = debouncedSearch || selectedEventType !== 'all';
+  const hasActiveFilters = debouncedSearch || selectedEventType !== 'all' || startDate || endDate;
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
@@ -133,6 +147,27 @@ export default function EventsPage() {
               <option value="competition">Musobaqa</option>
               <option value="networking">Networking</option>
             </select>
+          </div>
+        </div>
+
+        {/* Date Range Filter */}
+        <div className="mt-4 pt-4 border-t border-lavender-200">
+          <label className="block text-sm font-semibold text-dark mb-2">
+            Sana oralig'i
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              type="date"
+              placeholder="Boshlanish sanasi"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            <Input
+              type="date"
+              placeholder="Tugash sanasi"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
           </div>
         </div>
 

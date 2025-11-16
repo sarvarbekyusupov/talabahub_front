@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -208,11 +209,14 @@ export default function CourseDetailPage() {
         <div className="lg:col-span-2">
           <Card>
             {course.imageUrl && (
-              <img
-                src={course.imageUrl}
-                alt={course.title}
-                className="w-full h-64 object-cover rounded-t-lg mb-6"
-              />
+              <div className="relative w-full h-64 mb-6">
+                <Image
+                  src={course.imageUrl}
+                  alt={course.title}
+                  fill
+                  className="object-cover rounded-t-lg"
+                />
+              </div>
             )}
 
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{course.title}</h1>
@@ -241,10 +245,12 @@ export default function CourseDetailPage() {
               <h3 className="text-sm font-medium text-gray-500 mb-3">Ta'lim markazi</h3>
               <div className="flex items-center gap-4">
                 {course.partner.logoUrl && (
-                  <img
+                  <Image
                     src={course.partner.logoUrl}
                     alt={course.partner.name}
-                    className="w-16 h-16 object-contain rounded-lg border border-gray-200 p-2"
+                    width={64}
+                    height={64}
+                    className="object-contain rounded-lg border border-gray-200 p-2"
                   />
                 )}
                 <div>
@@ -453,11 +459,14 @@ export default function CourseDetailPage() {
                   onClick={() => router.push(`/courses/${relatedCourse.id}`)}
                 >
                   {relatedCourse.imageUrl && (
-                    <img
-                      src={relatedCourse.imageUrl}
-                      alt={relatedCourse.title}
-                      className="w-full h-40 object-cover"
-                    />
+                    <div className="relative w-full h-40">
+                      <Image
+                        src={relatedCourse.imageUrl}
+                        alt={relatedCourse.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   )}
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3rem]">
