@@ -10,7 +10,9 @@ import { Badge } from '@/components/ui/Badge';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
-
+import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { exportCompaniesToCSV } from '@/lib/export';
 interface Company {
   id: string;
   name: string;
@@ -48,6 +50,7 @@ export default function AdminCompaniesPage() {
   const { showToast } = useToast();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -89,6 +92,7 @@ export default function AdminCompaniesPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -107,7 +111,9 @@ export default function AdminCompaniesPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading companies:', error);
-      showToast(error.message || 'Kompaniyalarni yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Kompaniyalarni yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -236,7 +242,22 @@ export default function AdminCompaniesPage() {
   if (loading && companies.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={6} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && companies.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadCompanies}
+          />
+        </Card>
       </Container>
     );
   }

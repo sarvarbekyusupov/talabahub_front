@@ -11,12 +11,16 @@ import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { Course, PaginatedResponse } from '@/types';
+import { exportCoursesToCSV } from '@/lib/export';
+import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 export default function AdminCoursesPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -59,6 +63,7 @@ export default function AdminCoursesPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -83,7 +88,9 @@ export default function AdminCoursesPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading courses:', error);
-      showToast(error.message || 'Kurslarni yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Kurslarni yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -218,7 +225,22 @@ export default function AdminCoursesPage() {
   if (loading && courses.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={7} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && courses.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadCourses}
+          />
+        </Card>
       </Container>
     );
   }
@@ -231,6 +253,16 @@ export default function AdminCoursesPage() {
           <p className="text-gray-600 mt-1">Barcha kurslarni ko'rish va boshqarish</p>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => exportCoursesToCSV(courses)}
+            disabled={courses.length === 0}
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            CSV Eksport
+          </Button>
           <Button onClick={() => {
             resetForm();
             setShowModal(true);

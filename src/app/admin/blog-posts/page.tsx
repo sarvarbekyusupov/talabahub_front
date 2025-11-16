@@ -10,6 +10,9 @@ import { Badge } from '@/components/ui/Badge';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
+import { exportBlogPostsToCSV } from '@/lib/export';
+import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 interface BlogPost {
   id: string;
@@ -46,6 +49,7 @@ export default function AdminBlogPostsPage() {
   const { showToast } = useToast();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -79,6 +83,7 @@ export default function AdminBlogPostsPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -97,7 +102,9 @@ export default function AdminBlogPostsPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading blog posts:', error);
-      showToast(error.message || 'Postlarni yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Postlarni yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -198,7 +205,22 @@ export default function AdminBlogPostsPage() {
   if (loading && posts.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={6} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && posts.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadPosts}
+          />
+        </Card>
       </Container>
     );
   }
