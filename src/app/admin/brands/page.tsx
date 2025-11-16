@@ -11,6 +11,7 @@ import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { exportBrandsToCSV } from '@/lib/export';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 
 interface Brand {
   id: string;
@@ -206,7 +207,9 @@ export default function AdminBrandsPage() {
   if (loading && brands.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={6} />
+        </Card>
       </Container>
     );
   }

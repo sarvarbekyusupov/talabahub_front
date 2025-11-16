@@ -12,6 +12,7 @@ import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { Course, PaginatedResponse } from '@/types';
 import { exportCoursesToCSV } from '@/lib/export';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 
 export default function AdminCoursesPage() {
   const router = useRouter();
@@ -219,7 +220,9 @@ export default function AdminCoursesPage() {
   if (loading && courses.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={7} />
+        </Card>
       </Container>
     );
   }

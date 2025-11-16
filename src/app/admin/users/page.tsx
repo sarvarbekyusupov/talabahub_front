@@ -12,6 +12,7 @@ import { getToken } from '@/lib/auth';
 import { User, PaginatedResponse } from '@/types';
 import { useToast } from '@/components/ui/Toast';
 import { exportUsersToCSV } from '@/lib/export';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -119,7 +120,9 @@ export default function AdminUsersPage() {
   if (loading && users.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={7} />
+        </Card>
       </Container>
     );
   }

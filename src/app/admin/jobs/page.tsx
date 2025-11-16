@@ -12,6 +12,7 @@ import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { Job, PaginatedResponse } from '@/types';
 import { exportJobsToCSV } from '@/lib/export';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 
 export default function AdminJobsPage() {
   const router = useRouter();
@@ -225,7 +226,9 @@ export default function AdminJobsPage() {
   if (loading && jobs.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={8} />
+        </Card>
       </Container>
     );
   }

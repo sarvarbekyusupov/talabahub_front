@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
-
+import { TableSkeleton } from '@/components/ui/Skeleton';
 import { exportCompaniesToCSV } from '@/lib/export';
 interface Company {
   id: string;
@@ -237,7 +237,9 @@ export default function AdminCompaniesPage() {
   if (loading && companies.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={6} />
+        </Card>
       </Container>
     );
   }

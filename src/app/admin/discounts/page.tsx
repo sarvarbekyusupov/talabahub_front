@@ -12,6 +12,7 @@ import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { Discount, PaginatedResponse } from '@/types';
 import { exportDiscountsToCSV } from '@/lib/export';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 
 export default function AdminDiscountsPage() {
   const router = useRouter();
@@ -223,7 +224,9 @@ export default function AdminDiscountsPage() {
   if (loading && discounts.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={7} />
+        </Card>
       </Container>
     );
   }

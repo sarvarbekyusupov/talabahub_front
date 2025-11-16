@@ -11,6 +11,7 @@ import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { exportUniversitiesToCSV } from '@/lib/export';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 
 interface University {
   id: string;
@@ -192,7 +193,9 @@ export default function AdminUniversitiesPage() {
   if (loading && universities.length === 0) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <Card>
+          <TableSkeleton rows={10} columns={6} />
+        </Card>
       </Container>
     );
   }
