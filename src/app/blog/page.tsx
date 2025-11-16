@@ -66,7 +66,9 @@ export default function BlogPage() {
       setPosts(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error) {
-      console.error('Error loading blog posts:', error);
+      // Silently fail - blog endpoint may not be available yet
+      setPosts([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }

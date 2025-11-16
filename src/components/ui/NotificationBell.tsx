@@ -20,13 +20,17 @@ export function NotificationBell({ onClick }: NotificationBellProps) {
 
   const loadUnreadCount = async () => {
     const token = getToken();
-    if (!token) return;
+    if (!token) {
+      setUnreadCount(0);
+      return;
+    }
 
     try {
       const data: any = await api.getUnreadNotificationCount(token);
       setUnreadCount(data.count || 0);
     } catch (err) {
-      console.error('Error loading unread count:', err);
+      // Silently fail if not authenticated or endpoint not available
+      setUnreadCount(0);
     }
   };
 

@@ -52,7 +52,9 @@ export default function BrandsPage() {
       setBrands(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error) {
-      console.error('Error loading brands:', error);
+      // Silently fail - brands endpoint may not be available yet
+      setBrands([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
