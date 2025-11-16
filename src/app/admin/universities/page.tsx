@@ -86,7 +86,7 @@ export default function AdminUniversitiesPage() {
       // Upload logo if selected
       let logoUrl = formData.logo;
       if (logoFile) {
-        const uploadResponse = await api.uploadFile(logoFile, token) as { url: string };
+        const uploadResponse = await api.uploadLogo(logoFile, token) as { url: string };
         logoUrl = uploadResponse.url;
       }
 

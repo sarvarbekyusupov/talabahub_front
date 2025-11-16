@@ -23,6 +23,12 @@ export default function AdminJobsPage() {
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [companies, setCompanies] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterJobType, setFilterJobType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterCompany, setFilterCompany] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -40,7 +46,7 @@ export default function AdminJobsPage() {
   useEffect(() => {
     loadJobs();
     loadCompaniesAndCategories();
-  }, [page]);
+  }, [page, searchQuery, filterJobType, filterStatus, filterCompany]);
 
   const loadJobs = async () => {
     const token = getToken();
@@ -51,7 +57,25 @@ export default function AdminJobsPage() {
 
     setLoading(true);
     try {
-      const data = await api.getJobs({ page, limit: 20 }) as PaginatedResponse<Job>;
+      const params: any = { page, limit: 20 };
+
+      // Add search query if provided
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+
+      // Add filters
+      if (filterJobType) {
+        params.jobType = filterJobType;
+      }
+      if (filterStatus) {
+        params.isActive = filterStatus === 'active';
+      }
+      if (filterCompany) {
+        params.companyId = filterCompany;
+      }
+
+      const data = await api.getJobs(params) as PaginatedResponse<Job>;
       setJobs(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
@@ -183,9 +207,19 @@ export default function AdminJobsPage() {
       case 'part_time': return 'info';
       case 'internship': return 'warning';
       case 'contract': return 'primary';
-      default: return 'default';
+      default: return 'primary';
     }
   };
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFilterJobType('');
+    setFilterStatus('');
+    setFilterCompany('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || filterJobType || filterStatus || filterCompany;
 
   if (loading && jobs.length === 0) {
     return (
@@ -214,6 +248,140 @@ export default function AdminJobsPage() {
           </Link>
         </div>
       </div>
+
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {/* Search */}
+          <div className="xl:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Qidirish
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Lavozim nomi bo'yicha qidirish..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <svg
+                className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Job Type Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ish turi
+            </label>
+            <select
+              value={filterJobType}
+              onChange={(e) => {
+                setFilterJobType(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barcha turlar</option>
+              <option value="full_time">To'liq vaqt</option>
+              <option value="part_time">Yarim vaqt</option>
+              <option value="internship">Amaliyot</option>
+              <option value="contract">Kontrakt</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Holat
+            </label>
+            <select
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barchasi</option>
+              <option value="active">Faol</option>
+              <option value="inactive">Nofaol</option>
+            </select>
+          </div>
+
+          {/* Company Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Kompaniya
+            </label>
+            <select
+              value={filterCompany}
+              onChange={(e) => {
+                setFilterCompany(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barcha kompaniyalar</option>
+              {companies.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Active Filters & Reset */}
+        {hasActiveFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-600">Faol filtrlar:</span>
+              {searchQuery && (
+                <Badge variant="info">Qidiruv: {searchQuery}</Badge>
+              )}
+              {filterJobType && (
+                <Badge variant="info">Tur: {getJobTypeLabel(filterJobType)}</Badge>
+              )}
+              {filterStatus && (
+                <Badge variant="info">
+                  Holat: {filterStatus === 'active' ? 'Faol' : 'Nofaol'}
+                </Badge>
+              )}
+              {filterCompany && (
+                <Badge variant="info">
+                  Kompaniya: {companies.find(c => c.id === filterCompany)?.name}
+                </Badge>
+              )}
+            </div>
+            <Button variant="outline" size="sm" onClick={handleResetFilters}>
+              Tozalash
+            </Button>
+          </div>
+        )}
+
+        {/* Results Count */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            Jami: <span className="font-semibold">{jobs.length}</span> ta ish o'rni topildi
+          </p>
+        </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">

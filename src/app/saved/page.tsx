@@ -76,7 +76,7 @@ export default function SavedItemsPage() {
       case 'job': return 'success';
       case 'event': return 'warning';
       case 'course': return 'primary';
-      default: return 'default';
+      default: return 'primary';
     }
   };
 

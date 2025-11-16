@@ -63,7 +63,7 @@ export default function AdminDashboardPage() {
           companiesData,
           categoriesData,
         ] = await Promise.all([
-          api.getUsers(token, { limit: 1 }) as Promise<any>,
+          api.getAllUsers(token, { limit: 1 }) as Promise<any>,
           api.getDiscounts({ limit: 1 }) as Promise<any>,
           api.getJobs({ limit: 1 }) as Promise<any>,
           api.getEvents({ limit: 1 }) as Promise<any>,

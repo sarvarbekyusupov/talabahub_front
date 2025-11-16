@@ -80,9 +80,9 @@ export default function ApplicationsPage() {
     setLoading(true);
     try {
       const [jobsData, eventsData, coursesData] = await Promise.all([
-        api.getJobApplications(token) as Promise<JobApplication[]>,
-        api.getEventRegistrations(token) as Promise<EventRegistration[]>,
-        api.getCourseEnrollments(token) as Promise<CourseEnrollment[]>,
+        api.getMyApplications(token) as Promise<JobApplication[]>,
+        api.getMyRegistrations(token) as Promise<EventRegistration[]>,
+        api.getMyEnrollments(token) as Promise<CourseEnrollment[]>,
       ]);
 
       setJobApplications(jobsData);
@@ -114,7 +114,7 @@ export default function ApplicationsPage() {
       case 'in_progress':
         return 'info';
       default:
-        return 'default';
+        return 'primary';
     }
   };
 

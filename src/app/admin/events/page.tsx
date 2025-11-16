@@ -85,7 +85,7 @@ export default function AdminEventsPage() {
       // Upload image if selected
       let imageUrl = formData.imageUrl;
       if (imageFile) {
-        const uploadResponse = await api.uploadFile(imageFile, token) as { url: string };
+        const uploadResponse = await api.uploadImage(imageFile, token) as { url: string };
         imageUrl = uploadResponse.url;
       }
 
@@ -206,8 +206,8 @@ export default function AdminEventsPage() {
       case 'seminar': return 'info';
       case 'webinar': return 'warning';
       case 'competition': return 'danger';
-      case 'networking': return 'default';
-      default: return 'default';
+      case 'networking': return 'info';
+      default: return 'primary';
     }
   };
 
