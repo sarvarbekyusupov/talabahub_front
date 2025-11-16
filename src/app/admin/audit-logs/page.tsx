@@ -42,11 +42,7 @@ export default function AuditLogsPage() {
 
   useEffect(() => {
     loadAuditLogs();
-  }, [page]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [filters, logs]);
+  }, [page, filters]);
 
   const loadAuditLogs = async () => {
     const token = getToken();
@@ -55,119 +51,45 @@ export default function AuditLogsPage() {
       return;
     }
 
+    setLoading(true);
     try {
-      // Mock data - replace with actual API call
-      const mockLogs: AuditLog[] = [
-        {
-          id: '1',
-          timestamp: new Date(Date.now() - 300000).toISOString(),
-          userId: 'user123',
-          userEmail: 'admin@talabahub.uz',
-          userRole: 'admin',
-          action: 'approve_content',
-          resource: 'discount',
-          resourceId: 'discount123',
-          details: { title: 'Student Discount 50%' },
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0...',
-          status: 'success',
-        },
-        {
-          id: '2',
-          timestamp: new Date(Date.now() - 600000).toISOString(),
-          userId: 'partner456',
-          userEmail: 'partner@company.uz',
-          userRole: 'partner',
-          action: 'create_job',
-          resource: 'job',
-          resourceId: 'job456',
-          details: { title: 'Frontend Developer' },
-          ipAddress: '192.168.1.101',
-          userAgent: 'Mozilla/5.0...',
-          status: 'success',
-        },
-        {
-          id: '3',
-          timestamp: new Date(Date.now() - 900000).toISOString(),
-          userId: 'user789',
-          userEmail: 'student@university.uz',
-          userRole: 'student',
-          action: 'apply_job',
-          resource: 'application',
-          resourceId: 'app789',
-          details: { jobTitle: 'Software Engineer' },
-          ipAddress: '192.168.1.102',
-          userAgent: 'Mozilla/5.0...',
-          status: 'success',
-        },
-        {
-          id: '4',
-          timestamp: new Date(Date.now() - 1200000).toISOString(),
-          userId: 'admin999',
-          userEmail: 'admin@talabahub.uz',
-          userRole: 'admin',
-          action: 'delete_user',
-          resource: 'user',
-          resourceId: 'user999',
-          details: { reason: 'Spam account' },
-          ipAddress: '192.168.1.100',
-          userAgent: 'Mozilla/5.0...',
-          status: 'success',
-        },
-        {
-          id: '5',
-          timestamp: new Date(Date.now() - 1500000).toISOString(),
-          userId: 'user555',
-          userEmail: 'hacker@bad.com',
-          userRole: 'student',
-          action: 'login',
-          resource: 'auth',
-          details: { attempts: 5 },
-          ipAddress: '123.45.67.89',
-          userAgent: 'Mozilla/5.0...',
-          status: 'failed',
-        },
-      ];
+      // Build query parameters from filters
+      const params: Record<string, any> = {
+        page: page.toString(),
+        limit: '20',
+      };
 
-      setLogs(mockLogs);
-      setTotalPages(5); // Mock pagination
+      if (filters.action !== 'all') {
+        params.action = filters.action;
+      }
+      if (filters.role !== 'all') {
+        params.role = filters.role;
+      }
+      if (filters.status !== 'all') {
+        params.status = filters.status;
+      }
+      if (filters.dateFrom) {
+        params.dateFrom = filters.dateFrom;
+      }
+      if (filters.dateTo) {
+        params.dateTo = filters.dateTo;
+      }
+      if (filters.search) {
+        params.search = filters.search;
+      }
+
+      const response: any = await api.getAuditLogs(token, params);
+
+      setLogs(response.data || []);
+      setFilteredLogs(response.data || []);
+      setTotalPages(response.totalPages || 1);
     } catch (error) {
       console.error('Error loading audit logs:', error);
+      setLogs([]);
+      setFilteredLogs([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  const applyFilters = () => {
-    let filtered = [...logs];
-
-    // Filter by action
-    if (filters.action !== 'all') {
-      filtered = filtered.filter((log) => log.action === filters.action);
-    }
-
-    // Filter by role
-    if (filters.role !== 'all') {
-      filtered = filtered.filter((log) => log.userRole === filters.role);
-    }
-
-    // Filter by status
-    if (filters.status !== 'all') {
-      filtered = filtered.filter((log) => log.status === filters.status);
-    }
-
-    // Filter by search
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        (log) =>
-          log.userEmail.toLowerCase().includes(searchLower) ||
-          log.action.toLowerCase().includes(searchLower) ||
-          log.resource.toLowerCase().includes(searchLower)
-      );
-    }
-
-    setFilteredLogs(filtered);
   };
 
   const getActionBadge = (action: string) => {

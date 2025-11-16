@@ -30,10 +30,15 @@ export default function CourseDetailPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [relatedCourses, setRelatedCourses] = useState<CourseType[]>([]);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [courseContent, setCourseContent] = useState<{
+    learningObjectives: string[];
+    prerequisites: string[];
+  } | null>(null);
 
   useEffect(() => {
     if (id) {
       loadCourse();
+      loadCourseContent();
       loadReviews();
       loadRating();
       loadCurrentUser();
@@ -54,6 +59,23 @@ export default function CourseDetailPage() {
       setError('Kurs topilmadi');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCourseContent = async () => {
+    try {
+      const data = await clientApi.getCourseContent(id) as any;
+      setCourseContent({
+        learningObjectives: data.learningObjectives || [],
+        prerequisites: data.prerequisites || [],
+      });
+    } catch (err) {
+      console.error('Error loading course content:', err);
+      // Set default values if API fails
+      setCourseContent({
+        learningObjectives: [],
+        prerequisites: [],
+      });
     }
   };
 
@@ -266,46 +288,34 @@ export default function CourseDetailPage() {
               <p className="text-gray-700 whitespace-pre-line leading-relaxed">{course.description}</p>
             </div>
 
-            {/* What You'll Learn - Mock data (will be dynamic when API supports it) */}
-            <div className="mb-6 p-6 bg-blue-50 rounded-lg">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900">Siz nimalarni o'rganasiz</h2>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <li className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700">Asosiy konsepsiyalar va nazariya</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700">Amaliy mashg'ulotlar va topshiriqlar</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700">Real loyihalar ustida ishlash</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-gray-700">Sertifikat olish imkoniyati</span>
-                </li>
-              </ul>
-            </div>
+            {/* What You'll Learn */}
+            {courseContent && courseContent.learningObjectives.length > 0 && (
+              <div className="mb-6 p-6 bg-blue-50 rounded-lg">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">Siz nimalarni o'rganasiz</h2>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {courseContent.learningObjectives.map((objective, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-gray-700">{objective}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            {/* Prerequisites - Mock data */}
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-3">Talablar</h2>
-              <ul className="list-disc list-inside space-y-2 text-gray-700">
-                <li>Kompyuter va internet ulanishi</li>
-                <li>O'rganishga intilish va motivatsiya</li>
-                <li>Darslarni muntazam kuzatish</li>
-              </ul>
-            </div>
+            {/* Prerequisites */}
+            {courseContent && courseContent.prerequisites.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-3">Talablar</h2>
+                <ul className="list-disc list-inside space-y-2 text-gray-700">
+                  {courseContent.prerequisites.map((prerequisite, index) => (
+                    <li key={index}>{prerequisite}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </Card>
         </div>
 
