@@ -18,15 +18,15 @@ export default function Home() {
                 </span>
               </div>
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-dark leading-tight">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight">
                 Talaba hayotini{' '}
                 <span className="relative inline-block">
-                  <span className="relative z-10">osonlashtiring</span>
+                  <span className="relative z-10 text-gray-900">osonlashtiring</span>
                   <span className="absolute bottom-2 left-0 w-full h-4 bg-brand/20 -rotate-1"></span>
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-dark/70 leading-relaxed max-w-2xl">
+              <p className="text-xl md:text-2xl text-gray-700 leading-relaxed max-w-2xl">
                 Chegirmalar, ish o'rinlari, tadbirlar va kurslar — barcha imkoniyatlar bitta joyda
               </p>
 
@@ -63,8 +63,8 @@ export default function Home() {
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-accent-600 border-2 border-white"></div>
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-lavender-400 to-brand-400 border-2 border-white"></div>
                 </div>
-                <div className="text-dark/60">
-                  <div className="font-semibold text-dark">2,500+ talaba</div>
+                <div className="text-gray-600">
+                  <div className="font-semibold text-gray-900">2,500+ talaba</div>
                   <div className="text-sm">bizga ishonadi</div>
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function Home() {
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 Hoziroq qo'shiling!
               </h2>
-              <p className="text-xl md:text-2xl text-white/80 mb-10 max-w-2xl mx-auto">
+              <p className="text-xl md:text-2xl text-white mb-10 max-w-2xl mx-auto">
                 Talabalar uchun maxsus imtiyozlardan foydalaning va karyerangizni boshlang
               </p>
               <Link href="/register">

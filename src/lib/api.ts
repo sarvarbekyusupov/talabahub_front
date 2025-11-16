@@ -101,11 +101,11 @@ class ApiClient {
 
   // User endpoints
   async getProfile(token: string) {
-    return this.request('/users/profile', { token });
+    return this.request('/users/me/profile', { token });
   }
 
   async updateProfile(token: string, data: any) {
-    return this.request('/users/profile', {
+    return this.request('/users/me/profile', {
       method: 'PATCH',
       token,
       body: JSON.stringify(data),

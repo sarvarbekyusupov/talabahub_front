@@ -32,7 +32,7 @@ const coursesFetcher = async (params: Record<string, any>) => {
 };
 
 // Custom hooks with SWR
-export function useDiscounts(params: Record<string, any> = { limit: 100 }) {
+export function useDiscounts(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['discounts', params],
     () => discountsFetcher(params),
@@ -50,7 +50,7 @@ export function useDiscounts(params: Record<string, any> = { limit: 100 }) {
   };
 }
 
-export function useJobs(params: Record<string, any> = { limit: 100 }) {
+export function useJobs(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['jobs', params],
     () => jobsFetcher(params),
@@ -68,7 +68,7 @@ export function useJobs(params: Record<string, any> = { limit: 100 }) {
   };
 }
 
-export function useEvents(params: Record<string, any> = { limit: 20 }) {
+export function useEvents(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['events', params],
     () => eventsFetcher(params),
@@ -86,7 +86,7 @@ export function useEvents(params: Record<string, any> = { limit: 20 }) {
   };
 }
 
-export function useCourses(params: Record<string, any> = { limit: 20 }) {
+export function useCourses(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['courses', params],
     () => coursesFetcher(params),
