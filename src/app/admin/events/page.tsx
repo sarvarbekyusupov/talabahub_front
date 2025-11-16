@@ -23,6 +23,13 @@ export default function AdminEventsPage() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterEventType, setFilterEventType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -42,7 +49,7 @@ export default function AdminEventsPage() {
   useEffect(() => {
     loadEvents();
     loadCategories();
-  }, [page]);
+  }, [page, searchQuery, filterEventType, filterStatus, filterCategory]);
 
   const loadEvents = async () => {
     const token = getToken();
@@ -53,7 +60,25 @@ export default function AdminEventsPage() {
 
     setLoading(true);
     try {
-      const data = await api.getEvents({ page, limit: 20 }) as PaginatedResponse<Event>;
+      const params: any = { page, limit: 20 };
+
+      // Add search query if provided
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+
+      // Add filters
+      if (filterEventType) {
+        params.eventType = filterEventType;
+      }
+      if (filterStatus) {
+        params.isActive = filterStatus === 'active';
+      }
+      if (filterCategory) {
+        params.categoryId = filterCategory;
+      }
+
+      const data = await api.getEvents(params) as PaginatedResponse<Event>;
       setEvents(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
@@ -211,6 +236,16 @@ export default function AdminEventsPage() {
     }
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFilterEventType('');
+    setFilterStatus('');
+    setFilterCategory('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || filterEventType || filterStatus || filterCategory;
+
   if (loading && events.length === 0) {
     return (
       <Container className="py-12">
@@ -238,6 +273,142 @@ export default function AdminEventsPage() {
           </Link>
         </div>
       </div>
+
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Qidirish
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Tadbir nomi bo'yicha qidirish..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <svg
+                className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Event Type Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tadbir turi
+            </label>
+            <select
+              value={filterEventType}
+              onChange={(e) => {
+                setFilterEventType(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barcha turlar</option>
+              <option value="workshop">Ustaxona</option>
+              <option value="conference">Konferensiya</option>
+              <option value="seminar">Seminar</option>
+              <option value="webinar">Vebinar</option>
+              <option value="competition">Tanlov</option>
+              <option value="networking">Networking</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Holat
+            </label>
+            <select
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barchasi</option>
+              <option value="active">Faol</option>
+              <option value="inactive">Nofaol</option>
+            </select>
+          </div>
+
+          {/* Category Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Kategoriya
+            </label>
+            <select
+              value={filterCategory}
+              onChange={(e) => {
+                setFilterCategory(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barcha kategoriyalar</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Active Filters & Reset */}
+        {hasActiveFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-600">Faol filtrlar:</span>
+              {searchQuery && (
+                <Badge variant="info">Qidiruv: {searchQuery}</Badge>
+              )}
+              {filterEventType && (
+                <Badge variant="info">Tur: {getEventTypeLabel(filterEventType)}</Badge>
+              )}
+              {filterStatus && (
+                <Badge variant="info">
+                  Holat: {filterStatus === 'active' ? 'Faol' : 'Nofaol'}
+                </Badge>
+              )}
+              {filterCategory && (
+                <Badge variant="info">
+                  Kategoriya: {categories.find(c => c.id === filterCategory)?.name}
+                </Badge>
+              )}
+            </div>
+            <Button variant="outline" size="sm" onClick={handleResetFilters}>
+              Tozalash
+            </Button>
+          </div>
+        )}
+
+        {/* Results Count */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            Jami: <span className="font-semibold">{events.length}</span> ta tadbir topildi
+          </p>
+        </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">
