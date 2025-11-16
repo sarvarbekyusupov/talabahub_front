@@ -14,6 +14,9 @@ import { Course, PaginatedResponse } from '@/types';
 import { exportCoursesToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function AdminCoursesPage() {
   const router = useRouter();

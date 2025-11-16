@@ -14,6 +14,9 @@ import { Job, PaginatedResponse } from '@/types';
 import { exportJobsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function AdminJobsPage() {
   const router = useRouter();
@@ -33,6 +36,16 @@ export default function AdminJobsPage() {
   const [filterJobType, setFilterJobType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterCompany, setFilterCompany] = useState('');
+
+  // Debounced search
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Confirm dialog state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; jobId: string; jobTitle: string }>({
+    isOpen: false,
+    jobId: '',
+    jobTitle: '',
+  });
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -50,7 +63,7 @@ export default function AdminJobsPage() {
   useEffect(() => {
     loadJobs();
     loadCompaniesAndCategories();
-  }, [page, searchQuery, filterJobType, filterStatus, filterCompany]);
+  }, [page, debouncedSearch, filterJobType, filterStatus, filterCompany]);
 
   const loadJobs = async () => {
     const token = getToken();
@@ -65,8 +78,8 @@ export default function AdminJobsPage() {
       const params: any = { page, limit: 20 };
 
       // Add search query if provided
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
 
       // Add filters
@@ -163,17 +176,22 @@ export default function AdminJobsPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Haqiqatan ham bu ish o\'rnini o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (job: Job) => {
+    setDeleteConfirm({
+      isOpen: true,
+      jobId: job.id,
+      jobTitle: job.title,
+    });
+  };
 
+  const handleDeleteConfirm = async () => {
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteJob(token, id);
+      await api.deleteJob(token, deleteConfirm.jobId);
       showToast('Ish o\'rni muvaffaqiyatli o\'chirildi', 'success');
+      setDeleteConfirm({ isOpen: false, jobId: '', jobTitle: '' });
       loadJobs();
     } catch (error: any) {
       console.error('Error deleting job:', error);
@@ -246,6 +264,27 @@ export default function AdminJobsPage() {
             message={error}
             onRetry={loadJobs}
           />
+        </Card>
+      </Container>
+    );
+  }
+
+  // Empty state when no data and no loading/error
+  if (!loading && jobs.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          {searchQuery ? (
+            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+          ) : hasActiveFilters ? (
+            <NoFilterResults onClearFilters={handleResetFilters} />
+          ) : (
+            <EmptyState
+              title="Ish o'rinlari yo'q"
+              message="Hozircha hech qanday ish o'rni qo'shilmagan. Yangi ish o'rni qo'shing."
+              showAction={false}
+            />
+          )}
         </Card>
       </Container>
     );
@@ -488,7 +527,7 @@ export default function AdminJobsPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(job.id)}
+                        onClick={() => handleDeleteClick(job)}
                         className="text-red-600 hover:text-red-800 p-2"
                         title="O'chirish"
                       >
@@ -733,6 +772,14 @@ export default function AdminJobsPage() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, jobId: '', jobTitle: '' })}
+        onConfirm={handleDeleteConfirm}
+        itemName={deleteConfirm.jobTitle}
+      />
     </Container>
   );
 }

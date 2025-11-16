@@ -13,6 +13,9 @@ import { useToast } from '@/components/ui/Toast';
 import { exportBrandsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Brand {
   id: string;
