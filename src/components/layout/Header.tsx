@@ -17,7 +17,20 @@ export const Header = () => {
   const router = useRouter();
 
   useEffect(() => {
+    // Initial check
     setIsLoggedIn(isAuthenticated());
+
+    // Listen for auth changes
+    const handleAuthChange = () => {
+      setIsLoggedIn(isAuthenticated());
+    };
+
+    window.addEventListener('auth-change', handleAuthChange);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
   }, []);
 
   const handleLogout = () => {

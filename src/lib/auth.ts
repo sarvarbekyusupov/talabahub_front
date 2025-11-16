@@ -10,6 +10,8 @@ export const getToken = (): string | null => {
 export const setToken = (token: string): void => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(AUTH_TOKEN_KEY, token);
+  // Dispatch custom event to notify components about auth change
+  window.dispatchEvent(new Event('auth-change'));
 };
 
 export const getRefreshToken = (): string | null => {
@@ -26,6 +28,8 @@ export const removeTokens = (): void => {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  // Dispatch custom event to notify components about auth change
+  window.dispatchEvent(new Event('auth-change'));
 };
 
 export const clearAuth = (): void => {
