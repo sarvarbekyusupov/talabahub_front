@@ -35,7 +35,7 @@ export default function JobsPage() {
         (job) =>
           job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           job.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          job.company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (job.company && job.company.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
           job.location.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
@@ -229,7 +229,7 @@ export default function JobsPage() {
               <Link key={job.id} href={`/jobs/${job.id}`}>
                 <Card hover>
                   <div className="flex flex-col md:flex-row gap-6">
-                    {job.company.logoUrl && (
+                    {job.company && job.company.logoUrl && (
                       <div className="relative w-24 h-24 flex-shrink-0">
                         <Image
                           src={job.company.logoUrl}
@@ -245,7 +245,7 @@ export default function JobsPage() {
                           <h3 className="text-2xl font-semibold text-dark mb-1">
                             {job.title}
                           </h3>
-                          <p className="text-lg text-dark/60">{job.company.name}</p>
+                          {job.company && <p className="text-lg text-dark/60">{job.company.name}</p>}
                         </div>
                         <Badge variant={typeBadge.variant}>
                           {typeBadge.label}

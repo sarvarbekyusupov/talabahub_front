@@ -86,10 +86,12 @@ export default function CoursesPage() {
                 </p>
 
                 <div className="space-y-2 text-sm mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-dark/50">Ta'lim markazi:</span>
-                    <span className="font-medium text-dark">{course.partner.name}</span>
-                  </div>
+                  {course.partner && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-dark/50">Ta'lim markazi:</span>
+                      <span className="font-medium text-dark">{course.partner.name}</span>
+                    </div>
+                  )}
                   {course.duration && (
                     <div className="flex items-center justify-between">
                       <span className="text-dark/50">Davomiyligi:</span>
