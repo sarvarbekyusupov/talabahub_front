@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
+import { validate, emailSchema, passwordSchema, phoneSchema } from '@/lib/validations';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function RegisterPage() {
     phone: '',
   });
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,14 +29,55 @@ export default function RegisterPage() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    // Clear error for this field when user types
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setErrors({});
 
+    // Validate individual fields
+    const validationErrors: Record<string, string> = {};
+
+    // Validate email
+    const emailResult = validate(emailSchema, formData.email);
+    if (!emailResult.success) {
+      validationErrors.email = Object.values(emailResult.errors)[0];
+    }
+
+    // Validate password
+    const passwordResult = validate(passwordSchema, formData.password);
+    if (!passwordResult.success) {
+      validationErrors.password = Object.values(passwordResult.errors)[0];
+    }
+
+    // Validate confirm password
     if (formData.password !== formData.confirmPassword) {
-      setError('Parollar mos kelmadi');
+      validationErrors.confirmPassword = 'Parollar mos kelmadi';
+    }
+
+    // Validate phone if provided
+    if (formData.phone) {
+      const phoneResult = validate(phoneSchema, formData.phone);
+      if (!phoneResult.success) {
+        validationErrors.phone = Object.values(phoneResult.errors)[0];
+      }
+    }
+
+    // Validate names
+    if (formData.firstName.trim().length < 2) {
+      validationErrors.firstName = 'Ism kamida 2 ta belgidan iborat bo\'lishi kerak';
+    }
+    if (formData.lastName.trim().length < 2) {
+      validationErrors.lastName = 'Familiya kamida 2 ta belgidan iborat bo\'lishi kerak';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
@@ -76,63 +119,93 @@ export default function RegisterPage() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Ism"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="Ism"
-              required
-            />
+            <div>
+              <Input
+                label="Ism"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="Ism"
+                required
+              />
+              {errors.firstName && (
+                <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+              )}
+            </div>
 
-            <Input
-              label="Familiya"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Familiya"
-              required
-            />
+            <div>
+              <Input
+                label="Familiya"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Familiya"
+                required
+              />
+              {errors.lastName && (
+                <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+              )}
+            </div>
           </div>
 
-          <Input
-            label="Email"
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="email@example.com"
-            required
-          />
+          <div>
+            <Input
+              label="Email"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="email@example.com"
+              required
+            />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+            )}
+          </div>
 
-          <Input
-            label="Telefon raqam"
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="+998901234567"
-          />
+          <div>
+            <Input
+              label="Telefon raqam"
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="+998901234567"
+            />
+            {errors.phone && (
+              <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+            )}
+          </div>
 
-          <Input
-            label="Parol"
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="••••••••"
-            required
-          />
+          <div>
+            <Input
+              label="Parol"
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              required
+            />
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+            )}
+          </div>
 
-          <Input
-            label="Parolni tasdiqlash"
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            placeholder="••••••••"
-            required
-          />
+          <div>
+            <Input
+              label="Parolni tasdiqlash"
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="••••••••"
+              required
+            />
+            {errors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+            )}
+          </div>
 
           <div className="text-xs text-gray-500">
             Ro'yxatdan o'tish orqali siz{' '}

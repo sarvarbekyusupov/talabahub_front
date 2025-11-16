@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { AnalyticsSkeleton } from '@/components/ui/Skeleton';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 
@@ -123,13 +125,14 @@ export default function PartnerAnalyticsPage() {
   if (loading || !analytics) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <AnalyticsSkeleton />
       </Container>
     );
   }
 
   return (
-    <Container className="py-12">
+    <ErrorBoundary>
+      <Container className="py-12">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-4xl font-bold text-dark mb-2">Analitika</h1>
@@ -410,5 +413,6 @@ export default function PartnerAnalyticsPage() {
         </Card>
       </div>
     </Container>
+    </ErrorBoundary>
   );
 }
