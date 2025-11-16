@@ -15,7 +15,11 @@ import {
   CourseEnrollment,
   UserStats,
   SavedItem,
-  PaginatedResponse
+  PaginatedResponse,
+  Job,
+  Event,
+  Course,
+  Discount
 } from '@/types';
 
 export default function DashboardPage() {
@@ -33,6 +37,9 @@ export default function DashboardPage() {
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [popularCourses, setPopularCourses] = useState<Course[]>([]);
 
   useEffect(() => {
     const token = getToken();
@@ -56,16 +63,53 @@ export default function DashboardPage() {
     return `${days} kun oldin`;
   };
 
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'application':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        );
+      case 'registration':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        );
+      case 'enrollment':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        );
+      case 'saved':
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+          </svg>
+        );
+      default:
+        return (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
+    }
+  };
+
   const getActivityColor = (type: string) => {
     switch (type) {
       case 'application':
-        return 'bg-blue-600';
+        return 'bg-blue-500 text-white';
       case 'registration':
-        return 'bg-purple-600';
+        return 'bg-purple-500 text-white';
       case 'enrollment':
-        return 'bg-green-600';
+        return 'bg-green-500 text-white';
+      case 'saved':
+        return 'bg-yellow-500 text-white';
       default:
-        return 'bg-gray-600';
+        return 'bg-gray-500 text-white';
     }
   };
 
@@ -75,6 +119,10 @@ export default function DashboardPage() {
     const accepted = applications.filter(a => a.status === 'accepted').length;
     const rejected = applications.filter(a => a.status === 'rejected').length;
     return { pending, reviewed, accepted, rejected };
+  };
+
+  const getSavedDiscountsCount = () => {
+    return savedItems.filter(item => item.itemType === 'discount').length;
   };
 
   const getAverageCourseProgress = () => {
@@ -92,12 +140,15 @@ export default function DashboardPage() {
 
     try {
       // Load all dashboard data in parallel
-      const [statsData, applicationsData, registrationsData, enrollmentsData, savedItemsData] = await Promise.all([
+      const [statsData, applicationsData, registrationsData, enrollmentsData, savedItemsData, jobsData, eventsData, coursesData] = await Promise.all([
         api.getUserStats(token) as Promise<UserStats>,
         api.getMyApplications(token, { limit: 50 }) as Promise<PaginatedResponse<JobApplication>>,
         api.getMyRegistrations(token, { limit: 50 }) as Promise<PaginatedResponse<EventRegistration>>,
         api.getMyEnrollments(token, { limit: 50 }) as Promise<PaginatedResponse<CourseEnrollment>>,
         api.getSavedItems(token, { limit: 50 }) as Promise<PaginatedResponse<SavedItem>>,
+        api.getJobs({ limit: 6, page: 1 }) as Promise<PaginatedResponse<Job>>,
+        api.getEvents({ limit: 6, page: 1 }) as Promise<PaginatedResponse<Event>>,
+        api.getCourses({ limit: 6, page: 1 }) as Promise<PaginatedResponse<Course>>,
       ]);
 
       setStats(statsData);
@@ -105,6 +156,9 @@ export default function DashboardPage() {
       setRegistrations(registrationsData.data);
       setEnrollments(enrollmentsData.data);
       setSavedItems(savedItemsData.data);
+      setRecommendedJobs(jobsData.data);
+      setUpcomingEvents(eventsData.data.filter(e => new Date(e.eventDate) > new Date()));
+      setPopularCourses(coursesData.data);
 
       // Build recent activity from all data
       const activities = [
@@ -125,7 +179,12 @@ export default function DashboardPage() {
           time: new Date(enr.enrolledAt),
           progress: enr.progress,
         })),
-      ].sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 5);
+        ...savedItemsData.data.slice(0, 2).map((saved: SavedItem) => ({
+          type: 'saved',
+          title: `${(saved.item as any).title} saqlandi`,
+          time: new Date(saved.savedAt),
+        })),
+      ].sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 8);
 
       setRecentActivity(activities);
     } catch (err) {
@@ -145,79 +204,156 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <Container className="py-20">
-        <div className="text-center text-gray-600">Yuklanmoqda...</div>
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
       </Container>
     );
   }
 
   return (
     <Container className="py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Mening paneлim</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mening panelim</h1>
+        <p className="text-gray-600">Shaxsiy kabinetingizga xush kelibsiz</p>
+      </div>
 
-      {/* Stats Grid */}
+      {/* Enhanced Stats Grid with Gradients */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div onClick={() => setActiveTab('applications')} className="cursor-pointer">
-          <Card hover>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Arizalar</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.applications}</p>
+        {/* Applications Card */}
+        <div
+          onClick={() => setActiveTab('applications')}
+          className="cursor-pointer transform transition-all hover:scale-105 hover:shadow-xl"
+        >
+          <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-6 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 opacity-10">
+              <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+              <p className="text-3xl font-bold mb-1">{stats.applications}</p>
+              <p className="text-blue-100 text-sm mb-3">Ish arizalari</p>
+              <div className="flex gap-2 text-xs">
+                {(() => {
+                  const statusCounts = getApplicationStatusCounts();
+                  return (
+                    <>
+                      {statusCounts.pending > 0 && (
+                        <span className="bg-white bg-opacity-20 px-2 py-1 rounded">
+                          {statusCounts.pending} kutilmoqda
+                        </span>
+                      )}
+                      {statusCounts.accepted > 0 && (
+                        <span className="bg-green-500 bg-opacity-50 px-2 py-1 rounded">
+                          {statusCounts.accepted} qabul
+                        </span>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
-          </Card>
+          </div>
         </div>
 
-        <div onClick={() => setActiveTab('saved')} className="cursor-pointer">
-          <Card hover>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Saqlangan</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.saved}</p>
+        {/* Registrations Card */}
+        <div
+          onClick={() => setActiveTab('registrations')}
+          className="cursor-pointer transform transition-all hover:scale-105 hover:shadow-xl"
+        >
+          <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl p-6 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 opacity-10">
+              <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                </svg>
+              <p className="text-3xl font-bold mb-1">{stats.registrations}</p>
+              <p className="text-purple-100 text-sm mb-3">Tadbirlarga ro'yxat</p>
+              <div className="text-xs">
+                <span className="bg-white bg-opacity-20 px-2 py-1 rounded">
+                  {registrations.filter(r => new Date(r.event.eventDate) > new Date()).length} yaqinlashayotgan
+                </span>
               </div>
             </div>
-          </Card>
+          </div>
         </div>
 
-        <div onClick={() => setActiveTab('registrations')} className="cursor-pointer">
-          <Card hover>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Tadbirlar</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.registrations}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
+        {/* Courses Card */}
+        <div
+          onClick={() => setActiveTab('courses')}
+          className="cursor-pointer transform transition-all hover:scale-105 hover:shadow-xl"
+        >
+          <div className="bg-gradient-to-br from-green-500 to-green-700 rounded-xl p-6 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 opacity-10">
+              <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
             </div>
-          </Card>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-3xl font-bold mb-1">{stats.courses}</p>
+              <p className="text-green-100 text-sm mb-3">Aktiv kurslar</p>
+              {enrollments.length > 0 && (
+                <div className="text-xs">
+                  <span className="bg-white bg-opacity-20 px-2 py-1 rounded">
+                    {getAverageCourseProgress()}% o'rtacha
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div onClick={() => setActiveTab('courses')} className="cursor-pointer">
-          <Card hover>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Kurslar</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.courses}</p>
+        {/* Saved Items Card */}
+        <div
+          onClick={() => setActiveTab('saved')}
+          className="cursor-pointer transform transition-all hover:scale-105 hover:shadow-xl"
+        >
+          <div className="bg-gradient-to-br from-orange-500 to-orange-700 rounded-xl p-6 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 opacity-10">
+              <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                </div>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
+              <p className="text-3xl font-bold mb-1">{stats.saved}</p>
+              <p className="text-orange-100 text-sm mb-3">Saqlangan</p>
+              <div className="text-xs">
+                <span className="bg-white bg-opacity-20 px-2 py-1 rounded">
+                  {getSavedDiscountsCount()} chegirma
+                </span>
               </div>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
 
@@ -226,7 +362,7 @@ export default function DashboardPage() {
         <div className="flex gap-2 border-b overflow-x-auto">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 font-medium border-b-2 transition ${
+            className={`px-4 py-2 font-medium border-b-2 transition whitespace-nowrap ${
               activeTab === 'overview'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -236,7 +372,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab('applications')}
-            className={`px-4 py-2 font-medium border-b-2 transition ${
+            className={`px-4 py-2 font-medium border-b-2 transition whitespace-nowrap ${
               activeTab === 'applications'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -246,7 +382,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab('saved')}
-            className={`px-4 py-2 font-medium border-b-2 transition ${
+            className={`px-4 py-2 font-medium border-b-2 transition whitespace-nowrap ${
               activeTab === 'saved'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -256,7 +392,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab('registrations')}
-            className={`px-4 py-2 font-medium border-b-2 transition ${
+            className={`px-4 py-2 font-medium border-b-2 transition whitespace-nowrap ${
               activeTab === 'registrations'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -266,7 +402,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab('courses')}
-            className={`px-4 py-2 font-medium border-b-2 transition ${
+            className={`px-4 py-2 font-medium border-b-2 transition whitespace-nowrap ${
               activeTab === 'courses'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -280,149 +416,288 @@ export default function DashboardPage() {
       {/* Tab Content */}
       <div>
         {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Arizalar holati</h3>
-                <div className="space-y-2">
-                  {(() => {
-                    const statusCounts = getApplicationStatusCounts();
-                    return (
-                      <>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-yellow-600">● Kutilmoqda</span>
-                          <span className="font-semibold">{statusCounts.pending}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-blue-600">● Ko'rib chiqildi</span>
-                          <span className="font-semibold">{statusCounts.reviewed}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-green-600">● Qabul qilindi</span>
-                          <span className="font-semibold">{statusCounts.accepted}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-red-600">● Rad etildi</span>
-                          <span className="font-semibold">{statusCounts.rejected}</span>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              </Card>
-
-              <Card>
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Kurslar jarayoni</h3>
-                <div className="flex items-center justify-center py-6">
-                  <div className="relative w-32 h-32">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="#E5E7EB"
-                        strokeWidth="8"
-                        fill="none"
-                      />
-                      <circle
-                        cx="64"
-                        cy="64"
-                        r="56"
-                        stroke="#3B82F6"
-                        strokeWidth="8"
-                        fill="none"
-                        strokeDasharray={`${2 * Math.PI * 56}`}
-                        strokeDashoffset={`${2 * Math.PI * 56 * (1 - getAverageCourseProgress() / 100)}`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-3xl font-bold text-gray-900">
-                        {getAverageCourseProgress()}%
-                      </span>
+          <div className="space-y-8">
+            {/* Quick Actions Section */}
+            <Card>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Tezkor harakatlar</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Link href="/jobs" className="group">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl p-6 text-center transition-all transform hover:scale-105 hover:shadow-lg">
+                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
                     </div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Ish o'rinlari</h3>
+                    <p className="text-sm text-gray-600">Yangi ish topish</p>
                   </div>
-                </div>
-                <p className="text-center text-sm text-gray-600">
-                  O'rtacha tugallanish
-                </p>
-              </Card>
+                </Link>
 
-              <Card>
-                <h3 className="text-sm font-medium text-gray-500 mb-2">Yaqin tadbirlar</h3>
-                <div className="space-y-3">
-                  {registrations
-                    .filter(r => new Date(r.event.eventDate) > new Date())
-                    .slice(0, 3)
-                    .map((reg) => (
-                      <div key={reg.id} className="text-sm">
-                        <p className="font-medium line-clamp-1">{reg.event.title}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(reg.event.eventDate).toLocaleDateString('uz-UZ')}
-                        </p>
-                      </div>
-                    ))}
-                  {registrations.filter(r => new Date(r.event.eventDate) > new Date()).length === 0 && (
-                    <p className="text-gray-500 text-center py-4 text-sm">
-                      Yaqin tadbirlar yo'q
-                    </p>
-                  )}
-                </div>
-              </Card>
-            </div>
+                <Link href="/events" className="group">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-xl p-6 text-center transition-all transform hover:scale-105 hover:shadow-lg">
+                    <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Tadbirlar</h3>
+                    <p className="text-sm text-gray-600">Tadbirlarga ro'yxat</p>
+                  </div>
+                </Link>
 
+                <Link href="/courses" className="group">
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl p-6 text-center transition-all transform hover:scale-105 hover:shadow-lg">
+                    <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Kurslar</h3>
+                    <p className="text-sm text-gray-600">O'rganish boshlash</p>
+                  </div>
+                </Link>
+
+                <Link href="/discounts" className="group">
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 rounded-xl p-6 text-center transition-all transform hover:scale-105 hover:shadow-lg">
+                    <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Chegirmalar</h3>
+                    <p className="text-sm text-gray-600">Chegirmalardan foydalanish</p>
+                  </div>
+                </Link>
+              </div>
+            </Card>
+
+            {/* Recent Activity Timeline and Progress Indicators */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Activity Timeline */}
               <Card>
-                <h3 className="text-lg font-semibold mb-4">So'nggi faoliyat</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">So'nggi faoliyat</h3>
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
                 {recentActivity.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {recentActivity.map((activity, index) => (
                       <div
                         key={index}
-                        className={`flex items-start gap-3 pb-3 ${
-                          index < recentActivity.length - 1 ? 'border-b' : ''
-                        }`}
+                        className="flex items-start gap-4 pb-4 border-b last:border-b-0 last:pb-0"
                       >
-                        <div className={`w-2 h-2 ${getActivityColor(activity.type)} rounded-full mt-1.5`}></div>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${getActivityColor(activity.type)}`}>
+                          {getActivityIcon(activity.type)}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium line-clamp-1">{activity.title}</p>
-                          <p className="text-xs text-gray-500">{getTimeAgo(activity.time)}</p>
+                          <p className="text-sm font-medium text-gray-900 line-clamp-2">{activity.title}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-gray-500">{getTimeAgo(activity.time)}</p>
+                            {activity.status && (
+                              <Badge
+                                variant={
+                                  activity.status === 'accepted' ? 'success' :
+                                  activity.status === 'rejected' ? 'danger' :
+                                  activity.status === 'reviewed' ? 'info' : 'warning'
+                                }
+                              >
+                                {activity.status === 'pending' ? 'Kutilmoqda' :
+                                 activity.status === 'reviewed' ? 'Ko\'rib chiqildi' :
+                                 activity.status === 'accepted' ? 'Qabul' :
+                                 activity.status === 'rejected' ? 'Rad' : activity.status}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-8 text-sm">
-                    Hali faoliyat yo'q
-                  </p>
+                  <div className="text-center py-12">
+                    <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-gray-500 text-sm">Hali faoliyat yo'q</p>
+                  </div>
                 )}
               </Card>
 
+              {/* Course Progress Indicators */}
               <Card>
-                <h3 className="text-lg font-semibold mb-4">Tezkor havolalar</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <Link href="/discounts">
-                    <Button fullWidth variant="outline">Chegirmalar</Button>
-                  </Link>
-                  <Link href="/jobs">
-                    <Button fullWidth variant="outline">Ish o'rinlari</Button>
-                  </Link>
-                  <Link href="/events">
-                    <Button fullWidth variant="outline">Tadbirlar</Button>
-                  </Link>
-                  <Link href="/courses">
-                    <Button fullWidth variant="outline">Kurslar</Button>
-                  </Link>
-                  <Link href="/saved">
-                    <Button fullWidth variant="outline">Saqlangan</Button>
-                  </Link>
-                  <Link href="/applications">
-                    <Button fullWidth variant="outline">Arizalarim</Button>
-                  </Link>
-                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Kurs jarayoni</h3>
+                {enrollments.filter(e => e.status === 'active').length > 0 ? (
+                  <div className="space-y-6">
+                    {enrollments.filter(e => e.status === 'active').slice(0, 4).map((enrollment) => (
+                      <div key={enrollment.id}>
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 min-w-0">
+                            <Link href={`/courses/${enrollment.course.id}`}>
+                              <h4 className="font-medium text-gray-900 hover:text-blue-600 transition line-clamp-1 text-sm">
+                                {enrollment.course.title}
+                              </h4>
+                            </Link>
+                            {enrollment.course.partner && (
+                              <p className="text-xs text-gray-500 mt-1">{enrollment.course.partner.name}</p>
+                            )}
+                          </div>
+                          <span className="text-sm font-semibold text-blue-600 ml-3">{enrollment.progress}%</span>
+                        </div>
+                        <div className="relative">
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                            <div
+                              className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500"
+                              style={{ width: `${enrollment.progress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {enrollments.filter(e => e.status === 'active').length > 4 && (
+                      <Link href="#" onClick={(e) => { e.preventDefault(); setActiveTab('courses'); }}>
+                        <p className="text-sm text-blue-600 hover:text-blue-700 text-center">
+                          Barcha kurslarni ko'rish ({enrollments.filter(e => e.status === 'active').length})
+                        </p>
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <p className="text-gray-500 text-sm mb-4">Aktiv kurslar yo'q</p>
+                    <Link href="/courses">
+                      <Button variant="outline" size="sm">Kurslarni ko'rish</Button>
+                    </Link>
+                  </div>
+                )}
               </Card>
             </div>
+
+            {/* Personalized Recommendations */}
+            <Card>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Sizga tavsiya etiladi</h2>
+
+              {/* Recommended Jobs */}
+              {recommendedJobs.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Tavsiya etilgan ish o'rinlari</h3>
+                    <Link href="/jobs" className="text-sm text-blue-600 hover:text-blue-700">
+                      Barchasini ko'rish
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {recommendedJobs.slice(0, 3).map((job) => (
+                      <Link key={job.id} href={`/jobs/${job.id}`}>
+                        <div className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-md transition-all">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-semibold text-gray-900 line-clamp-2 text-sm flex-1">{job.title}</h4>
+                            {job.company?.logoUrl && (
+                              <img src={job.company.logoUrl} alt={job.company.name} className="w-10 h-10 rounded object-cover ml-2" />
+                            )}
+                          </div>
+                          {job.company && (
+                            <p className="text-sm text-gray-600 mb-2">{job.company.name}</p>
+                          )}
+                          <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                            <span>{job.location}</span>
+                            <span>•</span>
+                            <span className="capitalize">
+                              {job.jobType === 'full_time' ? 'To\'liq vaqt' :
+                               job.jobType === 'part_time' ? 'Qisman vaqt' :
+                               job.jobType === 'internship' ? 'Amaliyot' : 'Shartnoma'}
+                            </span>
+                          </div>
+                          <Button size="sm" fullWidth>Batafsil</Button>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Upcoming Events */}
+              {upcomingEvents.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Yaqinlashayotgan tadbirlar</h3>
+                    <Link href="/events" className="text-sm text-blue-600 hover:text-blue-700">
+                      Barchasini ko'rish
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {upcomingEvents.slice(0, 3).map((event) => (
+                      <Link key={event.id} href={`/events/${event.id}`}>
+                        <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-purple-500 hover:shadow-md transition-all">
+                          {event.imageUrl && (
+                            <div className="aspect-video bg-gray-100">
+                              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <h4 className="font-semibold text-gray-900 line-clamp-2 text-sm mb-2">{event.title}</h4>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <span>{new Date(event.eventDate).toLocaleDateString('uz-UZ')}</span>
+                            </div>
+                            <Button size="sm" fullWidth variant="outline">Batafsil</Button>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Popular Courses */}
+              {popularCourses.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Ommabop kurslar</h3>
+                    <Link href="/courses" className="text-sm text-blue-600 hover:text-blue-700">
+                      Barchasini ko'rish
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {popularCourses.slice(0, 3).map((course) => (
+                      <Link key={course.id} href={`/courses/${course.id}`}>
+                        <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-green-500 hover:shadow-md transition-all">
+                          {course.imageUrl && (
+                            <div className="aspect-video bg-gray-100">
+                              <img src={course.imageUrl} alt={course.title} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <h4 className="font-semibold text-gray-900 line-clamp-2 text-sm mb-2">{course.title}</h4>
+                            {course.partner && (
+                              <p className="text-xs text-gray-500 mb-2">{course.partner.name}</p>
+                            )}
+                            <div className="flex items-center justify-between mb-3">
+                              {course.price > 0 ? (
+                                <span className="text-sm font-semibold text-green-600">
+                                  {course.price.toLocaleString()} so'm
+                                </span>
+                              ) : (
+                                <span className="text-sm font-semibold text-green-600">Bepul</span>
+                              )}
+                              {course.duration && (
+                                <span className="text-xs text-gray-500">{course.duration}</span>
+                              )}
+                            </div>
+                            <Button size="sm" fullWidth variant="outline">Batafsil</Button>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Card>
           </div>
         )}
 
@@ -468,9 +743,12 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="text-center py-12 text-gray-600">
-                <p>Hozircha arizalar yo'q</p>
+                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <p className="mb-4">Hozircha arizalar yo'q</p>
                 <Link href="/jobs">
-                  <Button variant="outline" className="mt-4">Ish o'rinlarini ko'rish</Button>
+                  <Button variant="outline">Ish o'rinlarini ko'rish</Button>
                 </Link>
               </div>
             )}
@@ -523,8 +801,8 @@ export default function DashboardPage() {
                 <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
-                <p>Saqlangan e'lonlar yo'q</p>
-                <p className="text-sm mt-2">E'lonlarni saqlab, keyinroq ko'ring</p>
+                <p className="mb-2">Saqlangan e'lonlar yo'q</p>
+                <p className="text-sm mb-4">E'lonlarni saqlab, keyinroq ko'ring</p>
               </div>
             )}
           </Card>
@@ -560,9 +838,12 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="text-center py-12 text-gray-600">
-                <p>Ro'yxatdan o'tgan tadbirlar yo'q</p>
+                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p className="mb-4">Ro'yxatdan o'tgan tadbirlar yo'q</p>
                 <Link href="/events">
-                  <Button variant="outline" className="mt-4">Tadbirlarni ko'rish</Button>
+                  <Button variant="outline">Tadbirlarni ko'rish</Button>
                 </Link>
               </div>
             )}
@@ -624,7 +905,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                             <div
-                              className="bg-blue-600 h-2 rounded-full transition-all"
+                              className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all"
                               style={{ width: `${enrollment.progress}%` }}
                             ></div>
                           </div>
@@ -661,9 +942,12 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="text-center py-12 text-gray-600">
-                <p>Yozilgan kurslar yo'q</p>
+                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <p className="mb-4">Yozilgan kurslar yo'q</p>
                 <Link href="/courses">
-                  <Button variant="outline" className="mt-4">Kurslarni ko'rish</Button>
+                  <Button variant="outline">Kurslarni ko'rish</Button>
                 </Link>
               </div>
             )}
