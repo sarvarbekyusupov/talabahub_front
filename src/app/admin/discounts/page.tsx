@@ -34,9 +34,14 @@ export default function AdminDiscountsPage() {
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [filterBrand, setFilterBrand] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterDiscountType, setFilterDiscountType] = useState('');
+
+  // Delete confirmation states
+  const [deleteDiscountId, setDeleteDiscountId] = useState<string | null>(null);
+  const [deleteDiscountTitle, setDeleteDiscountTitle] = useState<string>('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -57,7 +62,7 @@ export default function AdminDiscountsPage() {
   useEffect(() => {
     loadDiscounts();
     loadCategoriesAndBrands();
-  }, [page, searchQuery, filterBrand, filterStatus, filterDiscountType]);
+  }, [page, debouncedSearch, filterBrand, filterStatus, filterDiscountType]);
 
   const loadDiscounts = async () => {
     const token = getToken();
@@ -72,8 +77,8 @@ export default function AdminDiscountsPage() {
       const params: any = { page, limit: 20 };
 
       // Add search query if provided
-      if (searchQuery) {
-        params.search = searchQuery;
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
 
       // Add filters
@@ -181,17 +186,22 @@ export default function AdminDiscountsPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Haqiqatan ham bu chegirmani o\'chirmoqchimisiz?')) {
-      return;
-    }
+  const handleDeleteClick = (id: string, title: string) => {
+    setDeleteDiscountId(id);
+    setDeleteDiscountTitle(title);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteDiscountId) return;
 
     const token = getToken();
     if (!token) return;
 
     try {
-      await api.deleteDiscount(token, id);
+      await api.deleteDiscount(token, deleteDiscountId);
       showToast('Chegirma muvaffaqiyatli o\'chirildi', 'success');
+      setDeleteDiscountId(null);
+      setDeleteDiscountTitle('');
       loadDiscounts();
     } catch (error: any) {
       console.error('Error deleting discount:', error);
@@ -405,21 +415,40 @@ export default function AdminDiscountsPage() {
       </Card>
 
       <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Chegirma</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Brend</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Kategoriya</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Miqdori</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Amal qilish muddati</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {discounts.map((discount) => (
+        {discounts.length === 0 ? (
+          <EmptyState
+            title="Chegirmalar yo'q"
+            description="Hozircha hech qanday chegirma qo'shilmagan."
+            icon={
+              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+            action={
+              <Button onClick={() => {
+                resetForm();
+                setShowModal(true);
+              }}>
+                Yangi chegirma qo'shish
+              </Button>
+            }
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Chegirma</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Brend</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Kategoriya</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Miqdori</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Amal qilish muddati</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Holat</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Harakatlar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {discounts.map((discount) => (
                 <tr key={discount.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
@@ -486,7 +515,7 @@ export default function AdminDiscountsPage() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(discount.id)}
+                        onClick={() => handleDeleteClick(discount.id, discount.title)}
                         className="text-red-600 hover:text-red-800 p-2"
                         title="O'chirish"
                       >
@@ -497,13 +526,14 @@ export default function AdminDiscountsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {totalPages > 1 && discounts.length > 0 && (
           <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
             <Button
               variant="outline"
@@ -763,6 +793,20 @@ export default function AdminDiscountsPage() {
           </Card>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteDiscountId !== null}
+        onClose={() => {
+          setDeleteDiscountId(null);
+          setDeleteDiscountTitle('');
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Chegirmani o'chirish"
+        message={`Haqiqatan ham "${deleteDiscountTitle}" chegirmasini o'chirmoqchimisiz?`}
+        confirmText="O'chirish"
+        cancelText="Bekor qilish"
+      />
     </Container>
   );
 }
