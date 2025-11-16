@@ -8,6 +8,8 @@ import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { DashboardSkeleton } from '@/components/ui/Skeleton';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import {
@@ -204,16 +206,15 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <Container className="py-20">
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+      <Container className="py-8">
+        <DashboardSkeleton />
       </Container>
     );
   }
 
   return (
-    <Container className="py-8">
+    <ErrorBoundary>
+      <Container className="py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Mening panelim</h1>
         <p className="text-gray-600">Shaxsiy kabinetingizga xush kelibsiz</p>
@@ -956,5 +957,6 @@ export default function DashboardPage() {
         )}
       </div>
     </Container>
+    </ErrorBoundary>
   );
 }

@@ -6,6 +6,8 @@ import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { AnalyticsSkeleton } from '@/components/ui/Skeleton';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 
@@ -85,13 +87,14 @@ export default function ApplicationAnalyticsPage() {
   if (loading || !analytics) {
     return (
       <Container className="py-12">
-        <div className="text-center">Yuklanmoqda...</div>
+        <AnalyticsSkeleton />
       </Container>
     );
   }
 
   return (
-    <Container className="py-12">
+    <ErrorBoundary>
+      <Container className="py-12">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <Button variant="ghost" onClick={() => router.push('/dashboard')} className="mb-4">
@@ -378,5 +381,6 @@ export default function ApplicationAnalyticsPage() {
         </Card>
       </div>
     </Container>
+    </ErrorBoundary>
   );
 }
