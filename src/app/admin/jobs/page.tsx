@@ -13,12 +13,14 @@ import { useToast } from '@/components/ui/Toast';
 import { Job, PaginatedResponse } from '@/types';
 import { exportJobsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 export default function AdminJobsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -58,6 +60,7 @@ export default function AdminJobsPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -82,7 +85,9 @@ export default function AdminJobsPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading jobs:', error);
-      showToast(error.message || 'Ish o\'rinlarini yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Ish o\'rinlarini yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -228,6 +233,19 @@ export default function AdminJobsPage() {
       <Container className="py-12">
         <Card>
           <TableSkeleton rows={10} columns={8} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && jobs.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadJobs}
+          />
         </Card>
       </Container>
     );

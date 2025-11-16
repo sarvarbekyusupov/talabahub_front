@@ -12,6 +12,7 @@ import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { exportUniversitiesToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 interface University {
   id: string;
@@ -40,6 +41,7 @@ export default function AdminUniversitiesPage() {
   const { showToast } = useToast();
   const [universities, setUniversities] = useState<University[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -72,6 +74,7 @@ export default function AdminUniversitiesPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -90,7 +93,9 @@ export default function AdminUniversitiesPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading universities:', error);
-      showToast(error.message || 'Universitetlarni yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Universitetlarni yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -195,6 +200,19 @@ export default function AdminUniversitiesPage() {
       <Container className="py-12">
         <Card>
           <TableSkeleton rows={10} columns={6} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && universities.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadUniversities}
+          />
         </Card>
       </Container>
     );

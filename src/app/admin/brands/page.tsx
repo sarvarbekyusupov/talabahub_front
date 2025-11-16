@@ -12,6 +12,7 @@ import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { exportBrandsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 interface Brand {
   id: string;
@@ -45,6 +46,7 @@ export default function AdminBrandsPage() {
   const { showToast } = useToast();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -79,6 +81,7 @@ export default function AdminBrandsPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -94,7 +97,9 @@ export default function AdminBrandsPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading brands:', error);
-      showToast(error.message || 'Brendlarni yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Brendlarni yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -209,6 +214,19 @@ export default function AdminBrandsPage() {
       <Container className="py-12">
         <Card>
           <TableSkeleton rows={10} columns={6} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && brands.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadBrands}
+          />
         </Card>
       </Container>
     );

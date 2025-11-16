@@ -13,12 +13,14 @@ import { useToast } from '@/components/ui/Toast';
 import { Event, PaginatedResponse } from '@/types';
 import { exportEventsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 export default function AdminEventsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -61,6 +63,7 @@ export default function AdminEventsPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -85,7 +88,9 @@ export default function AdminEventsPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading events:', error);
-      showToast(error.message || 'Tadbirlarni yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Tadbirlarni yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -253,6 +258,19 @@ export default function AdminEventsPage() {
       <Container className="py-12">
         <Card>
           <TableSkeleton rows={10} columns={7} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && events.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadEvents}
+          />
         </Card>
       </Container>
     );

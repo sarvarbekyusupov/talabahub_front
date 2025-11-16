@@ -13,12 +13,14 @@ import { useToast } from '@/components/ui/Toast';
 import { Discount, PaginatedResponse } from '@/types';
 import { exportDiscountsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 export default function AdminDiscountsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -62,6 +64,7 @@ export default function AdminDiscountsPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -86,7 +89,9 @@ export default function AdminDiscountsPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading discounts:', error);
-      showToast(error.message || 'Chegirmalarni yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Chegirmalarni yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -226,6 +231,19 @@ export default function AdminDiscountsPage() {
       <Container className="py-12">
         <Card>
           <TableSkeleton rows={10} columns={7} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && discounts.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadDiscounts}
+          />
         </Card>
       </Container>
     );

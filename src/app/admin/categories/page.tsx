@@ -12,6 +12,7 @@ import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { exportCategoriesToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 interface Category {
   id: string;
@@ -40,6 +41,7 @@ export default function AdminCategoriesPage() {
   const { showToast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -70,6 +72,7 @@ export default function AdminCategoriesPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -88,7 +91,9 @@ export default function AdminCategoriesPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading categories:', error);
-      showToast(error.message || 'Kategoriyalarni yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Kategoriyalarni yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -193,6 +198,19 @@ export default function AdminCategoriesPage() {
       <Container className="py-12">
         <Card>
           <TableSkeleton rows={10} columns={6} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && categories.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadCategories}
+          />
         </Card>
       </Container>
     );

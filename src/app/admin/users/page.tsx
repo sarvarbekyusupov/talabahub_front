@@ -13,6 +13,7 @@ import { User, PaginatedResponse } from '@/types';
 import { useToast } from '@/components/ui/Toast';
 import { exportUsersToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 export default function AdminUsersPage() {
   const router = useRouter();

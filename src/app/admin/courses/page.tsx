@@ -13,12 +13,14 @@ import { useToast } from '@/components/ui/Toast';
 import { Course, PaginatedResponse } from '@/types';
 import { exportCoursesToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
+import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
 
 export default function AdminCoursesPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
@@ -61,6 +63,7 @@ export default function AdminCoursesPage() {
     }
 
     setLoading(true);
+    setError(null);
     try {
       const params: any = { page, limit: 20 };
 
@@ -85,7 +88,9 @@ export default function AdminCoursesPage() {
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
       console.error('Error loading courses:', error);
-      showToast(error.message || 'Kurslarni yuklashda xatolik', 'error');
+      const errorMessage = error.message || 'Kurslarni yuklashda xatolik';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -222,6 +227,19 @@ export default function AdminCoursesPage() {
       <Container className="py-12">
         <Card>
           <TableSkeleton rows={10} columns={7} />
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error && courses.length === 0) {
+    return (
+      <Container className="py-12">
+        <Card>
+          <ErrorDisplay
+            message={error}
+            onRetry={loadCourses}
+          />
         </Card>
       </Container>
     );
