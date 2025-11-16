@@ -354,7 +354,7 @@ export default function AdminCategoriesPage() {
         <Card>
           <EmptyState
             title="Kategoriyalar yo'q"
-            description="Hozircha hech qanday kategoriya qo'shilmagan."
+            message="Hozircha hech qanday kategoriya qo'shilmagan."
             actionLabel="Yangi kategoriya"
             onAction={() => {
               resetForm();
@@ -597,8 +597,7 @@ export default function AdminCategoriesPage() {
           setDeletingCategoryName('');
         }}
         onConfirm={handleDeleteConfirm}
-        title="Kategoriyani o'chirish"
-        message={`Haqiqatan ham "${deletingCategoryName}" kategoriyasini o'chirmoqchimisiz? Bu amalni bekor qilib bo'lmaydi.`}
+        itemName={deletingCategoryName}
       />
     </Container>
   );

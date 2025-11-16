@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
 import { GridSkeleton } from '@/components/ui/Skeleton';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useDiscounts } from '@/lib/hooks';
 import { Discount } from '@/types';
 
@@ -20,6 +22,7 @@ const ITEMS_PER_PAGE = 12;
 export default function DiscountsPage() {
   const { discounts, isLoading, error } = useDiscounts();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,13 +31,13 @@ export default function DiscountsPage() {
   const filteredDiscounts = useMemo(() => {
     let result = [...discounts];
 
-    // Apply search filter
-    if (searchQuery) {
+    // Apply search filter with debounced search
+    if (debouncedSearch) {
       result = result.filter(
         (discount) =>
-          discount.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          discount.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          discount.brand.name.toLowerCase().includes(searchQuery.toLowerCase())
+          discount.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          discount.description.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          discount.brand.name.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
@@ -57,12 +60,12 @@ export default function DiscountsPage() {
     }
 
     return result;
-  }, [discounts, searchQuery, sortBy, selectedCategory]);
+  }, [discounts, debouncedSearch, sortBy, selectedCategory]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, sortBy, selectedCategory]);
+  }, [debouncedSearch, sortBy, selectedCategory]);
 
   const getUniqueCategories = (): string[] => {
     const categories = discounts
@@ -100,7 +103,7 @@ export default function DiscountsPage() {
   }
 
   const categories = getUniqueCategories();
-  const hasActiveFilters = searchQuery || sortBy !== 'newest' || selectedCategory !== 'all';
+  const hasActiveFilters = debouncedSearch || sortBy !== 'newest' || selectedCategory !== 'all';
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredDiscounts.length / ITEMS_PER_PAGE);
@@ -180,11 +183,17 @@ export default function DiscountsPage() {
       {/* Discounts Grid */}
       {filteredDiscounts.length === 0 ? (
         <Card>
-          <div className="text-center py-12 text-dark/60">
-            {discounts.length === 0
-              ? 'Hozircha chegirmalar mavjud emas'
-              : 'Hech narsa topilmadi. Boshqa so\'z bilan qidiring yoki filtrlarni o\'zgartiring.'}
-          </div>
+          {debouncedSearch ? (
+            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+          ) : hasActiveFilters ? (
+            <NoFilterResults onClearFilters={clearFilters} />
+          ) : (
+            <EmptyState
+              title="Chegirmalar yo'q"
+              message="Hozircha hech qanday chegirma qo'shilmagan."
+              showAction={false}
+            />
+          )}
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

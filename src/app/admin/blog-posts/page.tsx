@@ -355,13 +355,11 @@ export default function AdminBlogPostsPage() {
         {posts.length === 0 ? (
           <EmptyState
             title="Blog postlari yo'q"
-            description="Hozircha hech qanday blog post qo'shilmagan."
-            action={{
-              label: 'Yangi post qo\'shish',
-              onClick: () => {
-                resetForm();
-                setShowModal(true);
-              },
+            message="Hozircha hech qanday blog post qo'shilmagan."
+            actionLabel="Yangi post qo'shish"
+            onAction={() => {
+              resetForm();
+              setShowModal(true);
             }}
           />
         ) : (
@@ -641,7 +639,6 @@ export default function AdminBlogPostsPage() {
         }}
         onConfirm={handleDeleteConfirm}
         itemName={deletePostTitle}
-        itemType="blog post"
       />
     </Container>
   );

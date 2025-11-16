@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
 import { ListSkeleton } from '@/components/ui/Skeleton';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useJobs } from '@/lib/hooks';
 import { Job } from '@/types';
 
@@ -20,6 +22,7 @@ const ITEMS_PER_PAGE = 10;
 export default function JobsPage() {
   const { jobs, isLoading, error } = useJobs();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
@@ -29,14 +32,14 @@ export default function JobsPage() {
   const filteredJobs = useMemo(() => {
     let result = [...jobs];
 
-    // Apply search filter
-    if (searchQuery) {
+    // Apply search filter with debounced search
+    if (debouncedSearch) {
       result = result.filter(
         (job) =>
-          job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          job.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (job.company && job.company.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          job.location.toLowerCase().includes(searchQuery.toLowerCase())
+          job.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          job.description.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          (job.company && job.company.name.toLowerCase().includes(debouncedSearch.toLowerCase())) ||
+          job.location.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
@@ -68,12 +71,12 @@ export default function JobsPage() {
     }
 
     return result;
-  }, [jobs, searchQuery, sortBy, selectedJobType, selectedLocation]);
+  }, [jobs, debouncedSearch, sortBy, selectedJobType, selectedLocation]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, sortBy, selectedJobType, selectedLocation]);
+  }, [debouncedSearch, sortBy, selectedJobType, selectedLocation]);
 
   const getUniqueLocations = (): string[] => {
     const locations = jobs.map((j) => j.location);
@@ -120,7 +123,7 @@ export default function JobsPage() {
   }
 
   const locations = getUniqueLocations();
-  const hasActiveFilters = searchQuery || sortBy !== 'newest' || selectedJobType !== 'all' || selectedLocation !== 'all';
+  const hasActiveFilters = debouncedSearch || sortBy !== 'newest' || selectedJobType !== 'all' || selectedLocation !== 'all';
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
@@ -215,11 +218,17 @@ export default function JobsPage() {
       {/* Jobs List */}
       {filteredJobs.length === 0 ? (
         <Card>
-          <div className="text-center py-12 text-dark/60">
-            {jobs.length === 0
-              ? 'Hozircha ish o\'rinlari mavjud emas'
-              : 'Hech narsa topilmadi. Boshqa so\'z bilan qidiring yoki filtrlarni o\'zgartiring.'}
-          </div>
+          {debouncedSearch ? (
+            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+          ) : hasActiveFilters ? (
+            <NoFilterResults onClearFilters={clearFilters} />
+          ) : (
+            <EmptyState
+              title="Ish o'rinlari yo'q"
+              message="Hozircha hech qanday ish o'rni qo'shilmagan."
+              showAction={false}
+            />
+          )}
         </Card>
       ) : (
         <div className="space-y-4">

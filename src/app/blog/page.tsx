@@ -1,11 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState, NoSearchResults } from '@/components/ui/EmptyState';
+import { useDebounce } from '@/hooks/useDebounce';
 import { api } from '@/lib/api';
 
 interface BlogPost {
@@ -47,6 +51,8 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
   useEffect(() => {
     loadPosts();
@@ -64,6 +70,19 @@ export default function BlogPage() {
       setLoading(false);
     }
   };
+
+  // Apply search filter using useMemo
+  const filteredPosts = useMemo(() => {
+    if (!debouncedSearch) return posts;
+
+    return posts.filter(
+      (post) =>
+        post.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        post.excerpt.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        (post.author.firstName + ' ' + post.author.lastName).toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        (post.category?.name || '').toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [posts, debouncedSearch]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('uz-UZ', {
@@ -83,6 +102,34 @@ export default function BlogPage() {
         </p>
       </div>
 
+      {/* Search */}
+      <Card className="mb-6">
+        <Input
+          type="text"
+          placeholder="Maqola, muallif yoki kategoriya bo'yicha qidirish..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
+        {/* Clear Search */}
+        {searchQuery && (
+          <div className="mt-4 pt-4 border-t">
+            <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}>
+              Qidiruvni tozalash
+            </Button>
+          </div>
+        )}
+      </Card>
+
+      {/* Results Count */}
+      {!loading && posts.length > 0 && (
+        <div className="mb-4">
+          <p className="text-gray-600">
+            {filteredPosts.length} ta maqola topildi
+          </p>
+        </div>
+      )}
+
       {/* Blog Posts Grid */}
       {loading && posts.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -95,30 +142,22 @@ export default function BlogPage() {
             </Card>
           ))}
         </div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-12">
-          <svg
-            className="w-16 h-16 mx-auto text-gray-400 mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+      ) : filteredPosts.length === 0 ? (
+        <Card>
+          {debouncedSearch ? (
+            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+          ) : (
+            <EmptyState
+              title="Maqolalar yo'q"
+              message="Hozircha hech qanday maqola qo'shilmagan."
+              showAction={false}
             />
-          </svg>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Hozircha maqolalar yo'q
-          </h3>
-          <p className="text-gray-600">Tez orada yangi maqolalar paydo bo'ladi</p>
-        </div>
+          )}
+        </Card>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <Link key={post.id} href={`/blog/${post.slug}`}>
                 <Card hover className="h-full flex flex-col">
                   {/* Cover Image */}
