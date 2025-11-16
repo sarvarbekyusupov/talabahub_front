@@ -28,6 +28,10 @@ export const removeTokens = (): void => {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
+export const clearAuth = (): void => {
+  removeTokens();
+};
+
 export const isAuthenticated = (): boolean => {
   return !!getToken();
 };
