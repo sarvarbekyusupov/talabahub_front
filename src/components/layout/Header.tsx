@@ -57,7 +57,7 @@ export const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-4">
             <Link href="/discounts" className="text-dark/70 hover:text-brand transition font-medium">
               Chegirmalar
             </Link>
@@ -69,6 +69,12 @@ export const Header = () => {
             </Link>
             <Link href="/courses" className="text-dark/70 hover:text-brand transition font-medium">
               Kurslar
+            </Link>
+            <Link href="/blog" className="text-dark/70 hover:text-brand transition font-medium">
+              Blog
+            </Link>
+            <Link href="/brands" className="text-dark/70 hover:text-brand transition font-medium">
+              Brendlar
             </Link>
           </nav>
 
@@ -133,6 +139,15 @@ export const Header = () => {
               </Link>
               <Link href="/courses" className="text-dark/70 hover:text-brand font-medium">
                 Kurslar
+              </Link>
+              <Link href="/blog" className="text-dark/70 hover:text-brand font-medium">
+                Blog
+              </Link>
+              <Link href="/brands" className="text-dark/70 hover:text-brand font-medium">
+                Brendlar
+              </Link>
+              <Link href="/companies" className="text-dark/70 hover:text-brand font-medium">
+                Kompaniyalar
               </Link>
               <div className="pt-4 border-t space-y-2">
                 {isLoggedIn ? (
