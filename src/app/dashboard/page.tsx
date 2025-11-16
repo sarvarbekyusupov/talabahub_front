@@ -295,7 +295,7 @@ export default function DashboardPage() {
                         <Badge variant={statusVariant}>{statusLabel}</Badge>
                       </div>
                       <p className="text-sm text-gray-600 mb-2">
-                        {application.job.company.name} - {application.job.location}
+                        {application.job.company && application.job.company.name} {application.job.company && application.job.location && '-'} {application.job.location}
                       </p>
                       <p className="text-xs text-gray-500">
                         Yuborilgan: {new Date(application.appliedAt).toLocaleDateString('uz-UZ')}
@@ -435,9 +435,11 @@ export default function DashboardPage() {
                         </Link>
                         <Badge variant={statusVariant}>{statusLabel}</Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        {enrollment.course.partner.name}
-                      </p>
+                      {enrollment.course.partner && (
+                        <p className="text-sm text-gray-600 mb-3">
+                          {enrollment.course.partner.name}
+                        </p>
+                      )}
                       {enrollment.status === 'active' && (
                         <div className="mb-2">
                           <div className="flex items-center justify-between text-xs text-gray-600 mb-1">

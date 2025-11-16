@@ -40,7 +40,7 @@ export default function DiscountsPage() {
 
     // Apply category filter
     if (selectedCategory !== 'all') {
-      result = result.filter((discount) => discount.category.nameUz === selectedCategory);
+      result = result.filter((discount) => discount.category && discount.category.nameUz === selectedCategory);
     }
 
     // Apply sorting
@@ -65,7 +65,9 @@ export default function DiscountsPage() {
   }, [searchQuery, sortBy, selectedCategory]);
 
   const getUniqueCategories = (): string[] => {
-    const categories = discounts.map((d) => d.category.nameUz);
+    const categories = discounts
+      .filter((d) => d.category && d.category.nameUz)
+      .map((d) => d.category.nameUz);
     return Array.from(new Set(categories));
   };
 
@@ -218,10 +220,12 @@ export default function DiscountsPage() {
                       <span className="text-dark/50">Brend:</span>
                       <span className="font-medium text-dark">{discount.brand.name}</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-dark/50">Kategoriya:</span>
-                      <span className="font-medium text-dark">{discount.category.nameUz}</span>
-                    </div>
+                    {discount.category && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-dark/50">Kategoriya:</span>
+                        <span className="font-medium text-dark">{discount.category.nameUz}</span>
+                      </div>
+                    )}
                     {discount.promoCode && (
                       <div className="flex items-center justify-between">
                         <span className="text-dark/50">Promo kod:</span>
