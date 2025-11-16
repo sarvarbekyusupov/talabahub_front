@@ -90,7 +90,7 @@ export default function AdminDiscountsPage() {
       // Upload image if selected
       let imageUrl = formData.imageUrl;
       if (imageFile) {
-        const uploadResponse = await api.uploadFile(imageFile, token) as { url: string };
+        const uploadResponse = await api.uploadImage(imageFile, token) as { url: string };
         imageUrl = uploadResponse.url;
       }
 

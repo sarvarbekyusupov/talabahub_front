@@ -228,7 +228,7 @@ export default function BlogPostPage() {
             <div className="flex flex-wrap gap-2 py-6 border-t border-gray-200">
               <span className="text-gray-600 font-medium">Teglar:</span>
               {post.tags.map((tag, index) => (
-                <Badge key={index} variant="outline">
+                <Badge key={index} variant="info">
                   #{tag}
                 </Badge>
               ))}

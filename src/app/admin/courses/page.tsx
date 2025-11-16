@@ -24,6 +24,13 @@ export default function AdminCoursesPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [partners, setPartners] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterLevel, setFilterLevel] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterPartner, setFilterPartner] = useState('');
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -42,7 +49,7 @@ export default function AdminCoursesPage() {
   useEffect(() => {
     loadCourses();
     loadPartnersAndCategories();
-  }, [page]);
+  }, [page, searchQuery, filterLevel, filterStatus, filterPartner]);
 
   const loadCourses = async () => {
     const token = getToken();
@@ -53,7 +60,25 @@ export default function AdminCoursesPage() {
 
     setLoading(true);
     try {
-      const data = await api.getCourses({ page, limit: 20 }) as PaginatedResponse<Course>;
+      const params: any = { page, limit: 20 };
+
+      // Add search query if provided
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+
+      // Add filters
+      if (filterLevel) {
+        params.level = filterLevel;
+      }
+      if (filterStatus) {
+        params.isActive = filterStatus === 'active';
+      }
+      if (filterPartner) {
+        params.partnerId = filterPartner;
+      }
+
+      const data = await api.getCourses(params) as PaginatedResponse<Course>;
       setCourses(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
@@ -89,7 +114,7 @@ export default function AdminCoursesPage() {
       // Upload image if selected
       let imageUrl = formData.imageUrl;
       if (imageFile) {
-        const uploadResponse = await api.uploadFile(imageFile, token) as { url: string };
+        const uploadResponse = await api.uploadImage(imageFile, token) as { url: string };
         imageUrl = uploadResponse.url;
       }
 
@@ -180,6 +205,16 @@ export default function AdminCoursesPage() {
     });
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFilterLevel('');
+    setFilterStatus('');
+    setFilterPartner('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || filterLevel || filterStatus || filterPartner;
+
   if (loading && courses.length === 0) {
     return (
       <Container className="py-12">
@@ -207,6 +242,139 @@ export default function AdminCoursesPage() {
           </Link>
         </div>
       </div>
+
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Qidirish
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Kurs nomi bo'yicha qidirish..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <svg
+                className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Level Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Daraja
+            </label>
+            <select
+              value={filterLevel}
+              onChange={(e) => {
+                setFilterLevel(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barcha darajalar</option>
+              <option value="beginner">Boshlang'ich</option>
+              <option value="intermediate">O'rta</option>
+              <option value="advanced">Yuqori</option>
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Holat
+            </label>
+            <select
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barchasi</option>
+              <option value="active">Faol</option>
+              <option value="inactive">Nofaol</option>
+            </select>
+          </div>
+
+          {/* Partner Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Hamkor
+            </label>
+            <select
+              value={filterPartner}
+              onChange={(e) => {
+                setFilterPartner(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barcha hamkorlar</option>
+              {partners.map((partner) => (
+                <option key={partner.id} value={partner.id}>
+                  {partner.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Active Filters & Reset */}
+        {hasActiveFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-600">Faol filtrlar:</span>
+              {searchQuery && (
+                <Badge variant="info">Qidiruv: {searchQuery}</Badge>
+              )}
+              {filterLevel && (
+                <Badge variant="info">Daraja: {filterLevel === 'beginner' ? 'Boshlang\'ich' : filterLevel === 'intermediate' ? 'O\'rta' : 'Yuqori'}</Badge>
+              )}
+              {filterStatus && (
+                <Badge variant="info">
+                  Holat: {filterStatus === 'active' ? 'Faol' : 'Nofaol'}
+                </Badge>
+              )}
+              {filterPartner && (
+                <Badge variant="info">
+                  Hamkor: {partners.find(p => p.id === filterPartner)?.name}
+                </Badge>
+              )}
+            </div>
+            <Button variant="outline" size="sm" onClick={handleResetFilters}>
+              Tozalash
+            </Button>
+          </div>
+        )}
+
+        {/* Results Count */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            Jami: <span className="font-semibold">{courses.length}</span> ta kurs topildi
+          </p>
+        </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">

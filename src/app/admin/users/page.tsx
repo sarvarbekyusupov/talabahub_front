@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="py-3 px-4 text-gray-700">{user.email}</td>
                   <td className="py-3 px-4 text-gray-700">
-                    {user.university?.name || '-'}
+                    {user.university?.nameUz || '-'}
                   </td>
                   <td className="py-3 px-4">
                     <Badge variant={getRoleBadgeVariant(user.role)}>

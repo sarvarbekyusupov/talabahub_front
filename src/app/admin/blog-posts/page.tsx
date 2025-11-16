@@ -95,7 +95,7 @@ export default function AdminBlogPostsPage() {
       // Upload cover image if selected
       let coverImageUrl = formData.coverImage;
       if (coverImageFile) {
-        const uploadResponse = await api.uploadFile(coverImageFile, token) as { url: string };
+        const uploadResponse = await api.uploadImage(coverImageFile, token) as { url: string };
         coverImageUrl = uploadResponse.url;
       }
 
