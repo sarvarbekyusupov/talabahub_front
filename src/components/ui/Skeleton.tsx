@@ -91,3 +91,32 @@ export function ListSkeleton({ count = 5 }: { count?: number }) {
     </div>
   );
 }
+
+export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-gray-200">
+            {Array.from({ length: columns }).map((_, index) => (
+              <th key={`header-${index}`} className="text-left py-3 px-4">
+                <Skeleton variant="text" width="80%" height="20px" />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: rows }).map((_, rowIndex) => (
+            <tr key={`row-${rowIndex}`} className="border-b border-gray-100">
+              {Array.from({ length: columns }).map((_, colIndex) => (
+                <td key={`cell-${rowIndex}-${colIndex}`} className="py-3 px-4">
+                  <Skeleton variant="text" width="90%" />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
