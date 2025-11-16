@@ -425,6 +425,20 @@ export default function DashboardPage() {
                     dropped: 'To\'xtatilgan',
                   }[enrollment.status];
 
+                  const handleProgressUpdate = async (enrollmentId: string, newProgress: number) => {
+                    const token = getToken();
+                    if (!token) return;
+
+                    try {
+                      await api.updateCourseProgress(token, enrollmentId, { progress: newProgress });
+                      // Reload enrollments
+                      const enrollmentsData = await api.getMyEnrollments(token, { limit: 50 }) as PaginatedResponse<CourseEnrollment>;
+                      setEnrollments(enrollmentsData.data);
+                    } catch (err) {
+                      console.error('Error updating progress:', err);
+                    }
+                  };
+
                   return (
                     <div key={enrollment.id} className="border-b pb-4 last:border-b-0">
                       <div className="flex items-start justify-between mb-2">
@@ -446,11 +460,30 @@ export default function DashboardPage() {
                             <span>Jarayon:</span>
                             <span>{enrollment.progress}%</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                             <div
                               className="bg-blue-600 h-2 rounded-full transition-all"
                               style={{ width: `${enrollment.progress}%` }}
                             ></div>
+                          </div>
+                          <div className="flex gap-2">
+                            {enrollment.progress < 100 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleProgressUpdate(enrollment.id, Math.min(enrollment.progress + 10, 100))}
+                              >
+                                +10% o'sish
+                              </Button>
+                            )}
+                            {enrollment.progress < 100 && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleProgressUpdate(enrollment.id, 100)}
+                              >
+                                Tugatish
+                              </Button>
+                            )}
                           </div>
                         </div>
                       )}
