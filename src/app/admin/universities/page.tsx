@@ -348,13 +348,11 @@ export default function AdminUniversitiesPage() {
         {universities.length === 0 ? (
           <EmptyState
             title="Universitetlar yo'q"
-            description="Hozircha hech qanday universitet qo'shilmagan."
-            action={{
-              label: "Yangi universitet qo'shish",
-              onClick: () => {
-                resetForm();
-                setShowModal(true);
-              }
+            message="Hozircha hech qanday universitet qo'shilmagan."
+            actionLabel="Yangi universitet qo'shish"
+            onAction={() => {
+              resetForm();
+              setShowModal(true);
             }}
           />
         ) : (
@@ -619,8 +617,7 @@ export default function AdminUniversitiesPage() {
           setDeleteUniversityName('');
         }}
         onConfirm={handleDeleteConfirm}
-        title="Universitetni o'chirish"
-        message={`Haqiqatan ham "${deleteUniversityName}" universitetini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`}
+        itemName={deleteUniversityName}
       />
     </Container>
   );

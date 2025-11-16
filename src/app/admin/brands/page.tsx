@@ -356,22 +356,19 @@ export default function AdminBrandsPage() {
           hasActiveFilters ? (
             searchQuery ? (
               <NoSearchResults
-                searchQuery={searchQuery}
-                onReset={handleResetFilters}
+                onClearSearch={handleResetFilters}
               />
             ) : (
-              <NoFilterResults onReset={handleResetFilters} />
+              <NoFilterResults onClearFilters={handleResetFilters} />
             )
           ) : (
             <EmptyState
               title="Brendlar yo'q"
-              description="Hozircha hech qanday brend qo'shilmagan."
-              action={{
-                label: "Yangi brend",
-                onClick: () => {
-                  resetForm();
-                  setShowModal(true);
-                }
+              message="Hozircha hech qanday brend qo'shilmagan."
+              actionLabel="Yangi brend"
+              onAction={() => {
+                resetForm();
+                setShowModal(true);
               }}
             />
           )
@@ -711,8 +708,7 @@ export default function AdminBrandsPage() {
           setDeletingBrandName('');
         }}
         onConfirm={handleDeleteConfirm}
-        title="Brendni o'chirish"
-        message={`Haqiqatan ham "${deletingBrandName}" brendini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`}
+        itemName={deletingBrandName}
       />
     </Container>
   );

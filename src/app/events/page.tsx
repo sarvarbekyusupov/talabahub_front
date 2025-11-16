@@ -1,20 +1,58 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
 import { GridSkeleton } from '@/components/ui/Skeleton';
+import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useEvents } from '@/lib/hooks';
 
 const ITEMS_PER_PAGE = 12;
 
 export default function EventsPage() {
   const { events, isLoading, error } = useEvents();
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 500);
+  const [selectedEventType, setSelectedEventType] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Apply filters using useMemo for performance
+  const filteredEvents = useMemo(() => {
+    let result = [...events];
+
+    // Apply search filter
+    if (debouncedSearch) {
+      result = result.filter(
+        (event) =>
+          event.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          event.description.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          event.location.toLowerCase().includes(debouncedSearch.toLowerCase())
+      );
+    }
+
+    // Apply event type filter
+    if (selectedEventType !== 'all') {
+      result = result.filter((event) => event.eventType === selectedEventType);
+    }
+
+    return result;
+  }, [events, debouncedSearch, selectedEventType]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, selectedEventType]);
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedEventType('all');
+  };
 
   const getEventTypeBadge = (type: string) => {
     const types: Record<string, { label: string; variant: any }> = {
@@ -50,11 +88,13 @@ export default function EventsPage() {
     );
   }
 
+  const hasActiveFilters = debouncedSearch || selectedEventType !== 'all';
+
   // Pagination calculations
-  const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedEvents = events.slice(startIndex, endIndex);
+  const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
 
   return (
     <Container className="py-12">
@@ -65,11 +105,67 @@ export default function EventsPage() {
         </p>
       </div>
 
-      {events.length === 0 ? (
-        <Card>
-          <div className="text-center py-12 text-dark/60">
-            Hozircha tadbirlar mavjud emas
+      {/* Filters and Search */}
+      <Card className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Search */}
+          <div>
+            <Input
+              type="text"
+              placeholder="Qidirish..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
+
+          {/* Event Type Filter */}
+          <div>
+            <select
+              value={selectedEventType}
+              onChange={(e) => setSelectedEventType(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-lavender-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all"
+            >
+              <option value="all">Barcha turlar</option>
+              <option value="workshop">Workshop</option>
+              <option value="conference">Konferensiya</option>
+              <option value="seminar">Seminar</option>
+              <option value="webinar">Vebinar</option>
+              <option value="competition">Musobaqa</option>
+              <option value="networking">Networking</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Clear Filters */}
+        {hasActiveFilters && (
+          <div className="mt-4 pt-4 border-t">
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              Filtrlarni tozalash
+            </Button>
+          </div>
+        )}
+      </Card>
+
+      {/* Results Count */}
+      <div className="mb-4">
+        <p className="text-dark/60">
+          {filteredEvents.length} ta tadbir topildi
+        </p>
+      </div>
+
+      {filteredEvents.length === 0 ? (
+        <Card>
+          {debouncedSearch ? (
+            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+          ) : hasActiveFilters ? (
+            <NoFilterResults onClearFilters={clearFilters} />
+          ) : (
+            <EmptyState
+              title="Tadbirlar yo'q"
+              message="Hozircha hech qanday tadbir qo'shilmagan."
+              showAction={false}
+            />
+          )}
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -140,12 +236,12 @@ export default function EventsPage() {
       )}
 
       {/* Pagination */}
-      {events.length > 0 && (
+      {filteredEvents.length > 0 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          totalItems={events.length}
+          totalItems={filteredEvents.length}
           itemsPerPage={ITEMS_PER_PAGE}
         />
       )}

@@ -414,7 +414,7 @@ export default function AdminCompaniesPage() {
                   <td colSpan={6} className="py-12">
                     <EmptyState
                       title="Kompaniyalar yo'q"
-                      description="Hozircha hech qanday kompaniya qo'shilmagan."
+                      message="Hozircha hech qanday kompaniya qo'shilmagan."
                     />
                   </td>
                 </tr>
@@ -767,8 +767,7 @@ export default function AdminCompaniesPage() {
         isOpen={deleteConfirm !== null}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={handleDeleteConfirm}
-        title="Kompaniyani o'chirish"
-        message={`Haqiqatan ham "${deleteConfirm?.companyName}" kompaniyasini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`}
+        itemName={deleteConfirm?.companyName || ''}
       />
     </Container>
   );

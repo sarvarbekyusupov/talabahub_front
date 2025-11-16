@@ -84,10 +84,8 @@ export function ConfirmDialog({
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <Card
-        className="max-w-md w-full"
-        onClick={(e: React.MouseEvent) => e.stopPropagation()}
-      >
+      <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+        <Card className="max-w-md w-full">
         <div className="flex items-start gap-4">
           <div className={`flex-shrink-0 w-12 h-12 rounded-full ${styles.iconBg} flex items-center justify-center`}>
             <svg
@@ -127,6 +125,7 @@ export function ConfirmDialog({
           </div>
         </div>
       </Card>
+      </div>
     </div>
   );
 }
