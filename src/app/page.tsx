@@ -251,7 +251,7 @@ export default function Home() {
               <Link href="/register">
                 <Button
                   size="lg"
-                  className="bg-white text-brand hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-300 px-12 py-7 text-lg rounded-2xl font-bold"
+                  className="bg-white text-purple-600 hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-300 px-12 py-7 text-lg rounded-2xl font-bold"
                 >
                   Ro'yxatdan o'tish
                 </Button>
