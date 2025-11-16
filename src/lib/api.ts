@@ -568,6 +568,216 @@ class ApiClient {
     const query = params ? `?${new URLSearchParams(params)}` : '';
     return this.request(`/partners/me/${contentType}${query}`, { token });
   }
+
+  // Blog Posts endpoints
+  async getBlogPosts(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/blog-posts${query}`);
+  }
+
+  async getBlogPostBySlug(slug: string) {
+    return this.request(`/blog-posts/${slug}`);
+  }
+
+  async createBlogPost(token: string, data: any) {
+    return this.request('/blog-posts', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateBlogPost(token: string, postId: string, data: any) {
+    return this.request(`/blog-posts/${postId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteBlogPost(token: string, postId: string) {
+    return this.request(`/blog-posts/${postId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Categories endpoints
+  async getCategories(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/categories${query}`);
+  }
+
+  async getCategory(categoryId: string) {
+    return this.request(`/categories/${categoryId}`);
+  }
+
+  async createCategory(token: string, data: any) {
+    return this.request('/categories', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateCategory(token: string, categoryId: string, data: any) {
+    return this.request(`/categories/${categoryId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCategory(token: string, categoryId: string) {
+    return this.request(`/categories/${categoryId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Universities CRUD (full)
+  async getUniversity(universityId: string) {
+    return this.request(`/universities/${universityId}`);
+  }
+
+  async createUniversity(token: string, data: any) {
+    return this.request('/universities', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateUniversity(token: string, universityId: string, data: any) {
+    return this.request(`/universities/${universityId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteUniversity(token: string, universityId: string) {
+    return this.request(`/universities/${universityId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Companies endpoints
+  async getCompanies(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/companies${query}`);
+  }
+
+  async getCompany(companyId: string) {
+    return this.request(`/companies/${companyId}`);
+  }
+
+  async createCompany(token: string, data: any) {
+    return this.request('/companies', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateCompany(token: string, companyId: string, data: any) {
+    return this.request(`/companies/${companyId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCompany(token: string, companyId: string) {
+    return this.request(`/companies/${companyId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Brands endpoints
+  async getBrands(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/brands${query}`);
+  }
+
+  async getBrand(brandId: string) {
+    return this.request(`/brands/${brandId}`);
+  }
+
+  async createBrand(token: string, data: any) {
+    return this.request('/brands', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateBrand(token: string, brandId: string, data: any) {
+    return this.request(`/brands/${brandId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteBrand(token: string, brandId: string) {
+    return this.request(`/brands/${brandId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Education Partners endpoints
+  async getEducationPartners(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/education-partners${query}`);
+  }
+
+  async getEducationPartner(partnerId: string) {
+    return this.request(`/education-partners/${partnerId}`);
+  }
+
+  async createEducationPartner(token: string, data: any) {
+    return this.request('/education-partners', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateEducationPartner(token: string, partnerId: string, data: any) {
+    return this.request(`/education-partners/${partnerId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteEducationPartner(token: string, partnerId: string) {
+    return this.request(`/education-partners/${partnerId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Health Check endpoints
+  async getHealth() {
+    return this.request('/health');
+  }
+
+  async getHealthReady() {
+    return this.request('/health/ready');
+  }
+
+  async getHealthLive() {
+    return this.request('/health/live');
+  }
+
+  async getHealthMetrics() {
+    return this.request('/health/metrics');
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL);
