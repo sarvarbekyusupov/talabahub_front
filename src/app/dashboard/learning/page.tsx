@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -304,10 +305,12 @@ export default function LearningProgressPage() {
               <Card key={course.courseId} className="hover:shadow-card-hover transition-shadow">
                 <div className="flex items-start gap-6">
                   {course.courseImage && (
-                    <img
+                    <Image
                       src={course.courseImage}
                       alt={course.courseTitle}
-                      className="w-32 h-32 object-cover rounded-lg"
+                      width={128}
+                      height={128}
+                      className="object-cover rounded-lg"
                     />
                   )}
                   <div className="flex-1 min-w-0">

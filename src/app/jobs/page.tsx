@@ -26,6 +26,8 @@ export default function JobsPage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
+  const [minSalary, setMinSalary] = useState<string>('');
+  const [maxSalary, setMaxSalary] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
 
   // Apply filters and sort using useMemo for performance
@@ -53,6 +55,17 @@ export default function JobsPage() {
       result = result.filter((job) => job.location === selectedLocation);
     }
 
+    // Apply salary range filter
+    if (minSalary || maxSalary) {
+      result = result.filter((job) => {
+        if (!job.salary) return false;
+        const salary = parseFloat(job.salary.replace(/[^0-9.]/g, ''));
+        const min = minSalary ? parseFloat(minSalary) : 0;
+        const max = maxSalary ? parseFloat(maxSalary) : Infinity;
+        return salary >= min && salary <= max;
+      });
+    }
+
     // Apply sorting
     switch (sortBy) {
       case 'newest':
@@ -71,12 +84,12 @@ export default function JobsPage() {
     }
 
     return result;
-  }, [jobs, debouncedSearch, sortBy, selectedJobType, selectedLocation]);
+  }, [jobs, debouncedSearch, sortBy, selectedJobType, selectedLocation, minSalary, maxSalary]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, sortBy, selectedJobType, selectedLocation]);
+  }, [debouncedSearch, sortBy, selectedJobType, selectedLocation, minSalary, maxSalary]);
 
   const getUniqueLocations = (): string[] => {
     const locations = jobs.map((j) => j.location);
@@ -88,6 +101,8 @@ export default function JobsPage() {
     setSortBy('newest');
     setSelectedJobType('all');
     setSelectedLocation('all');
+    setMinSalary('');
+    setMaxSalary('');
   };
 
   const getJobTypeBadge = (type: string) => {
@@ -123,7 +138,7 @@ export default function JobsPage() {
   }
 
   const locations = getUniqueLocations();
-  const hasActiveFilters = debouncedSearch || sortBy !== 'newest' || selectedJobType !== 'all' || selectedLocation !== 'all';
+  const hasActiveFilters = debouncedSearch || sortBy !== 'newest' || selectedJobType !== 'all' || selectedLocation !== 'all' || minSalary || maxSalary;
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
@@ -195,6 +210,31 @@ export default function JobsPage() {
               <option value="deadline">Muddat yaqin</option>
               <option value="salary_high">Yuqori maosh</option>
             </select>
+          </div>
+        </div>
+
+        {/* Salary Range Filter */}
+        <div className="mt-4 pt-4 border-t border-lavender-200">
+          <label className="block text-sm font-semibold text-dark mb-2">
+            Maosh oralig'i (so'm)
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              type="number"
+              placeholder="Minimal maosh"
+              value={minSalary}
+              onChange={(e) => setMinSalary(e.target.value)}
+              min="0"
+              step="100000"
+            />
+            <Input
+              type="number"
+              placeholder="Maksimal maosh"
+              value={maxSalary}
+              onChange={(e) => setMaxSalary(e.target.value)}
+              min="0"
+              step="100000"
+            />
           </div>
         </div>
 

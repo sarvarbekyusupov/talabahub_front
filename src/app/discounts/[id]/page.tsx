@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -264,11 +265,12 @@ export default function DiscountDetailPage() {
           {/* Main Card */}
           <Card>
             {discount.imageUrl && (
-              <div className="relative">
-                <img
+              <div className="relative w-full h-64">
+                <Image
                   src={discount.imageUrl}
                   alt={discount.title}
-                  className="w-full h-64 object-cover rounded-t-lg"
+                  fill
+                  className="object-cover rounded-t-lg"
                 />
 
                 {/* Large Discount Badge Overlay */}
@@ -435,10 +437,11 @@ export default function DiscountDetailPage() {
                     {qrCodeUrl && (
                       <div className="flex-shrink-0">
                         <div className="bg-white p-3 rounded-lg shadow-md">
-                          <img
+                          <Image
                             src={qrCodeUrl}
                             alt="QR Code"
-                            className="w-32 h-32"
+                            width={128}
+                            height={128}
                           />
                           <p className="text-xs text-center text-gray-600 mt-2">
                             QR kodni skanerlang
@@ -480,10 +483,12 @@ export default function DiscountDetailPage() {
             <div className="flex flex-col md:flex-row gap-6">
               {discount.brand.logoUrl && (
                 <div className="flex-shrink-0">
-                  <img
+                  <Image
                     src={discount.brand.logoUrl}
                     alt={discount.brand.name}
-                    className="w-32 h-32 object-contain rounded-lg bg-gray-50 p-4 border border-gray-200"
+                    width={128}
+                    height={128}
+                    className="object-contain rounded-lg bg-gray-50 p-4 border border-gray-200"
                   />
                 </div>
               )}
@@ -526,10 +531,11 @@ export default function DiscountDetailPage() {
                   >
                     {relDiscount.imageUrl && (
                       <div className="relative h-32 overflow-hidden">
-                        <img
+                        <Image
                           src={relDiscount.imageUrl}
                           alt={relDiscount.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform"
                         />
                         <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-lg font-bold">
                           -{relDiscount.discount}%
@@ -631,10 +637,12 @@ export default function DiscountDetailPage() {
                 onClick={() => router.push(`/discounts?brandId=${discount.brand.id}`)}
               >
                 {discount.brand.logoUrl && (
-                  <img
+                  <Image
                     src={discount.brand.logoUrl}
                     alt={discount.brand.name}
-                    className="w-12 h-12 object-contain rounded"
+                    width={48}
+                    height={48}
+                    className="object-contain rounded"
                   />
                 )}
                 <div className="flex-1 min-w-0">

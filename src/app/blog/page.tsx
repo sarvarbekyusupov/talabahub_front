@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -163,10 +164,11 @@ export default function BlogPage() {
                   {/* Cover Image */}
                   {post.coverImage && (
                     <div className="relative h-48 mb-4 overflow-hidden rounded-t-lg">
-                      <img
+                      <Image
                         src={post.coverImage}
                         alt={post.title}
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        fill
+                        className="object-cover transition-transform duration-300 hover:scale-105"
                       />
                     </div>
                   )}
@@ -196,10 +198,12 @@ export default function BlogPage() {
                     <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                       <div className="flex items-center gap-2">
                         {post.author.avatarUrl ? (
-                          <img
+                          <Image
                             src={post.author.avatarUrl}
                             alt={post.author.firstName}
-                            className="w-8 h-8 rounded-full object-cover"
+                            width={32}
+                            height={32}
+                            className="rounded-full object-cover"
                           />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">

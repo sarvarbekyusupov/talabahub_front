@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -311,10 +312,12 @@ export default function JobDetailPage() {
           <Card>
             <div className="flex items-start gap-4 mb-6">
               {job.company.logoUrl && (
-                <img
+                <Image
                   src={job.company.logoUrl}
                   alt={job.company.name}
-                  className="w-20 h-20 object-contain rounded-lg"
+                  width={80}
+                  height={80}
+                  className="object-contain rounded-lg"
                 />
               )}
               <div className="flex-1">
@@ -505,10 +508,12 @@ export default function JobDetailPage() {
             <div className="flex items-start gap-4">
               {job.company.logoUrl && (
                 <div className="flex-shrink-0">
-                  <img
+                  <Image
                     src={job.company.logoUrl}
                     alt={job.company.name}
-                    className="w-16 h-16 object-contain rounded-lg border-2 border-gray-100 p-2"
+                    width={64}
+                    height={64}
+                    className="object-contain rounded-lg border-2 border-gray-100 p-2"
                   />
                 </div>
               )}
@@ -548,10 +553,12 @@ export default function JobDetailPage() {
                     <div className="flex items-start gap-4">
                       {relatedJob.company?.logoUrl && (
                         <div className="flex-shrink-0">
-                          <img
+                          <Image
                             src={relatedJob.company.logoUrl}
                             alt={relatedJob.company.name}
-                            className="w-12 h-12 object-contain rounded-lg"
+                            width={48}
+                            height={48}
+                            className="object-contain rounded-lg"
                           />
                         </div>
                       )}

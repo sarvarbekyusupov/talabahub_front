@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -210,11 +211,14 @@ export default function PortfolioPage() {
                   </div>
                 )}
                 {project.images.length > 0 && (
-                  <img
-                    src={project.images[0]}
-                    alt={project.title}
-                    className="w-full h-48 object-cover"
-                  />
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={project.images[0]}
+                      alt={project.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 )}
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
