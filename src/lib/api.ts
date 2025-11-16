@@ -778,6 +778,42 @@ class ApiClient {
   async getHealthMetrics() {
     return this.request('/health/metrics');
   }
+
+  async getHealthServices(token: string) {
+    return this.request('/health/services', { token });
+  }
+
+  async getHealthErrors(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/health/errors${query}`, { token });
+  }
+
+  // Audit Logs endpoints (Admin)
+  async getAuditLogs(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/audit-logs${query}`, { token });
+  }
+
+  // Partner Analytics endpoints
+  async getPartnerAnalytics(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/partners/me/analytics${query}`, { token });
+  }
+
+  // Learning Streak endpoint
+  async getLearningStreak(token: string) {
+    return this.request('/users/me/learning-streak', { token });
+  }
+
+  // Course Content Details endpoint
+  async getCourseContent(courseId: string) {
+    return this.request(`/courses/${courseId}/content`);
+  }
+
+  // Application Analytics endpoint
+  async getApplicationAnalytics(token: string) {
+    return this.request('/jobs/me/applications/analytics', { token });
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL);

@@ -62,47 +62,59 @@ export default function PartnerAnalyticsPage() {
       return;
     }
 
+    setLoading(true);
     try {
-      // In a real implementation, this would fetch from a dedicated analytics endpoint
-      const stats = await api.getPartnerStats(token) as any;
+      const params = { period };
+      const analyticsData = await api.getPartnerAnalytics(token, params) as any;
 
-      // Mock analytics data - replace with actual API call
       setAnalytics({
         overview: {
-          totalViews: stats.totalViews || 0,
-          totalApplications: stats.totalApplications || 0,
-          totalEnrollments: stats.totalEnrollments || 0,
-          totalRevenue: (stats.totalEnrollments || 0) * 50000, // Mock calculation
-          viewsGrowth: 12.5,
-          applicationsGrowth: 8.3,
-          enrollmentsGrowth: 15.7,
-          revenueGrowth: 22.1,
+          totalViews: analyticsData.overview?.totalViews || 0,
+          totalApplications: analyticsData.overview?.totalApplications || 0,
+          totalEnrollments: analyticsData.overview?.totalEnrollments || 0,
+          totalRevenue: analyticsData.overview?.totalRevenue || 0,
+          viewsGrowth: analyticsData.overview?.viewsGrowth || 0,
+          applicationsGrowth: analyticsData.overview?.applicationsGrowth || 0,
+          enrollmentsGrowth: analyticsData.overview?.enrollmentsGrowth || 0,
+          revenueGrowth: analyticsData.overview?.revenueGrowth || 0,
         },
         viewsByContentType: {
-          discounts: Math.floor((stats.totalViews || 0) * 0.3),
-          jobs: Math.floor((stats.totalViews || 0) * 0.45),
-          courses: Math.floor((stats.totalViews || 0) * 0.25),
+          discounts: analyticsData.viewsByContentType?.discounts || 0,
+          jobs: analyticsData.viewsByContentType?.jobs || 0,
+          courses: analyticsData.viewsByContentType?.courses || 0,
         },
         applicationsByStatus: {
-          pending: Math.floor((stats.totalApplications || 0) * 0.4),
-          reviewed: Math.floor((stats.totalApplications || 0) * 0.3),
-          shortlisted: Math.floor((stats.totalApplications || 0) * 0.2),
-          rejected: Math.floor((stats.totalApplications || 0) * 0.1),
+          pending: analyticsData.applicationsByStatus?.pending || 0,
+          reviewed: analyticsData.applicationsByStatus?.reviewed || 0,
+          shortlisted: analyticsData.applicationsByStatus?.shortlisted || 0,
+          rejected: analyticsData.applicationsByStatus?.rejected || 0,
         },
-        topPerformingContent: [],
-        revenueByMonth: [
-          { month: 'Yan', revenue: 450000 },
-          { month: 'Fev', revenue: 520000 },
-          { month: 'Mar', revenue: 680000 },
-          { month: 'Apr', revenue: 750000 },
-          { month: 'May', revenue: 820000 },
-          { month: 'Iyun', revenue: 950000 },
-        ],
-        engagementRate: 18.5,
-        conversionRate: 12.3,
+        topPerformingContent: analyticsData.topPerformingContent || [],
+        revenueByMonth: analyticsData.revenueByMonth || [],
+        engagementRate: analyticsData.engagementRate || 0,
+        conversionRate: analyticsData.conversionRate || 0,
       });
     } catch (error) {
       console.error('Error loading analytics:', error);
+      // Set empty analytics on error
+      setAnalytics({
+        overview: {
+          totalViews: 0,
+          totalApplications: 0,
+          totalEnrollments: 0,
+          totalRevenue: 0,
+          viewsGrowth: 0,
+          applicationsGrowth: 0,
+          enrollmentsGrowth: 0,
+          revenueGrowth: 0,
+        },
+        viewsByContentType: { discounts: 0, jobs: 0, courses: 0 },
+        applicationsByStatus: { pending: 0, reviewed: 0, shortlisted: 0, rejected: 0 },
+        topPerformingContent: [],
+        revenueByMonth: [],
+        engagementRate: 0,
+        conversionRate: 0,
+      });
     } finally {
       setLoading(false);
     }

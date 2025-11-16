@@ -51,7 +51,12 @@ export default function LearningProgressPage() {
     }
 
     try {
-      const enrollmentsData = await api.request('/users/me/enrollments', { token }) as any;
+      // Fetch enrollments and streak data in parallel
+      const [enrollmentsData, streakData] = await Promise.all([
+        api.request('/users/me/enrollments', { token }) as any,
+        api.getLearningStreak(token) as any,
+      ]);
+
       const enrollments = enrollmentsData.data || [];
 
       const progressData: CourseProgress[] = enrollments.map((enrollment: any) => ({
@@ -85,7 +90,7 @@ export default function LearningProgressPage() {
         inProgressCourses: inProgress,
         totalTimeSpent: totalTime,
         averageProgress: Math.round(avgProgress),
-        streak: 5, // TODO: Calculate actual streak from API
+        streak: streakData?.streak || 0,
         certificates: progressData.filter((c) => c.certificate).length,
       });
     } catch (error) {

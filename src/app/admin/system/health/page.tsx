@@ -74,60 +74,72 @@ export default function SystemHealthPage() {
     }
 
     try {
-      // Mock data - replace with actual API call
+      // Fetch data from multiple health endpoints in parallel
+      const [healthResponse, servicesResponse, metricsResponse, errorsResponse] = await Promise.all([
+        api.getHealth(),
+        api.getHealthServices(token),
+        api.getHealthMetrics(),
+        api.getHealthErrors(token, { limit: '10' }),
+      ]) as any[];
+
       const healthData: SystemHealth = {
-        status: 'healthy',
-        uptime: 2592000, // 30 days in seconds
+        status: healthResponse.status || 'healthy',
+        uptime: healthResponse.uptime || 0,
         services: {
           api: {
-            status: 'up',
-            responseTime: 125,
-            lastCheck: new Date().toISOString(),
+            status: servicesResponse?.api?.status || 'up',
+            responseTime: servicesResponse?.api?.responseTime || 0,
+            lastCheck: servicesResponse?.api?.lastCheck || new Date().toISOString(),
           },
           database: {
-            status: 'up',
-            connections: 45,
-            maxConnections: 100,
-            lastCheck: new Date().toISOString(),
+            status: servicesResponse?.database?.status || 'up',
+            connections: servicesResponse?.database?.connections || 0,
+            maxConnections: servicesResponse?.database?.maxConnections || 100,
+            lastCheck: servicesResponse?.database?.lastCheck || new Date().toISOString(),
           },
           storage: {
-            status: 'up',
-            usedSpace: 234.5,
-            totalSpace: 1000,
-            lastCheck: new Date().toISOString(),
+            status: servicesResponse?.storage?.status || 'up',
+            usedSpace: servicesResponse?.storage?.usedSpace || 0,
+            totalSpace: servicesResponse?.storage?.totalSpace || 1000,
+            lastCheck: servicesResponse?.storage?.lastCheck || new Date().toISOString(),
           },
           cache: {
-            status: 'up',
-            hitRate: 87.5,
-            memoryUsage: 45.2,
-            lastCheck: new Date().toISOString(),
+            status: servicesResponse?.cache?.status || 'up',
+            hitRate: servicesResponse?.cache?.hitRate || 0,
+            memoryUsage: servicesResponse?.cache?.memoryUsage || 0,
+            lastCheck: servicesResponse?.cache?.lastCheck || new Date().toISOString(),
           },
         },
         metrics: {
-          requestsPerMinute: 1250,
-          activeUsers: 342,
-          errorRate: 0.8,
-          averageResponseTime: 145,
+          requestsPerMinute: metricsResponse?.requestsPerMinute || 0,
+          activeUsers: metricsResponse?.activeUsers || 0,
+          errorRate: metricsResponse?.errorRate || 0,
+          averageResponseTime: metricsResponse?.averageResponseTime || 0,
         },
-        errors: [
-          {
-            timestamp: new Date(Date.now() - 3600000).toISOString(),
-            type: 'API Error',
-            message: 'Connection timeout to external service',
-            count: 3,
-          },
-          {
-            timestamp: new Date(Date.now() - 7200000).toISOString(),
-            type: 'Database Error',
-            message: 'Slow query detected',
-            count: 1,
-          },
-        ],
+        errors: errorsResponse?.data || [],
       };
 
       setHealth(healthData);
     } catch (error) {
       console.error('Error loading system health:', error);
+      // Set default values on error
+      setHealth({
+        status: 'down',
+        uptime: 0,
+        services: {
+          api: { status: 'down', responseTime: 0, lastCheck: new Date().toISOString() },
+          database: { status: 'down', connections: 0, maxConnections: 100, lastCheck: new Date().toISOString() },
+          storage: { status: 'down', usedSpace: 0, totalSpace: 1000, lastCheck: new Date().toISOString() },
+          cache: { status: 'down', hitRate: 0, memoryUsage: 0, lastCheck: new Date().toISOString() },
+        },
+        metrics: {
+          requestsPerMinute: 0,
+          activeUsers: 0,
+          errorRate: 0,
+          averageResponseTime: 0,
+        },
+        errors: [],
+      });
     } finally {
       setLoading(false);
     }
