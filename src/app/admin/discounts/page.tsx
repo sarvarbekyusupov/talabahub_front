@@ -11,6 +11,7 @@ import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { Discount, PaginatedResponse } from '@/types';
+import { exportDiscountsToCSV } from '@/lib/export';
 
 export default function AdminDiscountsPage() {
   const router = useRouter();

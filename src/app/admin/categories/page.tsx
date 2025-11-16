@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
+import { exportCategoriesToCSV } from '@/lib/export';
 
 interface Category {
   id: string;

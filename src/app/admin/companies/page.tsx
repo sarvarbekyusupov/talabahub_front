@@ -11,6 +11,7 @@ import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 
+import { exportCompaniesToCSV } from '@/lib/export';
 interface Company {
   id: string;
   name: string;
