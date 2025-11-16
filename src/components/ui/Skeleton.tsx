@@ -120,3 +120,93 @@ export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; column
     </div>
   );
 }
+
+export function StatCardSkeleton() {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton variant="text" width="40%" height="16px" />
+        <Skeleton variant="circular" width="40px" height="40px" />
+      </div>
+      <Skeleton variant="text" width="60%" height="32px" className="mb-2" />
+      <Skeleton variant="text" width="50%" height="14px" />
+    </div>
+  );
+}
+
+export function DashboardSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <StatCardSkeleton key={i} />
+        ))}
+      </div>
+
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <Skeleton variant="text" width="33%" height="24px" className="mb-4" />
+          <ListSkeleton count={3} />
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <Skeleton variant="text" width="33%" height="24px" className="mb-4" />
+          <ListSkeleton count={3} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function FormSkeleton() {
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+      {[...Array(4)].map((_, index) => (
+        <div key={index}>
+          <Skeleton variant="text" width="25%" height="16px" className="mb-2" />
+          <Skeleton variant="rectangular" width="100%" height="40px" />
+        </div>
+      ))}
+      <div className="flex gap-3 pt-4">
+        <Skeleton variant="rectangular" width="120px" height="44px" />
+        <Skeleton variant="rectangular" width="120px" height="44px" />
+      </div>
+    </div>
+  );
+}
+
+export function AnalyticsSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <Skeleton variant="text" width="200px" height="32px" />
+        <div className="flex gap-2">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} variant="rectangular" width="80px" height="36px" />
+          ))}
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <StatCardSkeleton key={i} />
+        ))}
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <Skeleton variant="text" width="40%" height="24px" className="mb-6" />
+          <Skeleton variant="rectangular" width="100%" height="300px" />
+        </div>
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <Skeleton variant="text" width="40%" height="24px" className="mb-6" />
+          <Skeleton variant="rectangular" width="100%" height="300px" />
+        </div>
+      </div>
+    </div>
+  );
+}

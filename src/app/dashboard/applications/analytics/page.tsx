@@ -45,77 +45,38 @@ export default function ApplicationAnalyticsPage() {
       return;
     }
 
+    setLoading(true);
     try {
-      // Fetch application data
-      const applicationsData = await api.request('/users/me/applications', { token }) as any;
-      const applications = applicationsData.data || [];
-
-      // Calculate analytics
-      const pending = applications.filter((a: any) => a.status === 'pending').length;
-      const reviewed = applications.filter((a: any) => a.status === 'reviewed').length;
-      const shortlisted = applications.filter((a: any) => a.status === 'shortlisted').length;
-      const rejected = applications.filter((a: any) => a.status === 'rejected').length;
-
-      // Calculate success rate (shortlisted / total)
-      const successRate =
-        applications.length > 0 ? (shortlisted / applications.length) * 100 : 0;
-
-      // Calculate average response time
-      const responseTimes = applications
-        .filter((a: any) => a.updatedAt && a.createdAt)
-        .map((a: any) => {
-          const created = new Date(a.createdAt).getTime();
-          const updated = new Date(a.updatedAt).getTime();
-          return (updated - created) / (1000 * 60 * 60 * 24); // days
-        });
-      const avgResponseTime =
-        responseTimes.length > 0
-          ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
-          : 0;
-
-      // Group by month
-      const monthlyData = applications.reduce((acc: any, app: any) => {
-        const month = new Date(app.createdAt).toLocaleString('uz-UZ', { month: 'short' });
-        acc[month] = (acc[month] || 0) + 1;
-        return acc;
-      }, {});
-
-      const applicationsByMonth = Object.entries(monthlyData).map(([month, count]) => ({
-        month,
-        count: count as number,
-      }));
-
-      // Top categories (mock data - would come from actual job categories)
-      const topCategories = [
-        { category: 'IT & Dasturlash', count: Math.floor(applications.length * 0.4) },
-        { category: 'Dizayn', count: Math.floor(applications.length * 0.3) },
-        { category: 'Marketing', count: Math.floor(applications.length * 0.2) },
-        { category: 'Boshqa', count: Math.floor(applications.length * 0.1) },
-      ];
-
-      // Recent activity
-      const recentActivity = applications.slice(0, 10).map((app: any) => ({
-        jobTitle: app.job?.title || 'Job Title',
-        companyName: app.job?.companyName || 'Company',
-        status: app.status,
-        appliedAt: app.createdAt,
-        updatedAt: app.updatedAt,
-      }));
+      // Fetch analytics from backend API
+      const analyticsData = await api.getApplicationAnalytics(token) as any;
 
       setAnalytics({
-        totalApplications: applications.length,
-        pendingApplications: pending,
-        reviewedApplications: reviewed,
-        shortlistedApplications: shortlisted,
-        rejectedApplications: rejected,
-        successRate: Math.round(successRate),
-        averageResponseTime: Math.round(avgResponseTime),
-        applicationsByMonth,
-        topCategories,
-        recentActivity,
+        totalApplications: analyticsData.totalApplications || 0,
+        pendingApplications: analyticsData.pendingApplications || 0,
+        reviewedApplications: analyticsData.reviewedApplications || 0,
+        shortlistedApplications: analyticsData.shortlistedApplications || 0,
+        rejectedApplications: analyticsData.rejectedApplications || 0,
+        successRate: analyticsData.successRate || 0,
+        averageResponseTime: analyticsData.averageResponseTime || 0,
+        applicationsByMonth: analyticsData.applicationsByMonth || [],
+        topCategories: analyticsData.topCategories || [],
+        recentActivity: analyticsData.recentActivity || [],
       });
     } catch (error) {
       console.error('Error loading analytics:', error);
+      // Set empty analytics on error
+      setAnalytics({
+        totalApplications: 0,
+        pendingApplications: 0,
+        reviewedApplications: 0,
+        shortlistedApplications: 0,
+        rejectedApplications: 0,
+        successRate: 0,
+        averageResponseTime: 0,
+        applicationsByMonth: [],
+        topCategories: [],
+        recentActivity: [],
+      });
     } finally {
       setLoading(false);
     }
