@@ -53,9 +53,14 @@ export default function AdminUniversitiesPage() {
     isActive: true,
   });
 
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
   useEffect(() => {
     loadUniversities();
-  }, [page]);
+  }, [page, searchQuery, filterLocation, filterStatus]);
 
   const loadUniversities = async () => {
     const token = getToken();
@@ -66,7 +71,19 @@ export default function AdminUniversitiesPage() {
 
     setLoading(true);
     try {
-      const data = await api.getUniversities({ page, limit: 20 }) as PaginatedResponse;
+      const params: any = { page, limit: 20 };
+
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+      if (filterLocation) {
+        params.location = filterLocation;
+      }
+      if (filterStatus) {
+        params.isActive = filterStatus === 'active';
+      }
+
+      const data = await api.getUniversities(params) as PaginatedResponse;
       setUniversities(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
@@ -162,6 +179,15 @@ export default function AdminUniversitiesPage() {
     });
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFilterLocation('');
+    setFilterStatus('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || filterLocation || filterStatus;
+
   if (loading && universities.length === 0) {
     return (
       <Container className="py-12">
@@ -189,6 +215,99 @@ export default function AdminUniversitiesPage() {
           </Link>
         </div>
       </div>
+
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <div className="space-y-4">
+          {/* Search and Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Search */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Qidiruv
+              </label>
+              <input
+                type="text"
+                placeholder="Universitet nomi bo'yicha qidirish..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+
+            {/* Location Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Joylashuv
+              </label>
+              <input
+                type="text"
+                placeholder="Shahar nomi..."
+                value={filterLocation}
+                onChange={(e) => {
+                  setFilterLocation(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Holat
+              </label>
+              <select
+                value={filterStatus}
+                onChange={(e) => {
+                  setFilterStatus(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              >
+                <option value="">Barcha holatlar</option>
+                <option value="active">Faol</option>
+                <option value="inactive">Nofaol</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Active Filters and Reset */}
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium text-gray-700">Faol filtrlar:</span>
+                {searchQuery && (
+                  <Badge variant="info">
+                    Qidiruv: {searchQuery}
+                  </Badge>
+                )}
+                {filterLocation && (
+                  <Badge variant="info">
+                    Joylashuv: {filterLocation}
+                  </Badge>
+                )}
+                {filterStatus && (
+                  <Badge variant="info">
+                    Holat: {filterStatus === 'active' ? 'Faol' : 'Nofaol'}
+                  </Badge>
+                )}
+              </div>
+              <Button variant="outline" onClick={handleResetFilters} size="sm">
+                Tozalash
+              </Button>
+            </div>
+          )}
+
+          {/* Results Count */}
+          <div className="text-sm text-gray-600">
+            Jami: <span className="font-semibold">{universities.length}</span> ta universitet
+          </div>
+        </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">

@@ -20,9 +20,14 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterRole, setFilterRole] = useState('');
+  const [filterVerified, setFilterVerified] = useState('');
+
   useEffect(() => {
     loadUsers();
-  }, [page]);
+  }, [page, searchQuery, filterRole, filterVerified]);
 
   const loadUsers = async () => {
     const token = getToken();
@@ -33,7 +38,19 @@ export default function AdminUsersPage() {
 
     setLoading(true);
     try {
-      const data = await api.getAllUsers(token, { page, limit: 20 }) as PaginatedResponse<User>;
+      const params: any = { page, limit: 20 };
+
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+      if (filterRole) {
+        params.role = filterRole;
+      }
+      if (filterVerified) {
+        params.isEmailVerified = filterVerified === 'verified';
+      }
+
+      const data = await api.getAllUsers(token, params) as PaginatedResponse<User>;
       setUsers(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
@@ -89,6 +106,15 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFilterRole('');
+    setFilterVerified('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || filterRole || filterVerified;
+
   if (loading && users.length === 0) {
     return (
       <Container className="py-12">
@@ -108,6 +134,102 @@ export default function AdminUsersPage() {
           <Button variant="outline">Orqaga</Button>
         </Link>
       </div>
+
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <div className="space-y-4">
+          {/* Search and Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Qidiruv
+              </label>
+              <input
+                type="text"
+                placeholder="Ism, email yoki telefon bo'yicha qidirish..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+
+            {/* Role Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rol
+              </label>
+              <select
+                value={filterRole}
+                onChange={(e) => {
+                  setFilterRole(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              >
+                <option value="">Barcha rollar</option>
+                <option value="student">Talaba</option>
+                <option value="partner">Hamkor</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            {/* Verification Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tasdiqlash holati
+              </label>
+              <select
+                value={filterVerified}
+                onChange={(e) => {
+                  setFilterVerified(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              >
+                <option value="">Barchasi</option>
+                <option value="verified">Tasdiqlangan</option>
+                <option value="unverified">Tasdiqlanmagan</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Active Filters and Reset */}
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-medium text-gray-700">Faol filtrlar:</span>
+                {searchQuery && (
+                  <Badge variant="info">
+                    Qidiruv: {searchQuery}
+                  </Badge>
+                )}
+                {filterRole && (
+                  <Badge variant="info">
+                    Rol: {getRoleLabel(filterRole)}
+                  </Badge>
+                )}
+                {filterVerified && (
+                  <Badge variant="info">
+                    Holat: {filterVerified === 'verified' ? 'Tasdiqlangan' : 'Tasdiqlanmagan'}
+                  </Badge>
+                )}
+              </div>
+              <Button variant="outline" onClick={handleResetFilters} size="sm">
+                Tozalash
+              </Button>
+            </div>
+          )}
+
+          {/* Results Count */}
+          <div className="text-sm text-gray-600">
+            Jami: <span className="font-semibold">{users.length}</span> ta foydalanuvchi
+          </div>
+        </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">

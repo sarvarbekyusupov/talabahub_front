@@ -1,11 +1,16 @@
 'use client';
 
+import { useState } from 'react';
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
   totalItems?: number;
   itemsPerPage?: number;
+  onItemsPerPageChange?: (itemsPerPage: number) => void;
+  showPageSizeSelector?: boolean;
+  showJumpToPage?: boolean;
 }
 
 export function Pagination({
@@ -14,7 +19,11 @@ export function Pagination({
   onPageChange,
   totalItems,
   itemsPerPage,
+  onItemsPerPageChange,
+  showPageSizeSelector = false,
+  showJumpToPage = false,
 }: PaginationProps) {
+  const [jumpToPageValue, setJumpToPageValue] = useState('');
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const showPages = 5; // Show max 5 page numbers
@@ -51,7 +60,22 @@ export function Pagination({
     return pages;
   };
 
-  if (totalPages <= 1) {
+  const handleJumpToPage = () => {
+    const pageNum = parseInt(jumpToPageValue);
+    if (pageNum >= 1 && pageNum <= totalPages) {
+      onPageChange(pageNum);
+      setJumpToPageValue('');
+    }
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    if (onItemsPerPageChange) {
+      onItemsPerPageChange(newSize);
+      onPageChange(1); // Reset to first page when changing page size
+    }
+  };
+
+  if (totalPages <= 1 && !showPageSizeSelector) {
     return null;
   }
 
@@ -86,7 +110,7 @@ export function Pagination({
       </div>
 
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-        <div>
+        <div className="flex items-center gap-4">
           {totalItems && itemsPerPage && (
             <p className="text-sm text-gray-700">
               Ko'rsatilmoqda{' '}
@@ -100,6 +124,50 @@ export function Pagination({
               gacha, jami{' '}
               <span className="font-medium">{totalItems}</span> ta
             </p>
+          )}
+
+          {/* Page Size Selector */}
+          {showPageSizeSelector && itemsPerPage && onItemsPerPageChange && (
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-700">Sahifada:</label>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          )}
+
+          {/* Jump to Page */}
+          {showJumpToPage && totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-700">Sahifaga o'tish:</label>
+              <input
+                type="number"
+                min="1"
+                max={totalPages}
+                value={jumpToPageValue}
+                onChange={(e) => setJumpToPageValue(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleJumpToPage();
+                  }
+                }}
+                placeholder="#"
+                className="w-16 rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+              <button
+                onClick={handleJumpToPage}
+                className="rounded-md bg-gray-100 px-3 py-1 text-sm text-gray-700 hover:bg-gray-200"
+              >
+                O'tish
+              </button>
+            </div>
           )}
         </div>
         <div>
