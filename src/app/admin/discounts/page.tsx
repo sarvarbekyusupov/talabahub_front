@@ -24,6 +24,13 @@ export default function AdminDiscountsPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterBrand, setFilterBrand] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterDiscountType, setFilterDiscountType] = useState('');
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -43,7 +50,7 @@ export default function AdminDiscountsPage() {
   useEffect(() => {
     loadDiscounts();
     loadCategoriesAndBrands();
-  }, [page]);
+  }, [page, searchQuery, filterBrand, filterStatus, filterDiscountType]);
 
   const loadDiscounts = async () => {
     const token = getToken();
@@ -54,7 +61,25 @@ export default function AdminDiscountsPage() {
 
     setLoading(true);
     try {
-      const data = await api.getDiscounts({ page, limit: 20 }) as PaginatedResponse<Discount>;
+      const params: any = { page, limit: 20 };
+
+      // Add search query if provided
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+
+      // Add filters
+      if (filterBrand) {
+        params.brandId = filterBrand;
+      }
+      if (filterStatus) {
+        params.isActive = filterStatus === 'active';
+      }
+      if (filterDiscountType) {
+        params.discountType = filterDiscountType;
+      }
+
+      const data = await api.getDiscounts(params) as PaginatedResponse<Discount>;
       setDiscounts(data.data);
       setTotalPages(data.meta.totalPages);
     } catch (error: any) {
@@ -184,6 +209,16 @@ export default function AdminDiscountsPage() {
     });
   };
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setFilterBrand('');
+    setFilterStatus('');
+    setFilterDiscountType('');
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || filterBrand || filterStatus || filterDiscountType;
+
   if (loading && discounts.length === 0) {
     return (
       <Container className="py-12">
@@ -211,6 +246,138 @@ export default function AdminDiscountsPage() {
           </Link>
         </div>
       </div>
+
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Qidirish
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Chegirma nomi bo'yicha qidirish..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <svg
+                className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Brand Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Brend
+            </label>
+            <select
+              value={filterBrand}
+              onChange={(e) => {
+                setFilterBrand(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barcha brendlar</option>
+              {brands.map((brand) => (
+                <option key={brand.id} value={brand.id}>
+                  {brand.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Holat
+            </label>
+            <select
+              value={filterStatus}
+              onChange={(e) => {
+                setFilterStatus(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barchasi</option>
+              <option value="active">Faol</option>
+              <option value="inactive">Nofaol</option>
+            </select>
+          </div>
+
+          {/* Discount Type Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Chegirma turi
+            </label>
+            <select
+              value={filterDiscountType}
+              onChange={(e) => {
+                setFilterDiscountType(e.target.value);
+                setPage(1);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Barcha turlar</option>
+              <option value="percentage">Foiz</option>
+              <option value="fixed">Qat'iy miqdor</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Active Filters & Reset */}
+        {hasActiveFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-600">Faol filtrlar:</span>
+              {searchQuery && (
+                <Badge variant="info">Qidiruv: {searchQuery}</Badge>
+              )}
+              {filterBrand && (
+                <Badge variant="info">Brend: {brands.find(b => b.id === filterBrand)?.name}</Badge>
+              )}
+              {filterStatus && (
+                <Badge variant="info">
+                  Holat: {filterStatus === 'active' ? 'Faol' : 'Nofaol'}
+                </Badge>
+              )}
+              {filterDiscountType && (
+                <Badge variant="info">
+                  Tur: {filterDiscountType === 'percentage' ? 'Foiz' : 'Qat\'iy miqdor'}
+                </Badge>
+              )}
+            </div>
+            <Button variant="outline" size="sm" onClick={handleResetFilters}>
+              Tozalash
+            </Button>
+          </div>
+        )}
+
+        {/* Results Count */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            Jami: <span className="font-semibold">{discounts.length}</span> ta chegirma topildi
+          </p>
+        </div>
+      </Card>
 
       <Card>
         <div className="overflow-x-auto">
