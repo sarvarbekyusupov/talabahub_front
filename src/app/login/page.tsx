@@ -26,7 +26,23 @@ export default function LoginPage() {
       const data: any = await api.login(email, password);
       setToken(data.accessToken);
       setRefreshToken(data.refreshToken);
-      router.push('/profile');
+
+      // Get user profile to determine role
+      const user = await api.getProfile(data.accessToken) as any;
+
+      // Redirect based on user role
+      switch (user.role) {
+        case 'admin':
+          router.push('/admin/dashboard');
+          break;
+        case 'partner':
+          router.push('/partner/dashboard');
+          break;
+        case 'student':
+        default:
+          router.push('/dashboard');
+          break;
+      }
     } catch (err: any) {
       setError(err.message || 'Kirish xato. Iltimos, qayta urinib ko\'ring.');
     } finally {
