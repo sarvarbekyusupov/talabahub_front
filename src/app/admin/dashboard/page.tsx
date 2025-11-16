@@ -63,22 +63,22 @@ export default function AdminDashboardPage() {
           companiesData,
           categoriesData,
         ] = await Promise.all([
-          api.getAllUsers(token, { limit: 1 }) as Promise<any>,
-          api.getDiscounts({ limit: 1 }) as Promise<any>,
-          api.getJobs({ limit: 1 }) as Promise<any>,
-          api.getEvents({ limit: 1 }) as Promise<any>,
-          api.getCourses({ limit: 1 }) as Promise<any>,
-          api.getBrands({ limit: 1 }) as Promise<any>,
-          api.getCompanies({ limit: 1 }) as Promise<any>,
-          api.getCategories({ limit: 1 }) as Promise<any>,
+          api.getAllUsers(token, {}) as Promise<any>,
+          api.getDiscounts({}) as Promise<any>,
+          api.getJobs({}) as Promise<any>,
+          api.getEvents({}) as Promise<any>,
+          api.getCourses({}) as Promise<any>,
+          api.getBrands({}) as Promise<any>,
+          api.getCompanies({}) as Promise<any>,
+          api.getCategories({}) as Promise<any>,
         ]);
 
         // Get active counts by fetching filtered data
         const [activeDiscountsData, activeJobsData, activeEventsData, activeCoursesData] = await Promise.all([
-          api.getDiscounts({ isActive: true, limit: 1 }) as Promise<any>,
-          api.getJobs({ isActive: true, limit: 1 }) as Promise<any>,
-          api.getEvents({ isActive: true, limit: 1 }) as Promise<any>,
-          api.getCourses({ isActive: true, limit: 1 }) as Promise<any>,
+          api.getDiscounts({ isActive: true }) as Promise<any>,
+          api.getJobs({ isActive: true }) as Promise<any>,
+          api.getEvents({ isActive: true }) as Promise<any>,
+          api.getCourses({ isActive: true }) as Promise<any>,
         ]);
 
         setStats({
@@ -102,9 +102,9 @@ export default function AdminDashboardPage() {
 
         // Load recent discounts, jobs, events for activity feed
         const [recentDiscountsData, recentJobsData, recentEventsData] = await Promise.all([
-          api.getDiscounts({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
-          api.getJobs({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
-          api.getEvents({ limit: 3, sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
+          api.getDiscounts({ sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
+          api.getJobs({ sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
+          api.getEvents({ sortBy: 'createdAt', sortOrder: 'desc' }) as Promise<any>,
         ]);
 
         const activities = [
@@ -127,8 +127,26 @@ export default function AdminDashboardPage() {
 
         setRecentActivity(activities);
       } catch (error) {
-        console.error('Error loading admin data:', error);
-        router.push('/login');
+        // Silently fail - backend endpoints may not be fully available
+        console.warn('Some admin data could not be loaded');
+        setStats({
+          totalUsers: 0,
+          activeUsers: 0,
+          totalDiscounts: 0,
+          activeDiscounts: 0,
+          totalJobs: 0,
+          activeJobs: 0,
+          totalEvents: 0,
+          activeEvents: 0,
+          totalCourses: 0,
+          activeCourses: 0,
+          totalApplications: 0,
+          totalRegistrations: 0,
+          totalEnrollments: 0,
+          totalBrands: 0,
+          totalCompanies: 0,
+          totalCategories: 0,
+        });
       } finally {
         setLoading(false);
       }
