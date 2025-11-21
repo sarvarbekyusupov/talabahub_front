@@ -32,6 +32,10 @@ export default function DiscountDetailPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [relatedDiscounts, setRelatedDiscounts] = useState<DiscountType[]>([]);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [claiming, setClaiming] = useState(false);
+  const [claimSuccess, setClaimSuccess] = useState(false);
+  const [claimData, setClaimData] = useState<{ claimCode: string; expiresAt: string } | null>(null);
+  const [claimError, setClaimError] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -201,6 +205,38 @@ export default function DiscountDetailPage() {
   const handleCancelReview = () => {
     setShowReviewForm(false);
     setEditingReview(null);
+  };
+
+  const handleClaimDiscount = async () => {
+    const token = getToken();
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    setClaiming(true);
+    setClaimError('');
+
+    try {
+      const result: any = await clientApi.claimDiscount(token, id);
+      setClaimData({
+        claimCode: result.claimCode,
+        expiresAt: result.expiresAt,
+      });
+      setClaimSuccess(true);
+    } catch (err: any) {
+      setClaimError(err.message || 'Chegirmani olishda xatolik yuz berdi');
+    } finally {
+      setClaiming(false);
+    }
+  };
+
+  const handleCopyClaimCode = () => {
+    if (claimData?.claimCode) {
+      navigator.clipboard.writeText(claimData.claimCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   // Calculate countdown and progress
@@ -570,19 +606,65 @@ export default function DiscountDetailPage() {
           {/* Actions Card */}
           <Card className="sticky top-20">
             <h3 className="text-lg font-semibold mb-4">Harakatlar</h3>
-            <div className="space-y-3">
-              <Button fullWidth size="lg" variant="primary">
-                Chegirmadan foydalanish
-              </Button>
 
-              <div className="w-full">
-                <SaveButton
-                  itemType="discount"
-                  itemId={discount.id}
-                  className="w-full h-10 rounded-lg font-medium"
-                />
+            {/* Claim Success State */}
+            {claimSuccess && claimData ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg text-center">
+                  <div className="text-3xl mb-2">✓</div>
+                  <h4 className="font-bold text-green-800 mb-2">Chegirma olindi!</h4>
+                  <p className="text-sm text-green-700 mb-3">
+                    Quyidagi kodni do'konda ko'rsating
+                  </p>
+                  <code className="block text-2xl font-bold text-green-600 bg-white p-3 rounded-lg border border-green-300 mb-3">
+                    {claimData.claimCode}
+                  </code>
+                  <Button
+                    fullWidth
+                    variant={copied ? 'primary' : 'outline'}
+                    onClick={handleCopyClaimCode}
+                  >
+                    {copied ? '✓ Nusxalandi' : 'Kodni nusxalash'}
+                  </Button>
+                  <p className="text-xs text-gray-600 mt-3">
+                    Amal qilish muddati: {new Date(claimData.expiresAt).toLocaleString('uz-UZ')}
+                  </p>
+                </div>
+                <Button
+                  fullWidth
+                  variant="outline"
+                  onClick={() => router.push('/dashboard/my-claims')}
+                >
+                  Mening chegirmalarim
+                </Button>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-3">
+                {claimError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                    {claimError}
+                  </div>
+                )}
+                <Button
+                  fullWidth
+                  size="lg"
+                  variant="primary"
+                  onClick={handleClaimDiscount}
+                  loading={claiming}
+                  disabled={validityInfo?.hasExpired || !discount.isActive}
+                >
+                  {claiming ? 'Olinmoqda...' : 'Chegirmani olish'}
+                </Button>
+
+                <div className="w-full">
+                  <SaveButton
+                    itemType="discount"
+                    itemId={discount.id}
+                    className="w-full h-10 rounded-lg font-medium"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Social Sharing */}
             <div className="mt-6 pt-6 border-t">

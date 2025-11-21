@@ -420,6 +420,141 @@ class ApiClient {
     });
   }
 
+  // ========== DISCOUNT SYSTEM ENDPOINTS ==========
+
+  // Student Discount Endpoints
+  async claimDiscount(token: string, discountId: string) {
+    return this.request(`/discounts/${discountId}/claim`, {
+      method: 'POST',
+      token,
+    });
+  }
+
+  async getMyClaims(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/discounts/my-claims${query}`, { token });
+  }
+
+  async getClaimById(token: string, claimId: string) {
+    return this.request(`/discounts/claims/${claimId}`, { token });
+  }
+
+  async cancelClaim(token: string, claimId: string) {
+    return this.request(`/discounts/claims/${claimId}/cancel`, {
+      method: 'POST',
+      token,
+    });
+  }
+
+  async getStudentSavingsAnalytics(token: string) {
+    return this.request('/discounts/analytics/my-savings', { token });
+  }
+
+  // Partner Discount Endpoints
+  async getPartnerDiscountAnalytics(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/discounts/partner/analytics${query}`, { token });
+  }
+
+  async getPartnerPendingVerifications(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/discounts/partner/pending${query}`, { token });
+  }
+
+  async verifyDiscountClaim(token: string, claimId: string, data: { verified: boolean; note?: string }) {
+    return this.request(`/discounts/claims/${claimId}/verify`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getPartnerDiscounts(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/discounts/partner/discounts${query}`, { token });
+  }
+
+  async pauseDiscount(token: string, discountId: string) {
+    return this.request(`/discounts/${discountId}/pause`, {
+      method: 'POST',
+      token,
+    });
+  }
+
+  async resumeDiscount(token: string, discountId: string) {
+    return this.request(`/discounts/${discountId}/resume`, {
+      method: 'POST',
+      token,
+    });
+  }
+
+  async extendDiscount(token: string, discountId: string, newExpiryDate: string) {
+    return this.request(`/discounts/${discountId}/extend`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ validUntil: newExpiryDate }),
+    });
+  }
+
+  async increaseDiscountLimit(token: string, discountId: string, additionalLimit: number) {
+    return this.request(`/discounts/${discountId}/increase-limit`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ additionalLimit }),
+    });
+  }
+
+  // Admin Discount Endpoints
+  async getPendingApprovalDiscounts(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/discounts/admin/pending-approval${query}`, { token });
+  }
+
+  async approveDiscount(token: string, discountId: string, note?: string) {
+    return this.request(`/discounts/${discountId}/approve`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ note }),
+    });
+  }
+
+  async rejectDiscount(token: string, discountId: string, reason: string) {
+    return this.request(`/discounts/${discountId}/reject`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async getPlatformDiscountAnalytics(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/discounts/admin/analytics${query}`, { token });
+  }
+
+  async getFraudAlerts(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/discounts/admin/fraud-alerts${query}`, { token });
+  }
+
+  async updateFraudAlertStatus(token: string, alertId: string, status: string, note?: string) {
+    return this.request(`/discounts/admin/fraud-alerts/${alertId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify({ status, note }),
+    });
+  }
+
+  async getDiscountClaims(token: string, discountId: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/discounts/${discountId}/claims${query}`, { token });
+  }
+
+  // Recommended discounts
+  async getRecommendedDiscounts(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/discounts/recommended${query}`, { token });
+  }
+
   // Admin - User Management
   async getAllUsers(token: string, params?: Record<string, any>) {
     const query = params ? `?${new URLSearchParams(params)}` : '';
