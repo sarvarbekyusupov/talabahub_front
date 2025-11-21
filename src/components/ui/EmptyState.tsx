@@ -5,6 +5,7 @@ interface EmptyStateProps {
   message?: string;
   icon?: 'search' | 'database' | 'filter';
   actionLabel?: string;
+  actionText?: string; // Alias for actionLabel
   onAction?: () => void;
   showAction?: boolean;
 }
@@ -13,10 +14,12 @@ export function EmptyState({
   title = 'Hech narsa topilmadi',
   message = 'Hech qanday ma\'lumot topilmadi',
   icon = 'database',
-  actionLabel = 'Filtrlarni tozalash',
+  actionLabel,
+  actionText,
   onAction,
   showAction = true,
 }: EmptyStateProps) {
+  const buttonLabel = actionText || actionLabel || 'Filtrlarni tozalash';
   const getIcon = () => {
     switch (icon) {
       case 'search':
@@ -94,7 +97,7 @@ export function EmptyState({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-            {actionLabel}
+            {buttonLabel}
           </button>
         )}
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
@@ -9,58 +9,128 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useArticleBySlug, useArticleResponses, useRelatedArticles } from '@/lib/hooks';
 import { api } from '@/lib/api';
+import { getToken } from '@/lib/auth';
+import { Article, ArticleResponse, Tag, ContentBlock } from '@/types';
 
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  coverImage?: string;
-  author: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    avatarUrl?: string;
-  };
-  category?: {
-    id: string;
-    name: string;
-  };
-  tags?: string[];
-  isPublished: boolean;
-  publishedAt?: string;
-  viewCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export default function BlogPostPage() {
+export default function ArticlePage() {
   const params = useParams();
-  const router = useRouter();
   const slug = params.slug as string;
+  const token = getToken();
 
-  const [post, setPost] = useState<BlogPost | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { article, isLoading, error, mutate } = useArticleBySlug(slug);
+  const { responses, total: responsesTotal, mutate: mutateResponses } = useArticleResponses(article?.id || '');
+  const { articles: relatedArticles } = useRelatedArticles(article?.id || '');
 
+  const [clapping, setClapping] = useState(false);
+  const [yourClaps, setYourClaps] = useState(0);
+  const [totalClaps, setTotalClaps] = useState(0);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarking, setBookmarking] = useState(false);
+  const [responseText, setResponseText] = useState('');
+  const [submittingResponse, setSubmittingResponse] = useState(false);
+
+  // Track view
   useEffect(() => {
-    if (slug) {
-      loadPost();
+    if (article?.id) {
+      api.trackArticleView(article.id, { referrer: document.referrer });
+      setTotalClaps(article.stats?.clapsCount || 0);
+      setYourClaps(article.yourClaps || 0);
+      setIsBookmarked(article.isBookmarked || false);
     }
-  }, [slug]);
+  }, [article]);
 
-  const loadPost = async () => {
-    setLoading(true);
+  const handleClap = async () => {
+    if (!token) {
+      alert('Clap qilish uchun tizimga kiring');
+      return;
+    }
+    if (clapping || yourClaps >= 50) return;
+
+    setClapping(true);
     try {
-      const data = await api.getBlogPostBySlug(slug) as BlogPost;
-      setPost(data);
-    } catch (err: any) {
-      console.error('Error loading blog post:', err);
-      setError('Maqola topilmadi');
+      const result = await api.clapArticle(token, article!.id, 1) as { totalClaps: number; yourClaps: number };
+      setTotalClaps(result.totalClaps);
+      setYourClaps(result.yourClaps);
+    } catch (err) {
+      console.error('Clap error:', err);
     } finally {
-      setLoading(false);
+      setClapping(false);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!token) {
+      alert('Saqlash uchun tizimga kiring');
+      return;
+    }
+    if (bookmarking) return;
+
+    setBookmarking(true);
+    try {
+      if (isBookmarked) {
+        await api.removeBookmark(token, article!.id);
+        setIsBookmarked(false);
+      } else {
+        await api.bookmarkArticle(token, article!.id);
+        setIsBookmarked(true);
+      }
+    } catch (err) {
+      console.error('Bookmark error:', err);
+    } finally {
+      setBookmarking(false);
+    }
+  };
+
+  const handleShare = async (platform: string) => {
+    const url = window.location.href;
+    const text = article?.title || '';
+
+    if (token) {
+      api.shareArticle(token, article!.id, platform);
+    }
+
+    switch (platform) {
+      case 'telegram':
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+        break;
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`);
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+        break;
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+        break;
+      case 'copy_link':
+        navigator.clipboard.writeText(url);
+        alert('Havola nusxalandi!');
+        break;
+    }
+  };
+
+  const handleSubmitResponse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) {
+      alert('Izoh qoldirish uchun tizimga kiring');
+      return;
+    }
+    if (!responseText.trim() || submittingResponse) return;
+
+    setSubmittingResponse(true);
+    try {
+      await api.createArticleResponse(token, article!.id, {
+        content: { text: responseText.trim() }
+      });
+      setResponseText('');
+      mutateResponses();
+    } catch (err) {
+      console.error('Response error:', err);
+      alert('Izoh yuborishda xatolik');
+    } finally {
+      setSubmittingResponse(false);
     }
   };
 
@@ -72,7 +142,67 @@ export default function BlogPostPage() {
     });
   };
 
-  if (loading) {
+  const renderContent = (blocks: ContentBlock[]) => {
+    return blocks.map((block, index) => {
+      switch (block.type) {
+        case 'paragraph':
+          return (
+            <p key={index} className="mb-4 text-gray-700 leading-relaxed">
+              {block.content.text}
+            </p>
+          );
+        case 'heading':
+          const HeadingTag = `h${block.content.level || 2}` as keyof JSX.IntrinsicElements;
+          return (
+            <HeadingTag key={index} className="font-bold text-gray-900 mt-8 mb-4">
+              {block.content.text}
+            </HeadingTag>
+          );
+        case 'image':
+          return (
+            <figure key={index} className="my-8">
+              <Image
+                src={block.content.url || ''}
+                alt={block.content.caption || ''}
+                width={800}
+                height={450}
+                className="rounded-lg w-full"
+              />
+              {block.content.caption && (
+                <figcaption className="text-sm text-gray-500 text-center mt-2">
+                  {block.content.caption}
+                </figcaption>
+              )}
+            </figure>
+          );
+        case 'code':
+          return (
+            <pre key={index} className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
+              <code>{block.content.text}</code>
+            </pre>
+          );
+        case 'quote':
+          return (
+            <blockquote key={index} className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600">
+              {block.content.text}
+            </blockquote>
+          );
+        case 'list':
+          const ListTag = block.content.ordered ? 'ol' : 'ul';
+          return (
+            <ListTag key={index} className={`my-4 pl-6 ${block.content.ordered ? 'list-decimal' : 'list-disc'}`}>
+              {block.content.items?.map((item, i) => (
+                <li key={i} className="mb-2">{item}</li>
+              ))}
+            </ListTag>
+          );
+        default:
+          return null;
+      }
+    });
+  };
+
+  if (isLoading) {
     return (
       <Container className="py-8">
         <div className="max-w-4xl mx-auto">
@@ -81,30 +211,16 @@ export default function BlogPostPage() {
           <Skeleton className="h-96 mb-8" />
           <Skeleton className="h-6 mb-4" />
           <Skeleton className="h-6 mb-4" />
-          <Skeleton className="h-6 w-3/4" />
         </div>
       </Container>
     );
   }
 
-  if (error || !post) {
+  if (error || !article) {
     return (
       <Container className="py-20">
         <div className="text-center">
-          <svg
-            className="w-16 h-16 mx-auto text-gray-400 mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{error}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Maqola topilmadi</h2>
           <p className="text-gray-600 mb-6">Kechirasiz, bu maqola mavjud emas</p>
           <Link href="/blog">
             <Button>Blog sahifasiga qaytish</Button>
@@ -120,47 +236,40 @@ export default function BlogPostPage() {
         {/* Back Button */}
         <Link href="/blog">
           <Button variant="ghost" className="mb-6">
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Orqaga
           </Button>
         </Link>
 
-        {/* Article Header */}
         <article>
-          {/* Category */}
-          {post.category && (
-            <div className="mb-4">
-              <Badge variant="info">{post.category.name}</Badge>
+          {/* Tags */}
+          {article.tags && article.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {article.tags.map((tag: Tag) => (
+                <Badge key={tag.id} variant="info">#{tag.name}</Badge>
+              ))}
             </div>
           )}
 
           {/* Title */}
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            {post.title}
+            {article.title}
           </h1>
 
-          {/* Excerpt */}
-          <p className="text-xl text-gray-600 mb-6">{post.excerpt}</p>
+          {/* Subtitle */}
+          {article.subtitle && (
+            <p className="text-xl text-gray-600 mb-6">{article.subtitle}</p>
+          )}
 
-          {/* Meta Info */}
+          {/* Author Info */}
           <div className="flex items-center justify-between py-6 border-y border-gray-200 mb-8">
-            <div className="flex items-center gap-3">
-              {post.author.avatarUrl ? (
+            <Link href={`/students/${article.author.username}`} className="flex items-center gap-3 group">
+              {article.author.avatarUrl ? (
                 <Image
-                  src={post.author.avatarUrl}
-                  alt={post.author.firstName}
+                  src={article.author.avatarUrl}
+                  alt={article.author.firstName}
                   width={48}
                   height={48}
                   className="rounded-full object-cover"
@@ -168,53 +277,38 @@ export default function BlogPostPage() {
               ) : (
                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
                   <span className="text-blue-600 font-semibold">
-                    {post.author.firstName[0]}
-                    {post.author.lastName[0]}
+                    {article.author.firstName[0]}{article.author.lastName[0]}
                   </span>
                 </div>
               )}
               <div>
-                <p className="font-semibold text-gray-900">
-                  {post.author.firstName} {post.author.lastName}
+                <p className="font-semibold text-gray-900 group-hover:text-blue-600 transition">
+                  {article.author.firstName} {article.author.lastName}
                 </p>
                 <p className="text-sm text-gray-600">
-                  {formatDate(post.publishedAt || post.createdAt)}
+                  {formatDate(article.publishedAt || article.createdAt)} · {article.readingTimeMinutes} min o'qish
                 </p>
               </div>
-            </div>
+            </Link>
 
-            <div className="flex items-center gap-4 text-gray-600">
-              <div className="flex items-center gap-1">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
+            {/* Quick Stats */}
+            <div className="flex items-center gap-4 text-gray-500">
+              <span className="flex items-center gap-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                <span className="text-sm">{post.viewCount} ko'rishlar</span>
-              </div>
+                {article.stats?.viewsCount || 0}
+              </span>
             </div>
           </div>
 
-          {/* Cover Image */}
-          {post.coverImage && (
+          {/* Featured Image */}
+          {article.featuredImageUrl && (
             <div className="mb-8 rounded-lg overflow-hidden">
               <Image
-                src={post.coverImage}
-                alt={post.title}
+                src={article.featuredImageUrl}
+                alt={article.title}
                 width={1200}
                 height={675}
                 className="w-full h-auto"
@@ -223,54 +317,155 @@ export default function BlogPostPage() {
           )}
 
           {/* Content */}
-          <div
-            className="prose prose-lg max-w-none mb-8"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <div className="prose prose-lg max-w-none mb-8">
+            {renderContent(article.content)}
+          </div>
 
-          {/* Tags */}
-          {post.tags && post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 py-6 border-t border-gray-200">
-              <span className="text-gray-600 font-medium">Teglar:</span>
-              {post.tags.map((tag, index) => (
-                <Badge key={index} variant="info">
-                  #{tag}
-                </Badge>
+          {/* Engagement Bar */}
+          <div className="sticky bottom-4 bg-white border border-gray-200 rounded-full shadow-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Clap Button */}
+              <button
+                onClick={handleClap}
+                disabled={clapping || yourClaps >= 50}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full transition ${
+                  yourClaps > 0
+                    ? 'bg-red-100 text-red-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <svg className="w-5 h-5" fill={yourClaps > 0 ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span>{totalClaps}</span>
+              </button>
+
+              {/* Responses Count */}
+              <a href="#responses" className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span>{responsesTotal}</span>
+              </a>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Bookmark Button */}
+              <button
+                onClick={handleBookmark}
+                disabled={bookmarking}
+                className={`p-2 rounded-full transition ${
+                  isBookmarked
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <svg className="w-5 h-5" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+
+              {/* Share Buttons */}
+              <button onClick={() => handleShare('telegram')} className="p-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.015-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.244-1.349-.374-1.297-.789.027-.216.324-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.141.121.1.154.234.17.331.015.098.034.322.019.496z"/>
+                </svg>
+              </button>
+              <button onClick={() => handleShare('copy_link')} className="p-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Responses Section */}
+          <div id="responses" className="mt-12 pt-8 border-t">
+            <h3 className="text-2xl font-bold mb-6">Izohlar ({responsesTotal})</h3>
+
+            {/* Response Form */}
+            <form onSubmit={handleSubmitResponse} className="mb-8">
+              <textarea
+                value={responseText}
+                onChange={(e) => setResponseText(e.target.value)}
+                placeholder="Izoh qoldiring..."
+                className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={4}
+              />
+              <div className="flex justify-end mt-2">
+                <Button type="submit" disabled={!responseText.trim() || submittingResponse}>
+                  {submittingResponse ? 'Yuborilmoqda...' : 'Yuborish'}
+                </Button>
+              </div>
+            </form>
+
+            {/* Responses List */}
+            <div className="space-y-6">
+              {responses.map((response: ArticleResponse) => (
+                <div key={response.id} className="flex gap-4">
+                  {response.author.avatarUrl ? (
+                    <Image
+                      src={response.author.avatarUrl}
+                      alt={response.author.firstName}
+                      width={40}
+                      height={40}
+                      className="rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-blue-600 text-sm font-semibold">
+                        {response.author.firstName[0]}{response.author.lastName[0]}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-gray-900">
+                        {response.author.firstName} {response.author.lastName}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {formatDate(response.createdAt)}
+                      </span>
+                      {response.isEdited && (
+                        <span className="text-xs text-gray-400">(tahrirlangan)</span>
+                      )}
+                    </div>
+                    <p className="text-gray-700">{response.content.text}</p>
+                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                      <button className="flex items-center gap-1 hover:text-gray-700">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        {response.clapsCount}
+                      </button>
+                      <button className="hover:text-gray-700">Javob berish</button>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
-          )}
-
-          {/* Share Buttons */}
-          <div className="flex items-center gap-4 py-6 border-t border-gray-200">
-            <span className="text-gray-600 font-medium">Ulashish:</span>
-            <button className="p-2 rounded-lg hover:bg-gray-100 transition">
-              <svg
-                className="w-5 h-5 text-blue-600"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-            </button>
-            <button className="p-2 rounded-lg hover:bg-gray-100 transition">
-              <svg
-                className="w-5 h-5 text-blue-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-              </svg>
-            </button>
-            <button className="p-2 rounded-lg hover:bg-gray-100 transition">
-              <svg
-                className="w-5 h-5 text-blue-700"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-              </svg>
-            </button>
           </div>
+
+          {/* Related Articles */}
+          {relatedArticles.length > 0 && (
+            <div className="mt-12 pt-8 border-t">
+              <h3 className="text-2xl font-bold mb-6">O'xshash maqolalar</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {relatedArticles.slice(0, 4).map((related: Article) => (
+                  <Link key={related.id} href={`/blog/${related.slug}`}>
+                    <Card hover className="h-full">
+                      <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition">
+                        {related.title}
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {related.author.firstName} {related.author.lastName}
+                      </p>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </article>
       </div>
     </Container>
