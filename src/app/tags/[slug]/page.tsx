@@ -74,11 +74,8 @@ export default function TagPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold text-blue-600 mb-2">#{tag.name}</h1>
-            {tag.description && (
-              <p className="text-gray-600 mb-4">{tag.description}</p>
-            )}
             <p className="text-sm text-gray-500">
-              {tag.articlesCount || 0} ta maqola
+              {tag.articleCount || 0} ta maqola
             </p>
           </div>
         </div>
@@ -129,7 +126,7 @@ export default function TagPage() {
                       {article.tags?.slice(0, 2).map((t: Tag) => (
                         <Badge
                           key={t.id}
-                          variant={t.slug === slug ? 'info' : 'default'}
+                          variant={t.slug === slug ? 'info' : 'primary'}
                           className="text-xs"
                         >
                           #{t.name}

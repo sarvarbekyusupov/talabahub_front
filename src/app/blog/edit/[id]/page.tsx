@@ -45,21 +45,21 @@ export default function EditArticlePage() {
   const contentBlocksToText = (blocks: ContentBlock[]): string => {
     if (!blocks || blocks.length === 0) return '';
     return blocks
-      .sort((a, b) => a.order - b.order)
+      .sort((a, b) => a.position - b.position)
       .map(block => {
         switch (block.type) {
           case 'paragraph':
           case 'heading':
           case 'quote':
-            return block.content || '';
+            return block.content.text || '';
           case 'code':
-            return `\`\`\`${block.language || ''}\n${block.content || ''}\n\`\`\``;
+            return `\`\`\`${block.content.language || ''}\n${block.content.text || ''}\n\`\`\``;
           case 'list':
-            return (block.items || []).map(item => `- ${item}`).join('\n');
+            return (block.content.items || []).map(item => `- ${item}`).join('\n');
           case 'image':
-            return `[Image: ${block.caption || block.url || ''}]`;
+            return `[Image: ${block.content.caption || block.content.url || ''}]`;
           default:
-            return block.content || '';
+            return block.content.text || '';
         }
       })
       .join('\n\n');
@@ -70,8 +70,8 @@ export default function EditArticlePage() {
     const paragraphs = text.split('\n\n').filter(p => p.trim());
     return paragraphs.map((paragraph, index) => ({
       type: 'paragraph' as const,
-      content: paragraph.trim(),
-      order: index,
+      content: { text: paragraph.trim() },
+      position: index,
     }));
   };
 
@@ -82,8 +82,7 @@ export default function EditArticlePage() {
       setSubtitle(draft.subtitle || '');
       setContent(contentBlocksToText(draft.content || []));
       setFeaturedImageUrl(draft.featuredImageUrl || '');
-      setSelectedTags(draft.tags?.map((t: Tag) => t.slug) || []);
-      setIsUnlisted(draft.isUnlisted || false);
+      setSelectedTags(draft.tags || []);
       setIsInitialized(true);
     }
   }, [draft, isInitialized]);

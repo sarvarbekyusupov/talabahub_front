@@ -19,8 +19,7 @@ export default function TagsPage() {
   // Filter tags by search
   const filteredTags = debouncedSearch
     ? tags.filter((tag: Tag) =>
-        tag.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        tag.description?.toLowerCase().includes(debouncedSearch.toLowerCase())
+        tag.name.toLowerCase().includes(debouncedSearch.toLowerCase())
       )
     : tags;
 
@@ -97,14 +96,9 @@ export default function TagsPage() {
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="font-bold text-blue-600">#{tag.name}</h3>
                         <span className="text-sm text-gray-500">
-                          {tag.articlesCount || 0} maqola
+                          {tag.articleCount || 0} maqola
                         </span>
                       </div>
-                      {tag.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {tag.description}
-                        </p>
-                      )}
                     </Card>
                   </Link>
                 ))}

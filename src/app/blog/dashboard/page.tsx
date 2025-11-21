@@ -87,15 +87,15 @@ export default function WriterDashboardPage() {
             </p>
           </Card>
           <Card>
-            <p className="text-sm text-gray-600 mb-1">Jami javoblar</p>
+            <p className="text-sm text-gray-600 mb-1">Kuzatuvchilar</p>
             <p className="text-3xl font-bold text-gray-900">
-              {formatNumber(analytics.totalResponses || 0)}
+              {formatNumber(analytics.totalFollowers || 0)}
             </p>
           </Card>
           <Card>
-            <p className="text-sm text-gray-600 mb-1">Kuzatuvchilar</p>
+            <p className="text-sm text-gray-600 mb-1">O'rtacha alkish</p>
             <p className="text-3xl font-bold text-gray-900">
-              {formatNumber(analytics.followersCount || 0)}
+              {formatNumber(analytics.avgClapsPerArticle || 0)}
             </p>
           </Card>
         </div>
@@ -171,18 +171,12 @@ export default function WriterDashboardPage() {
           {analytics && (
             <Card>
               <h2 className="text-lg font-bold mb-4">Maqolalar holati</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <p className="text-2xl font-bold text-green-600">
-                    {analytics.publishedCount || 0}
+                    {analytics.articlesPublished || 0}
                   </p>
                   <p className="text-sm text-gray-600">Nashr qilingan</p>
-                </div>
-                <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                  <p className="text-2xl font-bold text-yellow-600">
-                    {analytics.pendingCount || 0}
-                  </p>
-                  <p className="text-sm text-gray-600">Tekshiruvda</p>
                 </div>
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <p className="text-2xl font-bold text-blue-600">
@@ -190,11 +184,11 @@ export default function WriterDashboardPage() {
                   </p>
                   <p className="text-sm text-gray-600">Qoralamalar</p>
                 </div>
-                <div className="text-center p-4 bg-red-50 rounded-lg">
-                  <p className="text-2xl font-bold text-red-600">
-                    {analytics.rejectedCount || 0}
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <p className="text-2xl font-bold text-purple-600">
+                    {Math.round((analytics.readRatio || 0) * 100)}%
                   </p>
-                  <p className="text-sm text-gray-600">Rad etilgan</p>
+                  <p className="text-sm text-gray-600">O'qish nisbati</p>
                 </div>
               </div>
             </Card>
@@ -262,7 +256,7 @@ export default function WriterDashboardPage() {
                         {draft.title || 'Sarlavhasiz qoralama'}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {formatDate(draft.updatedAt)}
+                        {formatDate(draft.lastSavedAt)}
                       </p>
                     </div>
                   </Link>

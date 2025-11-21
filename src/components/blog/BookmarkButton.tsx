@@ -31,15 +31,11 @@ export function BookmarkButton({
     setIsLoading(true);
 
     try {
-      if (isBookmarked) {
-        await api.unbookmarkArticle(token, articleId);
-        setIsBookmarked(false);
-        onToggle?.(false);
-      } else {
-        await api.bookmarkArticle(token, articleId);
-        setIsBookmarked(true);
-        onToggle?.(true);
-      }
+      // API uses bookmarkArticle as a toggle
+      await api.bookmarkArticle(token, articleId);
+      const newState = !isBookmarked;
+      setIsBookmarked(newState);
+      onToggle?.(newState);
     } catch (err) {
       console.error('Bookmark toggle failed:', err);
     } finally {
