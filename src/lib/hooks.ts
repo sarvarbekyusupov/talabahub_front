@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import { api } from './api';
-import { Discount, Job, Event, Course, PaginatedResponse } from '@/types';
+import { Discount, Job, Event, Course, PaginatedResponse, DiscountClaim, StudentSavingsAnalytics, PartnerDiscountAnalytics, PlatformAnalytics, FraudAlert } from '@/types';
 import { getToken as getAuthToken } from './auth';
 
 // Helper to get token from localStorage
@@ -294,6 +294,172 @@ export function useUnreadCount() {
 
   return {
     count: (data as any)?.count || 0,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// ========== DISCOUNT SYSTEM HOOKS ==========
+
+// Student Claims Hook
+export function useMyClaims(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['myClaims', params, token] : null,
+    () => api.getMyClaims(token!, params) as Promise<PaginatedResponse<DiscountClaim>>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    claims: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Student Savings Analytics Hook
+export function useStudentSavingsAnalytics() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['studentSavingsAnalytics', token] : null,
+    () => api.getStudentSavingsAnalytics(token!) as Promise<StudentSavingsAnalytics>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 120000, // 2 minutes
+    }
+  );
+
+  return {
+    analytics: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Partner Discount Analytics Hook
+export function usePartnerDiscountAnalytics(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['partnerDiscountAnalytics', params, token] : null,
+    () => api.getPartnerDiscountAnalytics(token!, params) as Promise<PartnerDiscountAnalytics>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 180000, // 3 minutes
+    }
+  );
+
+  return {
+    analytics: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Partner Pending Verifications Hook
+export function usePartnerPendingVerifications(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['partnerPendingVerifications', params, token] : null,
+    () => api.getPartnerPendingVerifications(token!, params) as Promise<PaginatedResponse<DiscountClaim>>,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 30000, // 30 seconds
+    }
+  );
+
+  return {
+    claims: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Admin Pending Approvals Hook
+export function usePendingApprovalDiscounts(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['pendingApprovalDiscounts', params, token] : null,
+    () => api.getPendingApprovalDiscounts(token!, params) as Promise<PaginatedResponse<Discount>>,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    discounts: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Platform Analytics Hook
+export function usePlatformDiscountAnalytics(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['platformDiscountAnalytics', params, token] : null,
+    () => api.getPlatformDiscountAnalytics(token!, params) as Promise<PlatformAnalytics>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 180000, // 3 minutes
+    }
+  );
+
+  return {
+    analytics: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Fraud Alerts Hook
+export function useFraudAlerts(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['fraudAlerts', params, token] : null,
+    () => api.getFraudAlerts(token!, params) as Promise<PaginatedResponse<FraudAlert>>,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    alerts: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Recommended Discounts Hook
+export function useRecommendedDiscounts(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['recommendedDiscounts', params, token] : null,
+    () => api.getRecommendedDiscounts(token!, params),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
+
+  return {
+    discounts: (data as any)?.data || [],
     isLoading,
     error,
     mutate,
