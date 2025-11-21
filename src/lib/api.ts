@@ -954,6 +954,459 @@ class ApiClient {
   async getApplicationAnalytics(token: string) {
     return this.request('/jobs/me/applications/analytics', { token });
   }
+
+  // ========== BLOG/CONTENT SYSTEM API ==========
+
+  // === ARTICLES API ===
+
+  // Draft Management
+  async createArticleDraft(token: string, data: { title?: string; content?: any }) {
+    return this.request('/articles/drafts', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateArticleDraft(token: string, draftId: string, data: { title?: string; content?: any }) {
+    return this.request(`/articles/drafts/${draftId}`, {
+      method: 'PUT',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getArticleDraft(token: string, draftId: string) {
+    return this.request(`/articles/drafts/${draftId}`, { token });
+  }
+
+  async getMyArticleDrafts(token: string) {
+    return this.request('/articles/my/drafts', { token });
+  }
+
+  async deleteArticleDraft(token: string, draftId: string) {
+    return this.request(`/articles/drafts/${draftId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Article CRUD
+  async publishArticle(token: string, draftId: string) {
+    return this.request(`/articles/${draftId}/publish`, {
+      method: 'POST',
+      token,
+    });
+  }
+
+  async getArticles(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/articles${query}`);
+  }
+
+  async getArticle(articleId: string) {
+    return this.request(`/articles/${articleId}`);
+  }
+
+  async getArticleBySlug(slug: string) {
+    return this.request(`/articles/slug/${slug}`);
+  }
+
+  async getArticlesByAuthor(username: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/articles/author/${username}${query}`);
+  }
+
+  async getRelatedArticles(articleId: string) {
+    return this.request(`/articles/${articleId}/related`);
+  }
+
+  async updateArticle(token: string, articleId: string, data: any) {
+    return this.request(`/articles/${articleId}`, {
+      method: 'PUT',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteArticle(token: string, articleId: string) {
+    return this.request(`/articles/${articleId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Article Engagement & Stats
+  async trackArticleView(articleId: string, data?: { readPercentage?: number; timeSpent?: number; referrer?: string }) {
+    return this.request(`/articles/${articleId}/view`, {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    });
+  }
+
+  async getArticleStats(articleId: string) {
+    return this.request(`/articles/${articleId}/stats`);
+  }
+
+  async getArticleDetailedStats(token: string, articleId: string) {
+    return this.request(`/articles/${articleId}/stats/detailed`, { token });
+  }
+
+  // === ENGAGEMENT API ===
+
+  // Claps
+  async clapArticle(token: string, articleId: string, count: number = 1) {
+    return this.request(`/articles/${articleId}/clap`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ count }),
+    });
+  }
+
+  // Responses (Comments)
+  async createArticleResponse(token: string, articleId: string, data: {
+    content: { text: string };
+    parentResponseId?: string;
+    highlightedText?: string;
+  }) {
+    return this.request(`/articles/${articleId}/responses`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getArticleResponses(articleId: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/articles/${articleId}/responses${query}`);
+  }
+
+  async updateArticleResponse(token: string, responseId: string, data: { content: { text: string } }) {
+    return this.request(`/responses/${responseId}`, {
+      method: 'PUT',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteArticleResponse(token: string, responseId: string) {
+    return this.request(`/responses/${responseId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async clapResponse(token: string, responseId: string, count: number = 1) {
+    return this.request(`/responses/${responseId}/clap`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ count }),
+    });
+  }
+
+  async reportResponse(token: string, responseId: string, data: { reason: string; description?: string }) {
+    return this.request(`/responses/${responseId}/report`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Bookmarks
+  async bookmarkArticle(token: string, articleId: string, collectionId?: string) {
+    return this.request(`/articles/${articleId}/bookmark`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ collectionId }),
+    });
+  }
+
+  async removeBookmark(token: string, articleId: string) {
+    return this.request(`/articles/${articleId}/bookmark`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async getBookmarks(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/bookmarks${query}`, { token });
+  }
+
+  async moveBookmarkToCollection(token: string, articleId: string, collectionId: string) {
+    return this.request(`/bookmarks/${articleId}/collection`, {
+      method: 'PUT',
+      token,
+      body: JSON.stringify({ collectionId }),
+    });
+  }
+
+  // Collections
+  async createBookmarkCollection(token: string, data: { name: string; description?: string }) {
+    return this.request('/bookmarks/collections', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateBookmarkCollection(token: string, collectionId: string, data: { name?: string; description?: string }) {
+    return this.request(`/bookmarks/collections/${collectionId}`, {
+      method: 'PUT',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteBookmarkCollection(token: string, collectionId: string) {
+    return this.request(`/bookmarks/collections/${collectionId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Shares
+  async shareArticle(token: string, articleId: string, platform: string) {
+    return this.request(`/articles/${articleId}/share`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ platform }),
+    });
+  }
+
+  // === STUDENTS API ===
+
+  // Profile
+  async getStudentProfile(token: string) {
+    return this.request('/students/me', { token });
+  }
+
+  async updateStudentProfile(token: string, data: {
+    bio?: string;
+    fieldOfStudy?: string;
+    socialLinks?: Record<string, string>;
+  }) {
+    return this.request('/students/me', {
+      method: 'PUT',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getStudentAnalytics(token: string) {
+    return this.request('/students/me/analytics', { token });
+  }
+
+  async getStudentByUsername(username: string) {
+    return this.request(`/students/${username}`);
+  }
+
+  async getStudentStats(username: string) {
+    return this.request(`/students/${username}/stats`);
+  }
+
+  // Follows
+  async followStudent(token: string, username: string) {
+    return this.request(`/students/${username}/follow`, {
+      method: 'POST',
+      token,
+    });
+  }
+
+  async unfollowStudent(token: string, username: string) {
+    return this.request(`/students/${username}/follow`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async getFollowers(username: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/students/${username}/followers${query}`);
+  }
+
+  async getFollowing(username: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/students/${username}/following${query}`);
+  }
+
+  // === TAGS API ===
+
+  async getTags(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/tags${query}`);
+  }
+
+  async searchTags(q: string) {
+    return this.request(`/tags/search?q=${encodeURIComponent(q)}`);
+  }
+
+  async getTagBySlug(slug: string) {
+    return this.request(`/tags/${slug}`);
+  }
+
+  async createTag(token: string, data: { name: string; category: string }) {
+    return this.request('/tags', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // === BLOG NOTIFICATIONS API ===
+
+  async getBlogNotifications(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/notifications${query}`, { token });
+  }
+
+  async getBlogUnreadCount(token: string) {
+    return this.request('/notifications/unread-count', { token });
+  }
+
+  async markBlogNotificationAsRead(token: string, notificationId: string) {
+    return this.request(`/notifications/${notificationId}/read`, {
+      method: 'PUT',
+      token,
+    });
+  }
+
+  async markAllBlogNotificationsAsRead(token: string) {
+    return this.request('/notifications/read-all', {
+      method: 'PUT',
+      token,
+    });
+  }
+
+  // === FEED API ===
+
+  async getFeed(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/feed${query}`, { token });
+  }
+
+  async getTrendingArticles(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/feed/trending${query}`);
+  }
+
+  async getLatestArticles(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/feed/latest${query}`);
+  }
+
+  async getPopularArticles(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/feed/popular${query}`);
+  }
+
+  async getFeaturedArticles(params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/feed/featured${query}`);
+  }
+
+  async getFollowingFeed(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/feed/following${query}`, { token });
+  }
+
+  async getUniversityFeed(universityId: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/feed/university/${universityId}${query}`);
+  }
+
+  // === SEARCH API ===
+
+  async searchBlog(params: Record<string, any>) {
+    const query = `?${new URLSearchParams(params)}`;
+    return this.request(`/search${query}`);
+  }
+
+  async getBlogSearchSuggestions(q: string) {
+    return this.request(`/search/suggestions?q=${encodeURIComponent(q)}`);
+  }
+
+  // === ADMIN API ===
+
+  // Article Moderation
+  async getPendingArticles(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/admin/articles/pending${query}`, { token });
+  }
+
+  async approveArticle(token: string, articleId: string, featured: boolean = false) {
+    return this.request(`/admin/articles/${articleId}/approve`, {
+      method: 'PUT',
+      token,
+      body: JSON.stringify({ featured }),
+    });
+  }
+
+  async rejectArticle(token: string, articleId: string, reason: string) {
+    return this.request(`/admin/articles/${articleId}/reject`, {
+      method: 'PUT',
+      token,
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async featureArticle(token: string, articleId: string, duration: '24h' | 'week') {
+    return this.request(`/admin/articles/${articleId}/feature`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ duration }),
+    });
+  }
+
+  async unfeatureArticle(token: string, articleId: string) {
+    return this.request(`/admin/articles/${articleId}/feature`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  async hardDeleteArticle(token: string, articleId: string) {
+    return this.request(`/admin/articles/${articleId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Reports
+  async getReports(token: string, params?: Record<string, any>) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/admin/reports${query}`, { token });
+  }
+
+  async resolveReport(token: string, reportId: string, data: { action: string; notes?: string }) {
+    return this.request(`/admin/reports/${reportId}/resolve`, {
+      method: 'PUT',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // User Management
+  async warnUser(token: string, userId: string, reason: string) {
+    return this.request(`/admin/users/${userId}/warn`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async suspendUser(token: string, userId: string, data: { duration: string; reason: string }) {
+    return this.request(`/admin/users/${userId}/suspend`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Platform Analytics
+  async getBlogPlatformAnalytics(token: string) {
+    return this.request('/admin/analytics/platform', { token });
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL);

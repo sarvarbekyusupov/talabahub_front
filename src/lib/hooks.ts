@@ -1,6 +1,34 @@
 import useSWR from 'swr';
 import { api } from './api';
-import { Discount, Job, Event, Course, PaginatedResponse, DiscountClaim, StudentSavingsAnalytics, PartnerDiscountAnalytics, PlatformAnalytics, FraudAlert } from '@/types';
+import {
+  Discount,
+  Job,
+  Event,
+  Course,
+  PaginatedResponse,
+  DiscountClaim,
+  StudentSavingsAnalytics,
+  PartnerDiscountAnalytics,
+  PlatformAnalytics,
+  FraudAlert,
+  Article,
+  ArticleDraft,
+  ArticleResponse,
+  ArticleStats,
+  ArticleDetailedStats,
+  Tag,
+  TagWithArticles,
+  Bookmark,
+  BookmarkCollection,
+  BlogNotification,
+  StudentPublicProfile,
+  StudentWriterAnalytics,
+  BlogPlatformAnalytics,
+  BlogSearchResult,
+  BlogSearchSuggestions,
+  Report,
+  ArticleAuthor
+} from '@/types';
 import { getToken as getAuthToken } from './auth';
 
 // Helper to get token from localStorage
@@ -460,6 +488,657 @@ export function useRecommendedDiscounts(params: Record<string, any> = {}) {
 
   return {
     discounts: (data as any)?.data || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// ========== BLOG/CONTENT SYSTEM HOOKS ==========
+
+// === ARTICLES HOOKS ===
+
+// Articles List
+export function useArticles(params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    ['articles', params],
+    () => api.getArticles(params) as Promise<PaginatedResponse<Article>>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    articles: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Single Article by ID
+export function useArticle(articleId: string) {
+  const { data, error, isLoading, mutate } = useSWR(
+    articleId ? ['article', articleId] : null,
+    () => api.getArticle(articleId) as Promise<Article>,
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    article: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Single Article by Slug
+export function useArticleBySlug(slug: string) {
+  const { data, error, isLoading, mutate } = useSWR(
+    slug ? ['articleBySlug', slug] : null,
+    () => api.getArticleBySlug(slug) as Promise<Article>,
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    article: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Articles by Author
+export function useArticlesByAuthor(username: string, params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    username ? ['articlesByAuthor', username, params] : null,
+    () => api.getArticlesByAuthor(username, params) as Promise<PaginatedResponse<Article>>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    articles: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Related Articles
+export function useRelatedArticles(articleId: string) {
+  const { data, error, isLoading } = useSWR(
+    articleId ? ['relatedArticles', articleId] : null,
+    () => api.getRelatedArticles(articleId) as Promise<Article[]>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
+
+  return {
+    articles: data || [],
+    isLoading,
+    error,
+  };
+}
+
+// Article Stats
+export function useArticleStats(articleId: string) {
+  const { data, error, isLoading, mutate } = useSWR(
+    articleId ? ['articleStats', articleId] : null,
+    () => api.getArticleStats(articleId) as Promise<ArticleStats>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000, // 30 seconds
+    }
+  );
+
+  return {
+    stats: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Article Detailed Stats (for authors)
+export function useArticleDetailedStats(articleId: string) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token && articleId ? ['articleDetailedStats', articleId, token] : null,
+    () => api.getArticleDetailedStats(token!, articleId) as Promise<ArticleDetailedStats>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    stats: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// === DRAFTS HOOKS ===
+
+// My Drafts
+export function useMyDrafts() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['myDrafts', token] : null,
+    () => api.getMyArticleDrafts(token!) as Promise<ArticleDraft[]>,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 30000,
+    }
+  );
+
+  return {
+    drafts: data || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Single Draft
+export function useDraft(draftId: string) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token && draftId ? ['draft', draftId, token] : null,
+    () => api.getArticleDraft(token!, draftId) as Promise<ArticleDraft>,
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    draft: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// === RESPONSES HOOKS ===
+
+// Article Responses
+export function useArticleResponses(articleId: string, params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    articleId ? ['articleResponses', articleId, params] : null,
+    () => api.getArticleResponses(articleId, params) as Promise<{ responses: ArticleResponse[]; total: number }>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    }
+  );
+
+  return {
+    responses: (data as any)?.responses || data || [],
+    total: (data as any)?.total || 0,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// === BOOKMARKS HOOKS ===
+
+// User Bookmarks
+export function useBookmarks(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['bookmarks', params, token] : null,
+    () => api.getBookmarks(token!, params) as Promise<{ bookmarks: Bookmark[]; collections: BookmarkCollection[] }>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    bookmarks: (data as any)?.bookmarks || [],
+    collections: (data as any)?.collections || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// === TAGS HOOKS ===
+
+// Tags List
+export function useTags(params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    ['tags', params],
+    () => api.getTags(params) as Promise<Tag[]>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
+
+  return {
+    tags: data || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Tag by Slug (with articles)
+export function useTagBySlug(slug: string) {
+  const { data, error, isLoading } = useSWR(
+    slug ? ['tag', slug] : null,
+    () => api.getTagBySlug(slug) as Promise<TagWithArticles>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    tag: data,
+    isLoading,
+    error,
+  };
+}
+
+// === STUDENT PROFILE HOOKS ===
+
+// Current Student Profile
+export function useStudentProfile() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['studentProfile', token] : null,
+    () => api.getStudentProfile(token!) as Promise<StudentPublicProfile>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
+
+  return {
+    profile: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Student Profile by Username
+export function useStudentByUsername(username: string) {
+  const { data, error, isLoading, mutate } = useSWR(
+    username ? ['student', username] : null,
+    () => api.getStudentByUsername(username) as Promise<StudentPublicProfile>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    student: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Student Writer Analytics
+export function useStudentWriterAnalytics() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['studentAnalytics', token] : null,
+    () => api.getStudentAnalytics(token!) as Promise<StudentWriterAnalytics>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 120000, // 2 minutes
+    }
+  );
+
+  return {
+    analytics: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// === FOLLOW HOOKS ===
+
+// Followers
+export function useFollowers(username: string, params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    username ? ['followers', username, params] : null,
+    () => api.getFollowers(username, params) as Promise<{ followers: ArticleAuthor[]; total: number }>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    followers: (data as any)?.followers || data || [],
+    total: (data as any)?.total || 0,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Following
+export function useFollowing(username: string, params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    username ? ['following', username, params] : null,
+    () => api.getFollowing(username, params) as Promise<{ following: ArticleAuthor[]; total: number }>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    following: (data as any)?.following || data || [],
+    total: (data as any)?.total || 0,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// === FEED HOOKS ===
+
+// Personalized Feed
+export function useFeed(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['feed', params, token] : null,
+    () => api.getFeed(token!, params) as Promise<{ articles: Article[]; nextOffset: number }>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    articles: (data as any)?.articles || data || [],
+    nextOffset: (data as any)?.nextOffset,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Trending Feed
+export function useTrendingArticles(params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    ['trendingArticles', params],
+    () => api.getTrendingArticles(params) as Promise<Article[]>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
+
+  return {
+    articles: data || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Latest Feed
+export function useLatestArticles(params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    ['latestArticles', params],
+    () => api.getLatestArticles(params) as Promise<Article[]>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    articles: data || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Popular Feed
+export function usePopularArticles(params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    ['popularArticles', params],
+    () => api.getPopularArticles(params) as Promise<Article[]>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
+
+  return {
+    articles: data || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Featured Feed
+export function useFeaturedArticles(params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    ['featuredArticles', params],
+    () => api.getFeaturedArticles(params) as Promise<Article[]>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
+
+  return {
+    articles: data || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Following Feed
+export function useFollowingFeed(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['followingFeed', params, token] : null,
+    () => api.getFollowingFeed(token!, params) as Promise<Article[]>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    articles: data || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// University Feed
+export function useUniversityFeed(universityId: string, params: Record<string, any> = {}) {
+  const { data, error, isLoading, mutate } = useSWR(
+    universityId ? ['universityFeed', universityId, params] : null,
+    () => api.getUniversityFeed(universityId, params) as Promise<Article[]>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    articles: data || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// === BLOG NOTIFICATIONS HOOKS ===
+
+// Blog Notifications
+export function useBlogNotifications(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['blogNotifications', params, token] : null,
+    () => api.getBlogNotifications(token!, params) as Promise<{ notifications: BlogNotification[]; unreadCount: number }>,
+    {
+      refreshInterval: 30000, // Poll every 30 seconds
+      revalidateOnFocus: true,
+    }
+  );
+
+  return {
+    notifications: (data as any)?.notifications || data || [],
+    unreadCount: (data as any)?.unreadCount || 0,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Blog Unread Count
+export function useBlogUnreadCount() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['blogUnreadCount', token] : null,
+    () => api.getBlogUnreadCount(token!),
+    {
+      refreshInterval: 30000, // Poll every 30 seconds
+      revalidateOnFocus: true,
+    }
+  );
+
+  return {
+    count: (data as any)?.count || 0,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// === SEARCH HOOKS ===
+
+// Blog Search
+export function useBlogSearch(params: Record<string, any>) {
+  const { data, error, isLoading, mutate } = useSWR(
+    params.q && params.q.length >= 2 ? ['blogSearch', params] : null,
+    () => api.searchBlog(params) as Promise<BlogSearchResult>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    results: data?.results || [],
+    total: data?.total || 0,
+    facets: data?.facets,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Blog Search Suggestions
+export function useBlogSearchSuggestions(q: string) {
+  const { data, error, isLoading } = useSWR(
+    q && q.length >= 2 ? ['blogSuggestions', q] : null,
+    () => api.getBlogSearchSuggestions(q) as Promise<BlogSearchSuggestions>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    }
+  );
+
+  return {
+    suggestions: data,
+    isLoading,
+    error,
+  };
+}
+
+// === ADMIN HOOKS ===
+
+// Pending Articles
+export function usePendingArticles(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['pendingArticles', params, token] : null,
+    () => api.getPendingArticles(token!, params) as Promise<PaginatedResponse<Article>>,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    articles: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Reports
+export function useReports(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['reports', params, token] : null,
+    () => api.getReports(token!, params) as Promise<PaginatedResponse<Report>>,
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    reports: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Blog Platform Analytics (Admin)
+export function useBlogPlatformAnalytics() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['blogPlatformAnalytics', token] : null,
+    () => api.getBlogPlatformAnalytics(token!) as Promise<BlogPlatformAnalytics>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 180000, // 3 minutes
+    }
+  );
+
+  return {
+    analytics: data,
     isLoading,
     error,
     mutate,

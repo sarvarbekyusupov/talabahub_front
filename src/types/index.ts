@@ -367,3 +367,357 @@ export interface Notification {
   relatedId?: string;
   relatedType?: 'job' | 'event' | 'course' | 'discount';
 }
+
+// ========== BLOG/CONTENT SYSTEM TYPES ==========
+
+// Article status
+export type ArticleStatus = 'draft' | 'pending' | 'published' | 'rejected';
+
+// Tag categories
+export type TagCategory = 'study' | 'career' | 'life' | 'tech' | 'personal';
+
+// Share platforms
+export type SharePlatform = 'telegram' | 'whatsapp' | 'facebook' | 'twitter' | 'copy_link' | 'instagram';
+
+// Report types
+export type ReportReason = 'spam' | 'inappropriate' | 'harassment' | 'plagiarism' | 'other';
+export type ReportStatus = 'pending' | 'reviewed' | 'resolved' | 'dismissed';
+export type ReportEntityType = 'article' | 'response';
+export type ReportAction = 'removed' | 'warned' | 'dismissed';
+
+// Blog Notification types
+export type BlogNotificationType = 'new_follower' | 'article_clapped' | 'new_response' | 'response_clapped' | 'milestone' | 'featured';
+
+// Student Profile for blog system
+export interface StudentProfile {
+  userId: string;
+  bio?: string;
+  graduationYear?: number;
+  fieldOfStudy?: string;
+  socialLinks?: {
+    telegram?: string;
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+    website?: string;
+  };
+  totalArticles: number;
+  totalClapsReceived: number;
+  totalFollowers: number;
+  totalFollowing: number;
+  reputationScore: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Article author
+export interface ArticleAuthor {
+  id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string;
+  bio?: string;
+  university?: University;
+  isFollowing?: boolean;
+}
+
+// Content block for rich text
+export interface ContentBlock {
+  type: 'paragraph' | 'heading' | 'image' | 'code' | 'quote' | 'list' | 'embed';
+  content: {
+    text?: string;
+    level?: number; // For headings (1-6)
+    url?: string; // For images/embeds
+    caption?: string;
+    language?: string; // For code blocks
+    items?: string[]; // For lists
+    ordered?: boolean; // For lists
+    formatting?: {
+      bold?: [number, number][];
+      italic?: [number, number][];
+      link?: { start: number; end: number; url: string }[];
+    };
+  };
+  position: number;
+}
+
+// Article
+export interface Article {
+  id: string;
+  authorId: string;
+  author: ArticleAuthor;
+  title: string;
+  subtitle?: string;
+  slug: string;
+  content: ContentBlock[];
+  featuredImageUrl?: string;
+  readingTimeMinutes: number;
+  wordCount: number;
+  status: ArticleStatus;
+  rejectionReason?: string;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  tags: Tag[];
+  stats?: ArticleStats;
+  isBookmarked?: boolean;
+  yourClaps?: number;
+}
+
+// Article stats
+export interface ArticleStats {
+  viewsCount: number;
+  uniqueViewsCount: number;
+  clapsCount: number;
+  uniqueClappers: number;
+  responsesCount: number;
+  bookmarksCount: number;
+  sharesCount: number;
+  readRatio: number;
+  avgReadTimeSeconds: number;
+}
+
+// Detailed article analytics (for authors)
+export interface ArticleDetailedStats extends ArticleStats {
+  viewsOverTime: { date: string; views: number }[];
+  topReferrers: { source: string; count: number }[];
+  deviceBreakdown: { device: string; count: number }[];
+  engagementRate: number;
+}
+
+// Draft
+export interface ArticleDraft {
+  id: string;
+  authorId: string;
+  title?: string;
+  subtitle?: string;
+  content?: ContentBlock[];
+  featuredImageUrl?: string;
+  tags?: string[];
+  lastSavedAt: string;
+  createdAt: string;
+}
+
+// Tag
+export interface Tag {
+  id: string;
+  name: string;
+  slug: string;
+  category: TagCategory;
+  articleCount: number;
+  createdAt: string;
+}
+
+// Tag with articles
+export interface TagWithArticles extends Tag {
+  topArticles: Article[];
+  latestArticles: Article[];
+  topWriters: ArticleAuthor[];
+}
+
+// Clap
+export interface Clap {
+  id: string;
+  articleId: string;
+  userId: string;
+  clapCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Response (Comment)
+export interface ArticleResponse {
+  id: string;
+  articleId: string;
+  author: ArticleAuthor;
+  parentResponseId?: string;
+  content: {
+    text: string;
+    formatting?: ContentBlock['content']['formatting'];
+  };
+  highlightedText?: string;
+  highlightPositionStart?: number;
+  highlightPositionEnd?: number;
+  isEdited: boolean;
+  clapsCount: number;
+  repliesCount: number;
+  isReported: boolean;
+  reportCount: number;
+  createdAt: string;
+  updatedAt: string;
+  replies?: ArticleResponse[];
+  yourClaps?: number;
+}
+
+// Bookmark
+export interface Bookmark {
+  id: string;
+  userId: string;
+  articleId: string;
+  article: Article;
+  collectionId?: string;
+  createdAt: string;
+}
+
+// Bookmark Collection
+export interface BookmarkCollection {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  articleCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Follow relationship
+export interface Follow {
+  followerId: string;
+  followingId: string;
+  follower?: ArticleAuthor;
+  following?: ArticleAuthor;
+  createdAt: string;
+}
+
+// Share tracking
+export interface Share {
+  id: string;
+  articleId: string;
+  userId: string;
+  platform: SharePlatform;
+  createdAt: string;
+}
+
+// Blog Notification
+export interface BlogNotification {
+  id: string;
+  userId: string;
+  type: BlogNotificationType;
+  actorId: string;
+  actor?: ArticleAuthor;
+  entityType: 'article' | 'response' | 'user';
+  entityId: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+// Report
+export interface Report {
+  id: string;
+  reporterId: string;
+  reporter?: ArticleAuthor;
+  entityType: ReportEntityType;
+  entityId: string;
+  reason: ReportReason;
+  description: string;
+  status: ReportStatus;
+  reviewedBy?: string;
+  actionTaken?: string;
+  createdAt: string;
+  reviewedAt?: string;
+}
+
+// Student public profile
+export interface StudentPublicProfile {
+  user: ArticleAuthor;
+  profile: StudentProfile;
+  stats: {
+    totalArticles: number;
+    totalViews: number;
+    totalClaps: number;
+    totalFollowers: number;
+    totalFollowing: number;
+  };
+  recentArticles: Article[];
+  topArticles: Article[];
+  isFollowing?: boolean;
+}
+
+// Student analytics (for personal dashboard)
+export interface StudentWriterAnalytics {
+  totalViews: number;
+  totalClaps: number;
+  totalFollowers: number;
+  articlesPublished: number;
+  avgClapsPerArticle: number;
+  readRatio: number;
+  viewsOverTime: { date: string; views: number }[];
+  topArticles: Article[];
+  followerGrowth: { date: string; count: number }[];
+}
+
+// Platform analytics (for admin)
+export interface BlogPlatformAnalytics {
+  totalArticles: number;
+  totalStudentWriters: number;
+  totalViews: number;
+  totalClaps: number;
+  activeWritersThisMonth: number;
+  articlesPending: number;
+  reportsPending: number;
+  topUniversities: { id: number; name: string; articleCount: number }[];
+  topCategories: { category: string; count: number }[];
+  growthMetrics: { date: string; articles: number; users: number }[];
+}
+
+// Search result
+export interface BlogSearchResult {
+  results: (Article | ArticleAuthor | Tag)[];
+  total: number;
+  facets: {
+    types: {
+      articles: number;
+      students: number;
+      tags: number;
+    };
+  };
+}
+
+// Search suggestions
+export interface BlogSearchSuggestions {
+  articles: { title: string; slug: string }[];
+  students: { username: string; name: string }[];
+  tags: { name: string; slug: string }[];
+}
+
+// Feed types
+export type FeedTimeframe = 'today' | 'week' | 'month';
+
+// Create/Update article request
+export interface CreateArticleRequest {
+  title: string;
+  subtitle?: string;
+  content: ContentBlock[];
+  featuredImageUrl?: string;
+  tags: string[];
+}
+
+// Update profile request
+export interface UpdateStudentProfileRequest {
+  bio?: string;
+  fieldOfStudy?: string;
+  socialLinks?: StudentProfile['socialLinks'];
+}
+
+// Create response request
+export interface CreateResponseRequest {
+  content: { text: string };
+  parentResponseId?: string;
+  highlightedText?: string;
+  highlightStart?: number;
+  highlightEnd?: number;
+}
+
+// Admin resolve report request
+export interface ResolveReportRequest {
+  action: ReportAction;
+  notes?: string;
+}
+
+// Admin suspend user request
+export interface SuspendUserRequest {
+  duration: '7d' | '30d' | 'permanent';
+  reason: string;
+}
