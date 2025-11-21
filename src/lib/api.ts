@@ -139,6 +139,11 @@ class ApiClient {
     });
   }
 
+  // Admin stats
+  async getAdminStats(token: string) {
+    return this.request('/admin/stats', { token });
+  }
+
   // Discounts
   async getDiscounts(params?: Record<string, any>) {
     const query = params ? `?${new URLSearchParams(params)}` : '';
