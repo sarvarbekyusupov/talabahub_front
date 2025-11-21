@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
-import { Discount, PaginatedResponse } from '@/types';
+import { Discount, PaginatedResponse, DiscountTypeExtended } from '@/types';
 import { exportDiscountsToCSV } from '@/lib/export';
 import { TableSkeleton } from '@/components/ui/Skeleton';
 import { ErrorDisplay } from '@/components/ui/ErrorDisplay';
@@ -47,7 +47,7 @@ export default function AdminDiscountsPage() {
     title: '',
     description: '',
     discount: '',
-    discountType: 'percentage' as 'percentage' | 'fixed',
+    discountType: 'percentage' as DiscountTypeExtended,
     promoCode: '',
     validFrom: '',
     validUntil: '',
