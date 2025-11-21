@@ -4,7 +4,7 @@ This guide provides step-by-step instructions for testing the TALABA HUB fronten
 
 ## Prerequisites
 
-- Backend API running at: `http://3.121.174.54:3030/api`
+- Backend API running at: `http://3.69.242.100:3030/api`
 - Frontend development server running: `npm run dev`
 - Browser with DevTools (Chrome/Firefox recommended)
 
@@ -13,7 +13,7 @@ This guide provides step-by-step instructions for testing the TALABA HUB fronten
 Ensure your `.env.local` file contains:
 
 ```env
-NEXT_PUBLIC_API_URL=http://3.121.174.54:3030/api
+NEXT_PUBLIC_API_URL=http://3.69.242.100:3030/api
 ```
 
 ## Testing Checklist

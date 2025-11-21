@@ -84,7 +84,7 @@ node scripts/test-api.js
 - Auth endpoints: Should validate correctly
 
 **Backend Requirements:**
-- Backend API must be running at: `http://3.121.174.54:3030/api`
+- Backend API must be running at: `http://3.69.242.100:3030/api`
 - CORS must allow frontend origin
 - All endpoints must be implemented
 

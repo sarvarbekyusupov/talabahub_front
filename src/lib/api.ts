@@ -1,5 +1,5 @@
 // API Client for TalabaHub Backend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://3.69.242.100:3030/api';
 
 interface RequestOptions extends RequestInit {
   token?: string;

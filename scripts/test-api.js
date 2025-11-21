@@ -5,7 +5,7 @@
  * This script tests the backend API endpoints to verify integration
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://3.121.174.54:3030/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://3.69.242.100:3030/api';
 
 // ANSI color codes for console output
 const colors = {
