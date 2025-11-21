@@ -458,11 +458,11 @@ class ApiClient {
 
   async getPartnerPendingVerifications(token: string, params?: Record<string, any>) {
     const query = params ? `?${new URLSearchParams(params)}` : '';
-    return this.request(`/discounts/partner/pending${query}`, { token });
+    return this.request(`/discounts/partner/pending-verifications${query}`, { token });
   }
 
-  async verifyDiscountClaim(token: string, claimId: string, data: { verified: boolean; note?: string }) {
-    return this.request(`/discounts/claims/${claimId}/verify`, {
+  async verifyDiscountClaim(token: string, claimCode: string, data: { verified: boolean; note?: string }) {
+    return this.request(`/discounts/claims/${claimCode}/redeem`, {
       method: 'POST',
       token,
       body: JSON.stringify(data),
@@ -507,7 +507,7 @@ class ApiClient {
   // Admin Discount Endpoints
   async getPendingApprovalDiscounts(token: string, params?: Record<string, any>) {
     const query = params ? `?${new URLSearchParams(params)}` : '';
-    return this.request(`/discounts/admin/pending-approval${query}`, { token });
+    return this.request(`/discounts/admin/pending-approvals${query}`, { token });
   }
 
   async approveDiscount(token: string, discountId: string, note?: string) {

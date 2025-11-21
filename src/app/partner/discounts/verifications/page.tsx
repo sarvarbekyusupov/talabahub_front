@@ -32,13 +32,13 @@ export default function PartnerVerificationsPage() {
     }
   }, [router]);
 
-  const handleVerify = async (claimId: string, verified: boolean) => {
+  const handleVerify = async (claimId: string, claimCode: string, verified: boolean) => {
     const token = getToken();
     if (!token) return;
 
     setVerifyingId(claimId);
     try {
-      await api.verifyDiscountClaim(token, claimId, {
+      await api.verifyDiscountClaim(token, claimCode, {
         verified,
         note: verificationNote || undefined,
       });
@@ -189,7 +189,7 @@ export default function PartnerVerificationsPage() {
                   <div className="flex flex-wrap gap-2">
                     <Button
                       variant="primary"
-                      onClick={() => handleVerify(claim.id, true)}
+                      onClick={() => handleVerify(claim.id, claim.claimCode, true)}
                       loading={verifyingId === claim.id}
                     >
                       Tasdiqlash
@@ -235,7 +235,7 @@ export default function PartnerVerificationsPage() {
                     <Button
                       variant="danger"
                       size="sm"
-                      onClick={() => handleVerify(claim.id, false)}
+                      onClick={() => handleVerify(claim.id, claim.claimCode, false)}
                       loading={verifyingId === claim.id}
                     >
                       Rad etish
