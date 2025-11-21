@@ -303,17 +303,12 @@ export default function AdminBlogPage() {
                     <span className="text-sm text-gray-500">{formatDate(report.createdAt)}</span>
                   </div>
 
-                  {report.article && (
-                    <div className="p-3 bg-gray-50 rounded-lg mb-4">
-                      <p className="text-sm text-gray-500 mb-1">Shikoyat qilingan maqola:</p>
-                      <Link
-                        href={`/blog/${report.article.slug}`}
-                        className="font-medium text-blue-600 hover:underline"
-                      >
-                        {report.article.title}
-                      </Link>
-                    </div>
-                  )}
+                  <div className="p-3 bg-gray-50 rounded-lg mb-4">
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium">Turi:</span> {report.entityType} |
+                      <span className="font-medium ml-2">ID:</span> {report.entityId}
+                    </p>
+                  </div>
 
                   <div className="flex items-center gap-2">
                     <Button
@@ -368,16 +363,16 @@ export default function AdminBlogPage() {
                 <p className="text-3xl font-bold text-gray-900">{analytics.totalArticles || 0}</p>
               </Card>
               <Card>
-                <p className="text-sm text-gray-600 mb-1">Nashr qilingan</p>
-                <p className="text-3xl font-bold text-green-600">{analytics.publishedArticles || 0}</p>
-              </Card>
-              <Card>
                 <p className="text-sm text-gray-600 mb-1">Tekshiruvda</p>
-                <p className="text-3xl font-bold text-yellow-600">{analytics.pendingArticles || 0}</p>
+                <p className="text-3xl font-bold text-yellow-600">{analytics.articlesPending || 0}</p>
               </Card>
               <Card>
                 <p className="text-sm text-gray-600 mb-1">Jami yozuvchilar</p>
-                <p className="text-3xl font-bold text-gray-900">{analytics.totalWriters || 0}</p>
+                <p className="text-3xl font-bold text-gray-900">{analytics.totalStudentWriters || 0}</p>
+              </Card>
+              <Card>
+                <p className="text-sm text-gray-600 mb-1">Faol yozuvchilar</p>
+                <p className="text-3xl font-bold text-green-600">{analytics.activeWritersThisMonth || 0}</p>
               </Card>
               <Card>
                 <p className="text-sm text-gray-600 mb-1">Jami ko'rishlar</p>
@@ -388,12 +383,8 @@ export default function AdminBlogPage() {
                 <p className="text-3xl font-bold text-gray-900">{analytics.totalClaps || 0}</p>
               </Card>
               <Card>
-                <p className="text-sm text-gray-600 mb-1">Jami javoblar</p>
-                <p className="text-3xl font-bold text-gray-900">{analytics.totalResponses || 0}</p>
-              </Card>
-              <Card>
-                <p className="text-sm text-gray-600 mb-1">Faol teglar</p>
-                <p className="text-3xl font-bold text-gray-900">{analytics.totalTags || 0}</p>
+                <p className="text-sm text-gray-600 mb-1">Kutilayotgan hisobotlar</p>
+                <p className="text-3xl font-bold text-red-600">{analytics.reportsPending || 0}</p>
               </Card>
             </div>
           ) : (
