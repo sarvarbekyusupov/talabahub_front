@@ -120,8 +120,8 @@ export default function PartnerJobsPage() {
                       <h3 className="text-xl font-bold text-dark mb-1">{job.title}</h3>
                       <p className="text-dark/70 mb-2">{job.companyName}</p>
                       <div className="flex flex-wrap gap-2 mb-3">
-                        <Badge variant="default">{job.type}</Badge>
-                        <Badge variant="outline">{job.location}</Badge>
+                        <Badge variant="primary">{job.type}</Badge>
+                        <Badge variant="info">{job.location}</Badge>
                         {job.salary && <Badge variant="success">{job.salary}</Badge>}
                       </div>
                     </div>

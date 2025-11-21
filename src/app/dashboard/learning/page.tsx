@@ -53,7 +53,7 @@ export default function LearningProgressPage() {
     try {
       // Fetch enrollments and streak data in parallel
       const [enrollmentsData, streakData] = await Promise.all([
-        api.request('/users/me/enrollments', { token }) as any,
+        api.getMyEnrollments(token) as any,
         api.getLearningStreak(token) as any,
       ]);
 

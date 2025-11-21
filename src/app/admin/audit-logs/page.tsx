@@ -277,7 +277,7 @@ export default function AuditLogsPage() {
                       <td className="py-3 px-4">
                         <div>
                           <p className="font-medium text-dark text-sm">{log.userEmail}</p>
-                          <Badge variant="outline" className="text-xs mt-1">
+                          <Badge variant="info" size="sm">
                             {log.userRole === 'admin'
                               ? 'Admin'
                               : log.userRole === 'partner'

@@ -120,12 +120,12 @@ export default function PartnerCoursesPage() {
                       <h3 className="text-xl font-bold text-dark mb-2">{course.title}</h3>
                       <p className="text-dark/70 line-clamp-2 mb-3">{course.description}</p>
                       <div className="flex flex-wrap gap-2 mb-3">
-                        <Badge variant="default">{course.level}</Badge>
+                        <Badge variant="primary">{course.level}</Badge>
                         <Badge variant="success">
                           {course.price?.toLocaleString()} so'm
                         </Badge>
                         {course.duration && (
-                          <Badge variant="outline">{course.duration}</Badge>
+                          <Badge variant="info">{course.duration}</Badge>
                         )}
                       </div>
                     </div>

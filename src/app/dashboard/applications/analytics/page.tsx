@@ -361,7 +361,7 @@ export default function ApplicationAnalyticsPage() {
                           : activity.status === 'rejected'
                           ? 'danger'
                           : activity.status === 'reviewed'
-                          ? 'default'
+                          ? 'info'
                           : 'warning'
                       }
                     >

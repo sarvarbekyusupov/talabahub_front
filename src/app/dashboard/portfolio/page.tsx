@@ -223,18 +223,18 @@ export default function PortfolioPage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-xl font-bold text-dark">{project.title}</h3>
-                    <Badge variant="default">{project.category}</Badge>
+                    <Badge variant="primary">{project.category}</Badge>
                   </div>
                   <p className="text-dark/70 mb-4 line-clamp-3">{project.description}</p>
 
                   <div className="flex flex-wrap gap-1 mb-4">
                     {project.technologies.slice(0, 3).map((tech, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
+                      <Badge key={index} variant="info" size="sm">
                         {tech}
                       </Badge>
                     ))}
                     {project.technologies.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="info" size="sm">
                         +{project.technologies.length - 3}
                       </Badge>
                     )}

@@ -372,7 +372,7 @@ export default function SystemHealthPage() {
                       </div>
                       <p className="text-dark">{error.message}</p>
                     </div>
-                    <Badge variant="outline">{error.count}x</Badge>
+                    <Badge variant="info">{error.count}x</Badge>
                   </div>
                 </div>
               ))}

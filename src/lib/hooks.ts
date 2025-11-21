@@ -293,7 +293,7 @@ export function useUnreadCount() {
   );
 
   return {
-    count: data?.count || 0,
+    count: (data as any)?.count || 0,
     isLoading,
     error,
     mutate,

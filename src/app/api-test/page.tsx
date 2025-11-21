@@ -21,49 +21,49 @@ export default function APITestPage() {
     {
       name: 'Get Jobs',
       test: async () => {
-        const data = await api.getJobs({ page: 1, limit: 5 });
+        const data = await api.getJobs({ page: 1, limit: 5 }) as any;
         return { success: true, message: `Found ${data?.data?.length || 0} jobs` };
       },
     },
     {
       name: 'Get Courses',
       test: async () => {
-        const data = await api.getCourses({ page: 1, limit: 5 });
+        const data = await api.getCourses({ page: 1, limit: 5 }) as any;
         return { success: true, message: `Found ${data?.data?.length || 0} courses` };
       },
     },
     {
       name: 'Get Events',
       test: async () => {
-        const data = await api.getEvents({ page: 1, limit: 5 });
+        const data = await api.getEvents({ page: 1, limit: 5 }) as any;
         return { success: true, message: `Found ${data?.data?.length || 0} events` };
       },
     },
     {
       name: 'Get Discounts',
       test: async () => {
-        const data = await api.getDiscounts({ page: 1, limit: 5 });
+        const data = await api.getDiscounts({ page: 1, limit: 5 }) as any;
         return { success: true, message: `Found ${data?.data?.length || 0} discounts` };
       },
     },
     {
       name: 'Get Categories',
       test: async () => {
-        const data = await api.getCategories();
+        const data = await api.getCategories() as any;
         return { success: true, message: `Found ${data?.length || 0} categories` };
       },
     },
     {
       name: 'Get Companies',
       test: async () => {
-        const data = await api.getCompanies();
+        const data = await api.getCompanies() as any;
         return { success: true, message: `Found ${data?.data?.length || 0} companies` };
       },
     },
     {
       name: 'Get Brands',
       test: async () => {
-        const data = await api.getBrands();
+        const data = await api.getBrands() as any;
         return { success: true, message: `Found ${data?.data?.length || 0} brands` };
       },
     },

@@ -45,6 +45,10 @@ export interface Discount {
   brand: Brand;
   category: Category;
   isActive: boolean;
+  views?: number;
+  savedCount?: number;
+  averageRating?: number;
+  createdAt?: string;
 }
 
 export interface Brand {
@@ -67,11 +71,19 @@ export interface Job {
   requirements?: string;
   responsibilities?: string;
   jobType: 'full_time' | 'part_time' | 'internship' | 'contract';
+  type?: string;
   salary?: string;
   location: string;
   applicationDeadline: string;
+  deadline?: string;
   company: Company;
+  companyName?: string;
+  companyLogo?: string;
   isActive: boolean;
+  views?: number;
+  savedCount?: number;
+  applicationsCount?: number;
+  averageRating?: number;
   createdAt: string;
 }
 
@@ -103,8 +115,18 @@ export interface Course {
   description: string;
   price: number;
   duration?: string;
+  level?: string;
   imageUrl?: string;
   partner: Partner;
+  category?: Category;
+  isActive: boolean;
+  enrolledCount?: number;
+  rating?: number;
+  averageRating?: number;
+  totalLessons?: number;
+  views?: number;
+  savedCount?: number;
+  applicationsCount?: number;
   createdAt: string;
 }
 
