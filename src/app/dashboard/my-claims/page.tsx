@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Pagination } from '@/components/ui/Pagination';
+import { CountdownTimer } from '@/components/ui/CountdownTimer';
 import { useMyClaims } from '@/lib/hooks';
 import { api } from '@/lib/api';
 import { getToken } from '@/lib/auth';
@@ -192,20 +193,35 @@ export default function MyClaimsPage() {
                     )}
                   </div>
 
-                  {/* Dates */}
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
-                    <div>
-                      <span className="font-medium">Olingan:</span>{' '}
-                      {new Date(claim.claimedAt).toLocaleDateString('uz-UZ')}
-                    </div>
-                    <div>
-                      <span className="font-medium">Amal qiladi:</span>{' '}
-                      {new Date(claim.expiresAt).toLocaleDateString('uz-UZ')}
-                    </div>
-                    {claim.usedAt && (
+                  {/* Dates and Countdown */}
+                  <div className="mb-3">
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
                       <div>
-                        <span className="font-medium">Ishlatilgan:</span>{' '}
-                        {new Date(claim.usedAt).toLocaleDateString('uz-UZ')}
+                        <span className="font-medium">Olingan:</span>{' '}
+                        {new Date(claim.claimedAt).toLocaleDateString('uz-UZ')}
+                      </div>
+                      {claim.usedAt && (
+                        <div>
+                          <span className="font-medium">Ishlatilgan:</span>{' '}
+                          {new Date(claim.usedAt).toLocaleDateString('uz-UZ')}
+                        </div>
+                      )}
+                    </div>
+                    {/* Countdown Timer for active claims */}
+                    {claim.status === 'active' && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 font-medium">Qolgan vaqt:</span>
+                        <CountdownTimer
+                          targetDate={claim.expiresAt}
+                          size="sm"
+                          showLabels={true}
+                        />
+                      </div>
+                    )}
+                    {claim.status !== 'active' && (
+                      <div className="text-sm text-gray-600">
+                        <span className="font-medium">Amal qiladi:</span>{' '}
+                        {new Date(claim.expiresAt).toLocaleDateString('uz-UZ')}
                       </div>
                     )}
                   </div>

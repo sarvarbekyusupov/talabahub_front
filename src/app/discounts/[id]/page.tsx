@@ -11,6 +11,7 @@ import { SaveButton } from '@/components/ui/SaveButton';
 import { RatingStars } from '@/components/ui/RatingStars';
 import { ReviewForm } from '@/components/ui/ReviewForm';
 import { ReviewList } from '@/components/ui/ReviewList';
+import { CountdownTimer } from '@/components/ui/CountdownTimer';
 import { api as clientApi } from '@/lib/api';
 import { Discount as DiscountType, Review, Rating, PaginatedResponse } from '@/types';
 import { getToken } from '@/lib/auth';
@@ -445,6 +446,21 @@ export default function DiscountDetailPage() {
                   <h3 className="text-sm font-medium text-gray-500 mb-1">Kategoriya</h3>
                   <p className="text-gray-900 font-medium">{discount.category.nameUz}</p>
                 </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Chegirma turi</h3>
+                  <Badge variant={
+                    discount.discountType === 'percentage' ? 'primary' :
+                    discount.discountType === 'fixed' ? 'info' :
+                    discount.discountType === 'bogo' ? 'success' :
+                    'warning'
+                  }>
+                    {discount.discountType === 'percentage' ? `${discount.discount}% chegirma` :
+                     discount.discountType === 'fixed' ? `${discount.discount.toLocaleString()} so'm` :
+                     discount.discountType === 'bogo' ? '1+1 aksiya' :
+                     discount.discountType === 'cashback' ? `${discount.discount}% cashback` :
+                     `${discount.discount}%`}
+                  </Badge>
+                </div>
                 {discount.usageLimit && (
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-1">Foydalanish limiti</h3>
@@ -463,7 +479,46 @@ export default function DiscountDetailPage() {
                     </div>
                   </div>
                 )}
+                {discount.minimumPurchase && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-1">Minimal xarid</h3>
+                    <p className="text-gray-900 font-medium">
+                      {discount.minimumPurchase.toLocaleString()} so'm
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {/* Additional Info Badges */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {discount.firstTimeOnly && (
+                  <Badge variant="warning">Faqat birinchi xarid</Badge>
+                )}
+                {discount.verificationLevel && (
+                  <Badge variant="info">
+                    {discount.verificationLevel === 'university' ? 'Universitet tekshiruvi' :
+                     discount.verificationLevel === 'specific_university' ? "Maxsus universitet" :
+                     'Joylashuv tekshiruvi'}
+                  </Badge>
+                )}
+                {discount.timeRestriction && (
+                  <Badge variant="info">
+                    {discount.timeRestriction.startTime} - {discount.timeRestriction.endTime}
+                    {discount.timeRestriction.daysOfWeek &&
+                      ` (${discount.timeRestriction.daysOfWeek.join(', ')})`}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Terms & Conditions */}
+              {discount.termsAndConditions && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Shartlar va qoidalar</h3>
+                  <p className="text-sm text-gray-600 whitespace-pre-line">
+                    {discount.termsAndConditions}
+                  </p>
+                </div>
+              )}
 
               {/* Promo Code with QR Code */}
               {discount.promoCode && (
@@ -616,6 +671,19 @@ export default function DiscountDetailPage() {
                   <p className="text-sm text-green-700 mb-3">
                     Quyidagi kodni do'konda ko'rsating
                   </p>
+
+                  {/* QR Code */}
+                  <div className="flex justify-center mb-3">
+                    <div className="bg-white p-2 rounded-lg shadow-sm">
+                      <Image
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(claimData.claimCode)}`}
+                        alt="QR Code"
+                        width={120}
+                        height={120}
+                      />
+                    </div>
+                  </div>
+
                   <code className="block text-2xl font-bold text-green-600 bg-white p-3 rounded-lg border border-green-300 mb-3">
                     {claimData.claimCode}
                   </code>
@@ -626,9 +694,16 @@ export default function DiscountDetailPage() {
                   >
                     {copied ? '✓ Nusxalandi' : 'Kodni nusxalash'}
                   </Button>
-                  <p className="text-xs text-gray-600 mt-3">
-                    Amal qilish muddati: {new Date(claimData.expiresAt).toLocaleString('uz-UZ')}
-                  </p>
+
+                  {/* Countdown Timer */}
+                  <div className="mt-4 pt-3 border-t border-green-200">
+                    <p className="text-xs text-gray-600 mb-2">Kod amal qiladi:</p>
+                    <CountdownTimer
+                      targetDate={claimData.expiresAt}
+                      size="sm"
+                      className="justify-center"
+                    />
+                  </div>
                 </div>
                 <Button
                   fullWidth
