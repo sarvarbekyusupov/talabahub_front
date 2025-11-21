@@ -59,8 +59,8 @@ export function ResponseSection({ articleId }: ResponseSectionProps) {
     setIsSubmitting(true);
     try {
       await api.createArticleResponse(token, articleId, {
-        content: replyContent.trim(),
-        parentId,
+        content: { text: replyContent.trim() },
+        parentResponseId: parentId,
       });
       setReplyTo(null);
       setReplyContent('');
@@ -78,7 +78,7 @@ export function ResponseSection({ articleId }: ResponseSectionProps) {
     setIsSubmitting(true);
     try {
       await api.updateArticleResponse(token, responseId, {
-        content: editContent.trim(),
+        content: { text: editContent.trim() },
       });
       setEditingId(null);
       setEditContent('');
@@ -105,7 +105,7 @@ export function ResponseSection({ articleId }: ResponseSectionProps) {
     if (!token) return;
 
     try {
-      await api.clapArticleResponse(token, responseId);
+      await api.clapResponse(token, responseId);
       mutate();
     } catch (err) {
       console.error('Failed to clap response:', err);
@@ -114,7 +114,7 @@ export function ResponseSection({ articleId }: ResponseSectionProps) {
 
   const startEdit = (response: ArticleResponse) => {
     setEditingId(response.id);
-    setEditContent(response.content);
+    setEditContent(response.content.text);
   };
 
   const renderResponse = (response: ArticleResponse, depth = 0) => {
@@ -182,7 +182,7 @@ export function ResponseSection({ articleId }: ResponseSectionProps) {
                   </div>
                 </div>
               ) : (
-                <p className="text-gray-700 whitespace-pre-wrap">{response.content}</p>
+                <p className="text-gray-700 whitespace-pre-wrap">{response.content.text}</p>
               )}
 
               {/* Actions */}
@@ -213,7 +213,7 @@ export function ResponseSection({ articleId }: ResponseSectionProps) {
                     </button>
                   )}
 
-                  {token && response.isOwner && (
+                  {token && (
                     <>
                       <button
                         onClick={() => startEdit(response)}

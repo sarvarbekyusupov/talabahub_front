@@ -10,14 +10,14 @@ import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { FollowButton } from '@/components/blog';
-import { useStudentProfile, useArticlesByAuthor } from '@/lib/hooks';
+import { useStudentByUsername, useArticlesByAuthor } from '@/lib/hooks';
 import { Article, Tag } from '@/types';
 
 export default function ProfilePage() {
   const params = useParams();
   const username = params.username as string;
 
-  const { profile, isLoading: profileLoading, error: profileError } = useStudentProfile(username);
+  const { student: profile, isLoading: profileLoading, error: profileError } = useStudentByUsername(username);
   const [page, setPage] = useState(1);
   const { articles, meta, isLoading: articlesLoading } = useArticlesByAuthor(username, {
     page,
@@ -74,10 +74,10 @@ export default function ProfilePage() {
         <Card className="mb-8">
           <div className="flex flex-col sm:flex-row items-start gap-6">
             {/* Avatar */}
-            {profile.avatarUrl ? (
+            {profile.user.avatarUrl ? (
               <Image
-                src={profile.avatarUrl}
-                alt={`${profile.firstName} ${profile.lastName}`}
+                src={profile.user.avatarUrl}
+                alt={`${profile.user.firstName} ${profile.user.lastName}`}
                 width={96}
                 height={96}
                 className="rounded-full object-cover"
@@ -85,7 +85,7 @@ export default function ProfilePage() {
             ) : (
               <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
                 <span className="text-blue-600 text-2xl font-bold">
-                  {profile.firstName[0]}{profile.lastName[0]}
+                  {profile.user.firstName[0]}{profile.user.lastName[0]}
                 </span>
               </div>
             )}
@@ -94,7 +94,7 @@ export default function ProfilePage() {
               {/* Name & Username */}
               <div className="flex items-center gap-4 mb-2">
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {profile.firstName} {profile.lastName}
+                  {profile.user.firstName} {profile.user.lastName}
                 </h1>
                 <FollowButton
                   username={username}
@@ -102,40 +102,39 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <p className="text-gray-500 mb-4">@{profile.username}</p>
+              <p className="text-gray-500 mb-4">@{profile.user.username}</p>
 
               {/* Bio */}
-              {profile.bio && (
-                <p className="text-gray-700 mb-4">{profile.bio}</p>
+              {profile.profile.bio && (
+                <p className="text-gray-700 mb-4">{profile.profile.bio}</p>
               )}
 
               {/* Stats */}
               <div className="flex flex-wrap gap-6 text-sm">
                 <div>
-                  <span className="font-bold text-gray-900">{profile.articlesCount || 0}</span>
+                  <span className="font-bold text-gray-900">{profile.stats.totalArticles || 0}</span>
                   <span className="text-gray-500 ml-1">maqola</span>
                 </div>
                 <div>
-                  <span className="font-bold text-gray-900">{profile.followersCount || 0}</span>
+                  <span className="font-bold text-gray-900">{profile.stats.totalFollowers || 0}</span>
                   <span className="text-gray-500 ml-1">kuzatuvchi</span>
                 </div>
                 <div>
-                  <span className="font-bold text-gray-900">{profile.followingCount || 0}</span>
+                  <span className="font-bold text-gray-900">{profile.stats.totalFollowing || 0}</span>
                   <span className="text-gray-500 ml-1">kuzatilayotgan</span>
                 </div>
                 <div>
-                  <span className="font-bold text-gray-900">{profile.totalClapsReceived || 0}</span>
+                  <span className="font-bold text-gray-900">{profile.stats.totalClaps || 0}</span>
                   <span className="text-gray-500 ml-1">alkish</span>
                 </div>
               </div>
 
-              {/* University & Join Date */}
-              <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500">
-                {profile.university && (
-                  <span>{profile.university}</span>
-                )}
-                <span>A'zo bo'lgan: {formatDate(profile.createdAt)}</span>
-              </div>
+              {/* Field of Study */}
+              {profile.profile.fieldOfStudy && (
+                <div className="mt-4 text-sm text-gray-500">
+                  <span>{profile.profile.fieldOfStudy}</span>
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -159,7 +158,7 @@ export default function ProfilePage() {
           <Card>
             <EmptyState
               title="Maqolalar yo'q"
-              message={`${profile.firstName} hali hech qanday maqola yozmagan`}
+              message={`${profile.user.firstName} hali hech qanday maqola yozmagan`}
               showAction={false}
             />
           </Card>

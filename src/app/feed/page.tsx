@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -15,7 +15,7 @@ import { Article, Tag } from '@/types';
 
 type FeedType = 'for-you' | 'following' | 'trending' | 'university';
 
-export default function FeedPage() {
+function FeedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = getToken();
@@ -299,5 +299,41 @@ export default function FeedPage() {
         </div>
       </div>
     </Container>
+  );
+}
+
+export default function FeedPage() {
+  return (
+    <Suspense fallback={
+      <Container className="py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex-1">
+            <Skeleton className="h-10 w-48 mb-2" />
+            <Skeleton className="h-4 w-64 mb-6" />
+            <div className="space-y-6">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <Skeleton className="h-48 mb-4" />
+                  <Skeleton className="h-6 mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </Card>
+              ))}
+            </div>
+          </div>
+          <div className="lg:w-80">
+            <Card>
+              <Skeleton className="h-6 w-32 mb-4" />
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-12" />
+                ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </Container>
+    }>
+      <FeedContent />
+    </Suspense>
   );
 }

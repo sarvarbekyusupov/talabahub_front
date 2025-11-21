@@ -106,10 +106,7 @@ export default function DraftsPage() {
                     <p className="text-gray-600 mb-2 line-clamp-1">{draft.subtitle}</p>
                   )}
                   <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span>Oxirgi tahrir: {formatDate(draft.updatedAt)}</span>
-                    {draft.wordCount && (
-                      <span>{draft.wordCount} so'z</span>
-                    )}
+                    <span>Oxirgi tahrir: {formatDate(draft.lastSavedAt)}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 ml-4">
