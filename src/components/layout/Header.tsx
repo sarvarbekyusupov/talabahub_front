@@ -7,22 +7,46 @@ import { Button } from '../ui/Button';
 import { SearchBar } from '../ui/SearchBar';
 import { NotificationBell } from '../ui/NotificationBell';
 import { NotificationPanel } from '../ui/NotificationPanel';
-import { isAuthenticated, removeTokens } from '@/lib/auth';
+import { isAuthenticated, removeTokens, getToken } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
 
 export const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+  const [dashboardUrl, setDashboardUrl] = useState('/dashboard');
   const router = useRouter();
 
   useEffect(() => {
     // Initial check
     setIsLoggedIn(isAuthenticated());
 
+    // Get user role and set dashboard URL
+    const loadDashboardUrl = async () => {
+      const token = getToken();
+      if (token) {
+        try {
+          const profile = await api.getProfile(token) as any;
+          if (profile?.role === 'admin') {
+            setDashboardUrl('/admin/dashboard');
+          } else if (profile?.role === 'partner') {
+            setDashboardUrl('/partner/dashboard');
+          } else {
+            setDashboardUrl('/dashboard');
+          }
+        } catch (err) {
+          setDashboardUrl('/dashboard');
+        }
+      }
+    };
+
+    loadDashboardUrl();
+
     // Listen for auth changes
     const handleAuthChange = () => {
       setIsLoggedIn(isAuthenticated());
+      loadDashboardUrl();
     };
 
     window.addEventListener('auth-change', handleAuthChange);
@@ -83,7 +107,7 @@ export const Header = () => {
             {isLoggedIn ? (
               <>
                 <NotificationBell onClick={() => setIsNotificationPanelOpen(true)} />
-                <Link href="/dashboard">
+                <Link href={dashboardUrl}>
                   <Button variant="ghost">Dashboard</Button>
                 </Link>
                 <Link href="/profile">

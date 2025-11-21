@@ -6,7 +6,7 @@ import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
-import { getToken, clearAuth } from '@/lib/auth';
+import { getToken } from '@/lib/auth';
 import { User } from '@/types';
 
 export default function AdminDashboardPage() {
@@ -73,31 +73,38 @@ export default function AdminDashboardPage() {
           api.getCategories({}) as Promise<any>,
         ]);
 
-        // Get active counts by fetching filtered data
-        const [activeDiscountsData, activeJobsData, activeEventsData, activeCoursesData] = await Promise.all([
-          api.getDiscounts({ isActive: true }) as Promise<any>,
-          api.getJobs({ isActive: true }) as Promise<any>,
-          api.getEvents({ isActive: true }) as Promise<any>,
-          api.getCourses({ isActive: true }) as Promise<any>,
-        ]);
+        // Helper function to get total count from different response formats
+        const getTotal = (data: any): number => {
+          if (data?.meta?.total) return data.meta.total;
+          if (data?.pagination?.total) return data.pagination.total;
+          if (Array.isArray(data?.data)) return data.data.length;
+          if (Array.isArray(data)) return data.length;
+          return 0;
+        };
+
+        // Count active items from data arrays (filter isActive: true)
+        const countActive = (data: any): number => {
+          if (!data?.data || !Array.isArray(data.data)) return 0;
+          return data.data.filter((item: any) => item.isActive === true).length;
+        };
 
         setStats({
-          totalUsers: usersData.meta?.total || 0,
-          activeUsers: usersData.meta?.total || 0, // All users are considered active
-          totalDiscounts: discountsData.meta?.total || 0,
-          activeDiscounts: activeDiscountsData.meta?.total || 0,
-          totalJobs: jobsData.meta?.total || 0,
-          activeJobs: activeJobsData.meta?.total || 0,
-          totalEvents: eventsData.meta?.total || 0,
-          activeEvents: activeEventsData.meta?.total || 0,
-          totalCourses: coursesData.meta?.total || 0,
-          activeCourses: activeCoursesData.meta?.total || 0,
+          totalUsers: getTotal(usersData),
+          activeUsers: getTotal(usersData), // All users are considered active
+          totalDiscounts: getTotal(discountsData),
+          activeDiscounts: countActive(discountsData),
+          totalJobs: getTotal(jobsData),
+          activeJobs: countActive(jobsData),
+          totalEvents: getTotal(eventsData),
+          activeEvents: countActive(eventsData),
+          totalCourses: getTotal(coursesData),
+          activeCourses: countActive(coursesData),
           totalApplications: 0, // Will be loaded separately
           totalRegistrations: 0, // Will be loaded separately
           totalEnrollments: 0, // Will be loaded separately
-          totalBrands: brandsData.meta?.total || 0,
-          totalCompanies: companiesData.meta?.total || 0,
-          totalCategories: categoriesData.meta?.total || 0,
+          totalBrands: getTotal(brandsData),
+          totalCompanies: getTotal(companiesData),
+          totalCategories: getTotal(categoriesData),
         });
 
         // Load recent discounts, jobs, events for activity feed
@@ -155,11 +162,6 @@ export default function AdminDashboardPage() {
     loadAdminData();
   }, [router]);
 
-  const handleLogout = () => {
-    clearAuth();
-    router.push('/');
-  };
-
   const getTimeAgo = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -201,16 +203,11 @@ export default function AdminDashboardPage() {
   return (
     <Container className="py-12">
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-4xl font-bold text-dark mb-2">Admin Panel</h1>
-            <p className="text-lg text-dark/60">
-              Xush kelibsiz, {user.firstName} {user.lastName}
-            </p>
-          </div>
-          <Button variant="outline" onClick={handleLogout}>
-            Chiqish
-          </Button>
+        <div>
+          <h1 className="text-4xl font-bold text-dark mb-2">Admin Panel</h1>
+          <p className="text-lg text-dark/60">
+            Xush kelibsiz, {user.firstName} {user.lastName}
+          </p>
         </div>
       </div>
 
