@@ -223,36 +223,36 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-500 mb-1">Ism</div>
-                  <div className="font-medium">{user.firstName}</div>
+                  <div className="font-medium text-gray-900">{user.firstName}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 mb-1">Familiya</div>
-                  <div className="font-medium">{user.lastName}</div>
+                  <div className="font-medium text-gray-900">{user.lastName}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 mb-1">Email</div>
-                  <div className="font-medium">{user.email}</div>
+                  <div className="font-medium text-gray-900">{user.email}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500 mb-1">Telefon</div>
-                  <div className="font-medium">{user.phone || 'Kiritilmagan'}</div>
+                  <div className="font-medium text-gray-900">{user.phone || 'Kiritilmagan'}</div>
                 </div>
                 {user.university && (
                   <div className="col-span-2">
                     <div className="text-sm text-gray-500 mb-1">Universitet</div>
-                    <div className="font-medium">{user.university.nameUz}</div>
+                    <div className="font-medium text-gray-900">{user.university.nameUz}</div>
                   </div>
                 )}
                 {user.faculty && (
                   <div>
                     <div className="text-sm text-gray-500 mb-1">Fakultet</div>
-                    <div className="font-medium">{user.faculty}</div>
+                    <div className="font-medium text-gray-900">{user.faculty}</div>
                   </div>
                 )}
                 {user.courseYear && (
                   <div>
                     <div className="text-sm text-gray-500 mb-1">Kurs</div>
-                    <div className="font-medium">{user.courseYear}-kurs</div>
+                    <div className="font-medium text-gray-900">{user.courseYear}-kurs</div>
                   </div>
                 )}
               </div>
