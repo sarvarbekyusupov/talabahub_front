@@ -586,7 +586,7 @@ export function useRelatedArticles(articleId: string) {
   );
 
   return {
-    articles: data || [],
+    articles: Array.isArray(data) ? data : [],
     isLoading,
     error,
   };
@@ -886,7 +886,10 @@ export function useFeed(params: Record<string, any> = {}) {
 export function useTrendingArticles(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['trendingArticles', params],
-    () => api.getTrendingArticles(params) as Promise<Article[]>,
+    async () => {
+      const response = await api.getTrendingArticles(params) as any;
+      return response?.data || response || [];
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 300000, // 5 minutes
@@ -894,7 +897,7 @@ export function useTrendingArticles(params: Record<string, any> = {}) {
   );
 
   return {
-    articles: data || [],
+    articles: Array.isArray(data) ? data : [],
     isLoading,
     error,
     mutate,
@@ -905,7 +908,10 @@ export function useTrendingArticles(params: Record<string, any> = {}) {
 export function useLatestArticles(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['latestArticles', params],
-    () => api.getLatestArticles(params) as Promise<Article[]>,
+    async () => {
+      const response = await api.getLatestArticles(params) as any;
+      return response?.data || response || [];
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 60000,
@@ -913,7 +919,7 @@ export function useLatestArticles(params: Record<string, any> = {}) {
   );
 
   return {
-    articles: data || [],
+    articles: Array.isArray(data) ? data : [],
     isLoading,
     error,
     mutate,
@@ -924,7 +930,10 @@ export function useLatestArticles(params: Record<string, any> = {}) {
 export function usePopularArticles(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['popularArticles', params],
-    () => api.getPopularArticles(params) as Promise<Article[]>,
+    async () => {
+      const response = await api.getPopularArticles(params) as any;
+      return response?.data || response || [];
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 300000, // 5 minutes
@@ -932,7 +941,7 @@ export function usePopularArticles(params: Record<string, any> = {}) {
   );
 
   return {
-    articles: data || [],
+    articles: Array.isArray(data) ? data : [],
     isLoading,
     error,
     mutate,
@@ -943,7 +952,10 @@ export function usePopularArticles(params: Record<string, any> = {}) {
 export function useFeaturedArticles(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['featuredArticles', params],
-    () => api.getFeaturedArticles(params) as Promise<Article[]>,
+    async () => {
+      const response = await api.getFeaturedArticles(params) as any;
+      return response?.data || response || [];
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 300000, // 5 minutes
@@ -951,7 +963,7 @@ export function useFeaturedArticles(params: Record<string, any> = {}) {
   );
 
   return {
-    articles: data || [],
+    articles: Array.isArray(data) ? data : [],
     isLoading,
     error,
     mutate,
@@ -971,7 +983,7 @@ export function useFollowingFeed(params: Record<string, any> = {}) {
   );
 
   return {
-    articles: data || [],
+    articles: Array.isArray(data) ? data : [],
     isLoading,
     error,
     mutate,
@@ -990,7 +1002,7 @@ export function useUniversityFeed(universityId: string, params: Record<string, a
   );
 
   return {
-    articles: data || [],
+    articles: Array.isArray(data) ? data : [],
     isLoading,
     error,
     mutate,
