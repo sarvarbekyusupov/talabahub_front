@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
-import { getToken } from '@/lib/auth';
+import { getToken, removeTokens, isAuthenticated } from '@/lib/auth';
 
 interface NotificationBellProps {
   onClick: () => void;
@@ -10,13 +10,7 @@ interface NotificationBellProps {
 
 export function NotificationBell({ onClick }: NotificationBellProps) {
   const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    loadUnreadCount();
-    // Poll every 30 seconds for new notifications
-    const interval = setInterval(loadUnreadCount, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadUnreadCount = async () => {
     const token = getToken();
@@ -28,11 +22,57 @@ export function NotificationBell({ onClick }: NotificationBellProps) {
     try {
       const data: any = await api.getUnreadNotificationCount(token);
       setUnreadCount(data.count || 0);
-    } catch (err) {
-      // Silently fail if not authenticated or endpoint not available
-      setUnreadCount(0);
+    } catch (err: any) {
+      // Handle 401 errors by clearing invalid tokens
+      if (err?.statusCode === 401 || err?.status === 401 || err?.message?.includes('401')) {
+        removeTokens();
+        setUnreadCount(0);
+        // Clear the polling interval since user is no longer authenticated
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      } else {
+        // Silently fail for other errors
+        setUnreadCount(0);
+      }
     }
   };
+
+  useEffect(() => {
+    // Only start polling if authenticated
+    if (isAuthenticated()) {
+      loadUnreadCount();
+      // Poll every 30 seconds for new notifications
+      intervalRef.current = setInterval(loadUnreadCount, 30000);
+    }
+
+    // Listen for auth changes to stop polling when logged out
+    const handleAuthChange = () => {
+      if (!isAuthenticated()) {
+        setUnreadCount(0);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      } else {
+        // User logged in, start polling
+        loadUnreadCount();
+        if (!intervalRef.current) {
+          intervalRef.current = setInterval(loadUnreadCount, 30000);
+        }
+      }
+    };
+
+    window.addEventListener('auth-change', handleAuthChange);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
+  }, []);
 
   return (
     <button
