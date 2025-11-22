@@ -92,7 +92,7 @@ export default function JobsPage() {
   }, [debouncedSearch, sortBy, selectedJobType, selectedLocation, minSalary, maxSalary]);
 
   const getUniqueLocations = (): string[] => {
-    const locations = jobs.map((j) => j.location);
+    const locations = jobs.map((j: Job) => j.location);
     return Array.from(new Set(locations));
   };
 
