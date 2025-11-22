@@ -582,7 +582,10 @@ export function useArticlesByAuthor(username: string, params: Record<string, any
 export function useRelatedArticles(articleId: string) {
   const { data, error, isLoading } = useSWR(
     articleId ? ['relatedArticles', articleId] : null,
-    () => api.getRelatedArticles(articleId) as Promise<Article[]>,
+    async () => {
+      const response = await api.getRelatedArticles(articleId) as any;
+      return response?.data || response || [];
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 300000, // 5 minutes
@@ -682,16 +685,20 @@ export function useDraft(draftId: string) {
 export function useArticleResponses(articleId: string, params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     articleId ? ['articleResponses', articleId, params] : null,
-    () => api.getArticleResponses(articleId, params) as Promise<{ responses: ArticleResponse[]; total: number }>,
+    async () => {
+      const response = await api.getArticleResponses(articleId, params) as any;
+      return response;
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 30000,
     }
   );
 
+  const responses = data?.responses || data?.data || data || [];
   return {
-    responses: (data as any)?.responses || data || [],
-    total: (data as any)?.total || 0,
+    responses: Array.isArray(responses) ? responses : [],
+    total: data?.total || data?.meta?.total || 0,
     isLoading,
     error,
     mutate,
