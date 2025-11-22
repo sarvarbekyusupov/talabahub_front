@@ -69,8 +69,8 @@ export default function DiscountsPage() {
 
   const getUniqueCategories = (): string[] => {
     const categories = discounts
-      .filter((d) => d.category && d.category.nameUz)
-      .map((d) => d.category.nameUz);
+      .filter((d: Discount) => d.category && d.category.nameUz)
+      .map((d: Discount) => d.category.nameUz);
     return Array.from(new Set(categories));
   };
 
