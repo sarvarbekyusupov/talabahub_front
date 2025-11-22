@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState, NoSearchResults } from '@/components/ui/EmptyState';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useArticles, useTrendingArticles, useTags } from '@/lib/hooks';
+import { useArticles, useTrendingArticles, useLatestArticles, usePopularArticles, useTags } from '@/lib/hooks';
 import { Article, Tag } from '@/types';
 
 export default function BlogPage() {
@@ -21,17 +21,28 @@ export default function BlogPage() {
   const [feedType, setFeedType] = useState<'latest' | 'trending' | 'popular'>('latest');
   const debouncedSearch = useDebounce(searchQuery, 500);
 
-  // Fetch articles with filters
-  const { articles, meta, isLoading, error } = useArticles({
-    page,
-    limit: 12,
-    status: 'published',
-    tag: selectedTag || undefined,
-    sort: feedType,
-  });
+  // Fetch articles based on feed type
+  const latestResult = useLatestArticles({ page, limit: 12 });
+  const trendingResult = useTrendingArticles({ page, limit: 12 });
+  const popularResult = usePopularArticles({ page, limit: 12 });
 
-  // Fetch trending for sidebar
-  const { articles: trendingArticles } = useTrendingArticles({ limit: 5 });
+  // Select articles based on feed type
+  const getCurrentFeed = () => {
+    switch (feedType) {
+      case 'trending':
+        return trendingResult;
+      case 'popular':
+        return popularResult;
+      default:
+        return latestResult;
+    }
+  };
+
+  const { articles, isLoading, error } = getCurrentFeed();
+  const meta = { totalPages: 1 }; // Feed endpoints may not return pagination meta
+
+  // Fetch trending for sidebar (separate from main feed)
+  const { articles: sidebarTrendingArticles } = useTrendingArticles({ limit: 5 });
 
   // Fetch tags
   const { tags } = useTags({ popular: 'true', limit: 10 });
@@ -284,7 +295,7 @@ export default function BlogPage() {
           <Card className="mb-6">
             <h3 className="font-bold text-lg mb-4">Trendda</h3>
             <div className="space-y-4">
-              {trendingArticles.slice(0, 5).map((article: Article, index: number) => (
+              {sidebarTrendingArticles.slice(0, 5).map((article: Article, index: number) => (
                 <Link key={article.id} href={`/blog/${article.slug}`} className="block group">
                   <div className="flex gap-3">
                     <span className="text-2xl font-bold text-gray-300">{index + 1}</span>
