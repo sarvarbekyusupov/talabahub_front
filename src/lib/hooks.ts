@@ -502,15 +502,19 @@ export function useRecommendedDiscounts(params: Record<string, any> = {}) {
 export function useArticles(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['articles', params],
-    () => api.getArticles(params) as Promise<PaginatedResponse<Article>>,
+    async () => {
+      const response = await api.getArticles(params) as any;
+      return response;
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 60000,
     }
   );
 
+  const articles = data?.data || data || [];
   return {
-    articles: data?.data || [],
+    articles: Array.isArray(articles) ? articles : [],
     meta: data?.meta,
     isLoading,
     error,
