@@ -982,7 +982,10 @@ export function useFollowingFeed(params: Record<string, any> = {}) {
   const token = getToken();
   const { data, error, isLoading, mutate } = useSWR(
     token ? ['followingFeed', params, token] : null,
-    () => api.getFollowingFeed(token!, params) as Promise<Article[]>,
+    async () => {
+      const response = await api.getFollowingFeed(token!, params) as any;
+      return response?.data || response || [];
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 60000,
@@ -1001,7 +1004,10 @@ export function useFollowingFeed(params: Record<string, any> = {}) {
 export function useUniversityFeed(universityId: string, params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     universityId ? ['universityFeed', universityId, params] : null,
-    () => api.getUniversityFeed(universityId, params) as Promise<Article[]>,
+    async () => {
+      const response = await api.getUniversityFeed(universityId, params) as any;
+      return response?.data || response || [];
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 60000,
