@@ -170,7 +170,7 @@ export default function ProfilePage() {
         {/* Details Card */}
         <Card className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold">Ma'lumotlar</h3>
+            <h3 className="text-xl font-semibold text-gray-900">Ma'lumotlar</h3>
             {!editing && (
               <Button variant="outline" onClick={() => setEditing(true)}>
                 Tahrirlash
@@ -222,36 +222,36 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm text-gray-500 mb-1">Ism</div>
+                  <div className="text-sm text-gray-600 mb-1">Ism</div>
                   <div className="font-medium text-gray-900">{user.firstName}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500 mb-1">Familiya</div>
+                  <div className="text-sm text-gray-600 mb-1">Familiya</div>
                   <div className="font-medium text-gray-900">{user.lastName}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500 mb-1">Email</div>
+                  <div className="text-sm text-gray-600 mb-1">Email</div>
                   <div className="font-medium text-gray-900">{user.email}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500 mb-1">Telefon</div>
+                  <div className="text-sm text-gray-600 mb-1">Telefon</div>
                   <div className="font-medium text-gray-900">{user.phone || 'Kiritilmagan'}</div>
                 </div>
                 {user.university && (
                   <div className="col-span-2">
-                    <div className="text-sm text-gray-500 mb-1">Universitet</div>
+                    <div className="text-sm text-gray-600 mb-1">Universitet</div>
                     <div className="font-medium text-gray-900">{user.university.nameUz}</div>
                   </div>
                 )}
                 {user.faculty && (
                   <div>
-                    <div className="text-sm text-gray-500 mb-1">Fakultet</div>
+                    <div className="text-sm text-gray-600 mb-1">Fakultet</div>
                     <div className="font-medium text-gray-900">{user.faculty}</div>
                   </div>
                 )}
                 {user.courseYear && (
                   <div>
-                    <div className="text-sm text-gray-500 mb-1">Kurs</div>
+                    <div className="text-sm text-gray-600 mb-1">Kurs</div>
                     <div className="font-medium text-gray-900">{user.courseYear}-kurs</div>
                   </div>
                 )}
