@@ -723,7 +723,10 @@ export function useBookmarks(params: Record<string, any> = {}) {
 export function useTags(params: Record<string, any> = {}) {
   const { data, error, isLoading, mutate } = useSWR(
     ['tags', params],
-    () => api.getTags(params) as Promise<Tag[]>,
+    async () => {
+      const response = await api.getTags(params) as any;
+      return response?.data || response || [];
+    },
     {
       revalidateOnFocus: false,
       dedupingInterval: 300000, // 5 minutes
@@ -731,7 +734,7 @@ export function useTags(params: Record<string, any> = {}) {
   );
 
   return {
-    tags: data || [],
+    tags: Array.isArray(data) ? data : [],
     isLoading,
     error,
     mutate,
