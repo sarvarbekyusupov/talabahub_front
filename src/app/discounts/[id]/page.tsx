@@ -85,7 +85,7 @@ export default function DiscountDetailPage() {
       const filtered = brandDiscounts.data.filter(d => d.id !== discount.id);
 
       // If we have less than 3, try to get some from the same category
-      if (filtered.length < 3) {
+      if (filtered.length < 3 && discount.category?.id) {
         const categoryDiscounts = await clientApi.getDiscounts({
           categoryId: discount.category.id,
           limit: 4,
@@ -444,7 +444,7 @@ export default function DiscountDetailPage() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 mb-1">Kategoriya</h3>
-                  <p className="text-gray-900 font-medium">{discount.category.nameUz}</p>
+                  <p className="text-gray-900 font-medium">{discount.category?.nameUz || 'Noma\'lum'}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 mb-1">Chegirma turi</h3>
