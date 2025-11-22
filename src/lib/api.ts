@@ -146,7 +146,8 @@ class ApiClient {
 
   // Discounts
   async getDiscounts(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts${query}`);
   }
 
@@ -156,7 +157,8 @@ class ApiClient {
 
   // Jobs
   async getJobs(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/jobs${query}`);
   }
 
@@ -174,7 +176,8 @@ class ApiClient {
 
   // Events
   async getEvents(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/events${query}`);
   }
 
@@ -191,7 +194,8 @@ class ApiClient {
 
   // Courses
   async getCourses(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/courses${query}`);
   }
 
@@ -219,23 +223,27 @@ class ApiClient {
 
   // Universities
   async getUniversities(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/universities${query}`);
   }
 
   // Dashboard endpoints
   async getMyApplications(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/jobs/me/applications${query}`, { token });
   }
 
   async getMyRegistrations(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/events/me/registrations${query}`, { token });
   }
 
   async getMyEnrollments(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/courses/me/enrollments${query}`, { token });
   }
 
@@ -245,7 +253,8 @@ class ApiClient {
 
   // Saved items endpoints
   async getSavedItems(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/saved${query}`, { token });
   }
 
@@ -273,7 +282,8 @@ class ApiClient {
 
   // Reviews endpoints
   async getReviews(itemType: string, itemId: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/${itemType}/${itemId}/reviews${query}`);
   }
 
@@ -306,7 +316,8 @@ class ApiClient {
 
   // Notifications endpoints
   async getNotifications(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/notifications${query}`, { token });
   }
 
@@ -400,7 +411,8 @@ class ApiClient {
   }
 
   async getPayments(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/payment${query}`, { token });
   }
 
@@ -431,7 +443,8 @@ class ApiClient {
   }
 
   async getMyClaims(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts/my-claims${query}`, { token });
   }
 
@@ -452,12 +465,14 @@ class ApiClient {
 
   // Partner Discount Endpoints
   async getPartnerDiscountAnalytics(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts/partner/analytics${query}`, { token });
   }
 
   async getPartnerPendingVerifications(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts/partner/pending${query}`, { token });
   }
 
@@ -470,7 +485,8 @@ class ApiClient {
   }
 
   async getPartnerDiscounts(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts/partner/discounts${query}`, { token });
   }
 
@@ -506,7 +522,8 @@ class ApiClient {
 
   // Admin Discount Endpoints
   async getPendingApprovalDiscounts(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts/admin/pending-approval${query}`, { token });
   }
 
@@ -527,12 +544,14 @@ class ApiClient {
   }
 
   async getPlatformDiscountAnalytics(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts/admin/analytics${query}`, { token });
   }
 
   async getFraudAlerts(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts/admin/fraud-alerts${query}`, { token });
   }
 
@@ -545,19 +564,22 @@ class ApiClient {
   }
 
   async getDiscountClaims(token: string, discountId: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts/${discountId}/claims${query}`, { token });
   }
 
   // Recommended discounts
   async getRecommendedDiscounts(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/discounts/recommended${query}`, { token });
   }
 
   // Admin - User Management
   async getAllUsers(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/users${query}`, { token });
   }
 
@@ -629,7 +651,8 @@ class ApiClient {
   }
 
   async getJobApplications(token: string, jobId: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/jobs/${jobId}/applications${query}`, { token });
   }
 
@@ -666,7 +689,8 @@ class ApiClient {
   }
 
   async getEventRegistrations(token: string, eventId: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/events/${eventId}/registrations${query}`, { token });
   }
 
@@ -695,7 +719,8 @@ class ApiClient {
   }
 
   async getCourseEnrollments(token: string, courseId: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/courses/${courseId}/enrollments${query}`, { token });
   }
 
@@ -705,13 +730,15 @@ class ApiClient {
   }
 
   async getPartnerContent(token: string, contentType: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/partners/me/${contentType}${query}`, { token });
   }
 
   // Blog Posts endpoints
   async getBlogPosts(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/blog-posts${query}`);
   }
 
@@ -744,7 +771,8 @@ class ApiClient {
 
   // Categories endpoints
   async getCategories(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/categories${query}`);
   }
 
@@ -805,7 +833,8 @@ class ApiClient {
 
   // Companies endpoints
   async getCompanies(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/companies${query}`);
   }
 
@@ -838,7 +867,8 @@ class ApiClient {
 
   // Brands endpoints
   async getBrands(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/brands${query}`);
   }
 
@@ -871,7 +901,8 @@ class ApiClient {
 
   // Education Partners endpoints
   async getEducationPartners(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/education-partners${query}`);
   }
 
@@ -924,19 +955,22 @@ class ApiClient {
   }
 
   async getHealthErrors(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/health/errors${query}`, { token });
   }
 
   // Audit Logs endpoints (Admin)
   async getAuditLogs(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/audit-logs${query}`, { token });
   }
 
   // Partner Analytics endpoints
   async getPartnerAnalytics(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/partners/me/analytics${query}`, { token });
   }
 
@@ -1000,7 +1034,8 @@ class ApiClient {
   }
 
   async getArticles(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/articles${query}`);
   }
 
@@ -1013,7 +1048,8 @@ class ApiClient {
   }
 
   async getArticlesByAuthor(username: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/articles/author/${username}${query}`);
   }
 
@@ -1077,7 +1113,8 @@ class ApiClient {
   }
 
   async getArticleResponses(articleId: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/articles/${articleId}/responses${query}`);
   }
 
@@ -1129,7 +1166,8 @@ class ApiClient {
   }
 
   async getBookmarks(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/bookmarks${query}`, { token });
   }
 
@@ -1221,19 +1259,22 @@ class ApiClient {
   }
 
   async getFollowers(username: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/students/${username}/followers${query}`);
   }
 
   async getFollowing(username: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/students/${username}/following${query}`);
   }
 
   // === TAGS API ===
 
   async getTags(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/tags${query}`);
   }
 
@@ -1256,7 +1297,8 @@ class ApiClient {
   // === BLOG NOTIFICATIONS API ===
 
   async getBlogNotifications(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/notifications${query}`, { token });
   }
 
@@ -1281,37 +1323,44 @@ class ApiClient {
   // === FEED API ===
 
   async getFeed(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/feed${query}`, { token });
   }
 
   async getTrendingArticles(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/feed/trending${query}`);
   }
 
   async getLatestArticles(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/feed/latest${query}`);
   }
 
   async getPopularArticles(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/feed/popular${query}`);
   }
 
   async getFeaturedArticles(params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/feed/featured${query}`);
   }
 
   async getFollowingFeed(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/feed/following${query}`, { token });
   }
 
   async getUniversityFeed(universityId: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/feed/university/${universityId}${query}`);
   }
 
@@ -1330,7 +1379,8 @@ class ApiClient {
 
   // Article Moderation
   async getPendingArticles(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/admin/articles/pending${query}`, { token });
   }
 
@@ -1374,7 +1424,8 @@ class ApiClient {
 
   // Reports
   async getReports(token: string, params?: Record<string, any>) {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
     return this.request(`/admin/reports${query}`, { token });
   }
 
