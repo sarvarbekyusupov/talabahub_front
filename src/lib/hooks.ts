@@ -38,23 +38,23 @@ const getToken = () => {
 
 // Fetchers for different endpoints
 const discountsFetcher = async (params: Record<string, any>) => {
-  const data = await api.getDiscounts(params) as PaginatedResponse<Discount>;
-  return data.data;
+  const response = await api.getDiscounts(params) as any;
+  return response?.data || [];
 };
 
 const jobsFetcher = async (params: Record<string, any>) => {
-  const data = await api.getJobs(params) as PaginatedResponse<Job>;
-  return data.data;
+  const response = await api.getJobs(params) as any;
+  return response?.data || [];
 };
 
 const eventsFetcher = async (params: Record<string, any>) => {
-  const data = await api.getEvents(params) as PaginatedResponse<Event>;
-  return data.data;
+  const response = await api.getEvents(params) as any;
+  return response?.data || [];
 };
 
 const coursesFetcher = async (params: Record<string, any>) => {
-  const data = await api.getCourses(params) as PaginatedResponse<Course>;
-  return data.data;
+  const response = await api.getCourses(params) as any;
+  return response?.data || [];
 };
 
 // Custom hooks with SWR
