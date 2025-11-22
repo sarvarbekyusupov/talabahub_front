@@ -424,8 +424,8 @@ export interface ArticleAuthor {
 
 // Content block for rich text
 export interface ContentBlock {
-  type: 'paragraph' | 'heading' | 'image' | 'code' | 'quote' | 'list' | 'embed';
-  content: {
+  type: 'paragraph' | 'heading' | 'image' | 'code' | 'quote' | 'list' | 'embed' | 'text';
+  content?: {
     text?: string;
     level?: number; // For headings (1-6)
     url?: string; // For images/embeds
@@ -439,7 +439,8 @@ export interface ContentBlock {
       link?: { start: number; end: number; url: string }[];
     };
   };
-  position: number;
+  text?: string; // For TipTap text nodes
+  position?: number;
 }
 
 // Article
@@ -534,7 +535,11 @@ export interface ArticleResponse {
   parentResponseId?: string;
   content: {
     text: string;
-    formatting?: ContentBlock['content']['formatting'];
+    formatting?: {
+      bold?: [number, number][];
+      italic?: [number, number][];
+      link?: { start: number; end: number; url: string }[];
+    };
   };
   highlightedText?: string;
   highlightPositionStart?: number;

@@ -142,33 +142,63 @@ export default function ArticlePage() {
     });
   };
 
-  const renderContent = (blocks: ContentBlock[]) => {
-    return blocks.map((block, index) => {
+  const renderContent = (content: any) => {
+    // Handle different content formats
+    if (!content) {
+      return <p className="text-gray-500">Kontent mavjud emas</p>;
+    }
+
+    // If content is a string (HTML or plain text)
+    if (typeof content === 'string') {
+      return (
+        <div
+          className="prose prose-lg max-w-none"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      );
+    }
+
+    // If content is not an array, try to extract blocks
+    if (!Array.isArray(content)) {
+      // Handle TipTap/ProseMirror JSON format
+      if (content.type === 'doc' && Array.isArray(content.content)) {
+        return renderContent(content.content);
+      }
+      // Fallback for unknown object format
+      return (
+        <div className="prose prose-lg max-w-none">
+          <p>{JSON.stringify(content)}</p>
+        </div>
+      );
+    }
+
+    // Handle array of content blocks
+    return content.map((block: ContentBlock, index: number) => {
       switch (block.type) {
         case 'paragraph':
           return (
             <p key={index} className="mb-4 text-gray-700 leading-relaxed">
-              {block.content.text}
+              {typeof block.content === 'string' ? block.content : block.content?.text || ''}
             </p>
           );
         case 'heading':
-          const HeadingTag = `h${block.content.level || 2}` as keyof JSX.IntrinsicElements;
+          const HeadingTag = `h${block.content?.level || 2}` as keyof JSX.IntrinsicElements;
           return (
             <HeadingTag key={index} className="font-bold text-gray-900 mt-8 mb-4">
-              {block.content.text}
+              {typeof block.content === 'string' ? block.content : block.content?.text || ''}
             </HeadingTag>
           );
         case 'image':
           return (
             <figure key={index} className="my-8">
               <Image
-                src={block.content.url || ''}
-                alt={block.content.caption || ''}
+                src={block.content?.url || ''}
+                alt={block.content?.caption || ''}
                 width={800}
                 height={450}
                 className="rounded-lg w-full"
               />
-              {block.content.caption && (
+              {block.content?.caption && (
                 <figcaption className="text-sm text-gray-500 text-center mt-2">
                   {block.content.caption}
                 </figcaption>
@@ -178,23 +208,28 @@ export default function ArticlePage() {
         case 'code':
           return (
             <pre key={index} className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
-              <code>{block.content.text}</code>
+              <code>{typeof block.content === 'string' ? block.content : block.content?.text || ''}</code>
             </pre>
           );
         case 'quote':
           return (
             <blockquote key={index} className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600">
-              {block.content.text}
+              {typeof block.content === 'string' ? block.content : block.content?.text || ''}
             </blockquote>
           );
         case 'list':
-          const ListTag = block.content.ordered ? 'ol' : 'ul';
+          const ListTag = block.content?.ordered ? 'ol' : 'ul';
           return (
-            <ListTag key={index} className={`my-4 pl-6 ${block.content.ordered ? 'list-decimal' : 'list-disc'}`}>
-              {block.content.items?.map((item, i) => (
+            <ListTag key={index} className={`my-4 pl-6 ${block.content?.ordered ? 'list-decimal' : 'list-disc'}`}>
+              {block.content?.items?.map((item: string, i: number) => (
                 <li key={i} className="mb-2">{item}</li>
               ))}
             </ListTag>
+          );
+        case 'text':
+          // Handle TipTap text nodes
+          return (
+            <span key={index}>{block.text || ''}</span>
           );
         default:
           return null;

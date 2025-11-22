@@ -45,21 +45,21 @@ export default function EditArticlePage() {
   const contentBlocksToText = (blocks: ContentBlock[]): string => {
     if (!blocks || blocks.length === 0) return '';
     return blocks
-      .sort((a, b) => a.position - b.position)
+      .sort((a, b) => (a.position || 0) - (b.position || 0))
       .map(block => {
         switch (block.type) {
           case 'paragraph':
           case 'heading':
           case 'quote':
-            return block.content.text || '';
+            return block.content?.text || '';
           case 'code':
-            return `\`\`\`${block.content.language || ''}\n${block.content.text || ''}\n\`\`\``;
+            return `\`\`\`${block.content?.language || ''}\n${block.content?.text || ''}\n\`\`\``;
           case 'list':
-            return (block.content.items || []).map(item => `- ${item}`).join('\n');
+            return (block.content?.items || []).map(item => `- ${item}`).join('\n');
           case 'image':
-            return `[Image: ${block.content.caption || block.content.url || ''}]`;
+            return `[Image: ${block.content?.caption || block.content?.url || ''}]`;
           default:
-            return block.content.text || '';
+            return block.content?.text || '';
         }
       })
       .join('\n\n');
