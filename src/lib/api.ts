@@ -35,6 +35,8 @@ class ApiClient {
       const error = await response.json().catch(() => ({
         message: 'An error occurred',
       }));
+      // Include the HTTP status code in the error
+      error.statusCode = response.status;
       throw error;
     }
 
@@ -62,6 +64,8 @@ class ApiClient {
       const error = await response.json().catch(() => ({
         message: 'An error occurred',
       }));
+      // Include the HTTP status code in the error
+      error.statusCode = response.status;
       throw error;
     }
 
