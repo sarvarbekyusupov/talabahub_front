@@ -298,7 +298,7 @@ export default function BlogPage() {
               {sidebarTrendingArticles.slice(0, 5).map((article: Article, index: number) => (
                 <Link key={article.id} href={`/blog/${article.slug}`} className="block group">
                   <div className="flex gap-3">
-                    <span className="text-2xl font-bold text-gray-300">{index + 1}</span>
+                    <span className="text-2xl font-bold text-gray-400">{index + 1}</span>
                     <div>
                       <h4 className="font-medium text-gray-900 group-hover:text-blue-600 transition line-clamp-2">
                         {article.title}
