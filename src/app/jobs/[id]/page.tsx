@@ -9,14 +9,14 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { FileUpload } from '@/components/ui/FileUpload';
 import { SaveButton } from '@/components/ui/SaveButton';
 import { RatingStars } from '@/components/ui/RatingStars';
 import { ReviewForm } from '@/components/ui/ReviewForm';
 import { ReviewList } from '@/components/ui/ReviewList';
 import { useToast } from '@/components/ui/Toast';
 import { api as clientApi } from '@/lib/api';
-import { Job as JobType, Review, Rating, PaginatedResponse } from '@/types';
+import { useResumes } from '@/lib/hooks';
+import { Job as JobType, Review, Rating, PaginatedResponse, Resume } from '@/types';
 import { getToken } from '@/lib/auth';
 
 export default function JobDetailPage() {
@@ -24,16 +24,16 @@ export default function JobDetailPage() {
   const router = useRouter();
   const id = params.id as string;
   const { showToast } = useToast();
+  const token = getToken();
+  const { resumes, isLoading: resumesLoading } = useResumes();
 
   const [job, setJob] = useState<JobType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showApplyForm, setShowApplyForm] = useState(false);
   const [applying, setApplying] = useState(false);
-  const [applicationData, setApplicationData] = useState({
-    cvUrl: '',
-    coverLetter: '',
-  });
+  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
+  const [coverLetter, setCoverLetter] = useState('');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [rating, setRating] = useState<Rating | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -204,65 +204,31 @@ export default function JobDetailPage() {
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = getToken();
     if (!token) {
       router.push('/login');
       return;
     }
 
-    if (!applicationData.cvUrl) {
-      showToast('Iltimos, CV faylini yuklang', 'error');
+    if (!selectedResumeId) {
+      showToast('Iltimos, rezyumeni tanlang', 'error');
       return;
     }
 
     setApplying(true);
     try {
-      await clientApi.applyForJob(token, id, applicationData);
+      await clientApi.applyToJob(token, id, {
+        resumeId: selectedResumeId,
+        coverLetter: coverLetter || undefined,
+      });
       showToast('Ariza muvaffaqiyatli yuborildi!', 'success');
       setShowApplyForm(false);
-      setApplicationData({ cvUrl: '', coverLetter: '' });
+      setSelectedResumeId(null);
+      setCoverLetter('');
     } catch (err: any) {
       showToast('Ariza yuborishda xatolik: ' + (err.message || 'Qaytadan urinib ko\'ring'), 'error');
     } finally {
       setApplying(false);
     }
-  };
-
-  const handleResumeUpload = async (file: File): Promise<string> => {
-    const token = getToken();
-    if (!token) {
-      router.push('/login');
-      throw new Error('Not authenticated');
-    }
-
-    // Create FormData for file upload
-    const formData = new FormData();
-    formData.append('resume', file);
-
-    // In a real implementation, this would upload to your backend
-    // For now, we'll simulate it with a timeout
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // In production, this would be:
-    // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/uploads/resume`, {
-    //   method: 'POST',
-    //   headers: { 'Authorization': `Bearer ${token}` },
-    //   body: formData
-    // });
-    // const data = await response.json();
-    // return data.fileUrl;
-
-    // For now, create a simulated URL
-    const url = `https://example.com/resumes/${file.name}`;
-
-    // Update application data with CV URL
-    setApplicationData(prev => ({ ...prev, cvUrl: url }));
-
-    return url;
-  };
-
-  const handleResumeRemove = () => {
-    setApplicationData(prev => ({ ...prev, cvUrl: '' }));
   };
 
   const getJobTypeBadge = (type: string) => {
@@ -390,33 +356,49 @@ export default function JobDetailPage() {
               <form onSubmit={handleApply} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    CV yuklash *
+                    Rezyume tanlash *
                   </label>
-                  <FileUpload
-                    currentFile={applicationData.cvUrl}
-                    onUpload={handleResumeUpload}
-                    onRemove={handleResumeRemove}
-                    maxSizeMB={10}
-                    acceptedTypes={['.pdf', '.doc', '.docx']}
-                    label="CV faylini yuklang"
-                  />
+                  {resumesLoading ? (
+                    <div className="text-gray-500">Rezyumelar yuklanmoqda...</div>
+                  ) : resumes.length === 0 ? (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800 mb-2">
+                        Sizda hali rezyume yo&apos;q. Ariza topshirish uchun avval rezyume yarating.
+                      </p>
+                      <Link href="/resumes" className="text-sm text-brand hover:underline font-medium">
+                        Rezyume yaratish →
+                      </Link>
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedResumeId || ''}
+                      onChange={(e) => setSelectedResumeId(e.target.value ? Number(e.target.value) : null)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    >
+                      <option value="">Rezyumeni tanlang</option>
+                      {resumes.map((resume: Resume) => (
+                        <option key={resume.id} value={resume.id}>
+                          {resume.title} {resume.isPrimary ? '(Asosiy)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Qo'shimcha xat (ixtiyoriy)
+                    Qo&apos;shimcha xat (ixtiyoriy)
                   </label>
                   <textarea
-                    value={applicationData.coverLetter}
-                    onChange={(e) =>
-                      setApplicationData({ ...applicationData, coverLetter: e.target.value })
-                    }
+                    value={coverLetter}
+                    onChange={(e) => setCoverLetter(e.target.value)}
                     rows={6}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Nega siz bu lavozimga mos kelishingiz haqida yozing..."
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button type="submit" loading={applying}>
+                  <Button type="submit" loading={applying} disabled={resumes.length === 0}>
                     Yuborish
                   </Button>
                   <Button
