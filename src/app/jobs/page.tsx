@@ -12,8 +12,9 @@ import { Pagination } from '@/components/ui/Pagination';
 import { ListSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useJobs } from '@/lib/hooks';
-import { Job } from '@/types';
+import { useJobs, useJobRecommendations } from '@/lib/hooks';
+import { getToken } from '@/lib/auth';
+import { Job, JobExtended } from '@/types';
 
 type SortOption = 'newest' | 'deadline' | 'salary_high';
 
@@ -21,14 +22,18 @@ const ITEMS_PER_PAGE = 10;
 
 export default function JobsPage() {
   const { jobs, isLoading, error } = useJobs();
+  const token = getToken();
+  const { jobs: recommendedJobs, isLoading: recommendationsLoading } = useJobRecommendations({ limit: 5 });
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [selectedJobType, setSelectedJobType] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
+  const [selectedExperience, setSelectedExperience] = useState<string>('all');
   const [minSalary, setMinSalary] = useState<string>('');
   const [maxSalary, setMaxSalary] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showRecommendations, setShowRecommendations] = useState(true);
 
   // Apply filters and sort using useMemo for performance
   const filteredJobs = useMemo(() => {
@@ -53,6 +58,14 @@ export default function JobsPage() {
     // Apply location filter
     if (selectedLocation !== 'all') {
       result = result.filter((job) => job.location === selectedLocation);
+    }
+
+    // Apply experience level filter
+    if (selectedExperience !== 'all') {
+      result = result.filter((job) => {
+        const extJob = job as any;
+        return extJob.experienceLevel === selectedExperience;
+      });
     }
 
     // Apply salary range filter
@@ -84,12 +97,12 @@ export default function JobsPage() {
     }
 
     return result;
-  }, [jobs, debouncedSearch, sortBy, selectedJobType, selectedLocation, minSalary, maxSalary]);
+  }, [jobs, debouncedSearch, sortBy, selectedJobType, selectedLocation, selectedExperience, minSalary, maxSalary]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, sortBy, selectedJobType, selectedLocation, minSalary, maxSalary]);
+  }, [debouncedSearch, sortBy, selectedJobType, selectedLocation, selectedExperience, minSalary, maxSalary]);
 
   const getUniqueLocations = (): string[] => {
     const locations = jobs.map((j: Job) => j.location);
@@ -101,8 +114,19 @@ export default function JobsPage() {
     setSortBy('newest');
     setSelectedJobType('all');
     setSelectedLocation('all');
+    setSelectedExperience('all');
     setMinSalary('');
     setMaxSalary('');
+  };
+
+  const getExperienceLevelLabel = (level: string) => {
+    const levels: Record<string, string> = {
+      entry: 'Boshlang\'ich',
+      mid: 'O\'rta',
+      senior: 'Yuqori',
+      lead: 'Rahbar',
+    };
+    return levels[level] || level;
   };
 
   const getJobTypeBadge = (type: string) => {
@@ -138,7 +162,7 @@ export default function JobsPage() {
   }
 
   const locations = getUniqueLocations();
-  const hasActiveFilters = debouncedSearch || sortBy !== 'newest' || selectedJobType !== 'all' || selectedLocation !== 'all' || minSalary || maxSalary;
+  const hasActiveFilters = debouncedSearch || sortBy !== 'newest' || selectedJobType !== 'all' || selectedLocation !== 'all' || selectedExperience !== 'all' || minSalary || maxSalary;
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredJobs.length / ITEMS_PER_PAGE);
@@ -155,9 +179,47 @@ export default function JobsPage() {
         </p>
       </div>
 
+      {/* Recommendations Section */}
+      {token && recommendedJobs.length > 0 && showRecommendations && (
+        <Card className="mb-6 bg-gradient-to-r from-brand/5 to-lavender-100">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-dark">Siz uchun tavsiyalar</h2>
+              <p className="text-sm text-dark/60">Sizning ko&apos;nikmalaringiz asosida tanlangan</p>
+            </div>
+            <button
+              onClick={() => setShowRecommendations(false)}
+              className="text-dark/50 hover:text-dark"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {recommendedJobs.slice(0, 3).map((job: JobExtended) => (
+              <Link key={job.id} href={`/jobs/${job.id}`}>
+                <div className="bg-white rounded-xl p-4 hover:shadow-md transition-all">
+                  <h3 className="font-medium text-dark mb-1 line-clamp-1">{job.title}</h3>
+                  <p className="text-sm text-dark/60 mb-2">{job.company?.name || job.companyName}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-dark/50">{job.location}</span>
+                    {job.relevanceScore && (
+                      <span className="text-xs bg-brand/10 text-brand px-2 py-0.5 rounded-full">
+                        {job.relevanceScore}% mos
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Filters and Sort */}
       <Card className="mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Search */}
           <div className="md:col-span-1">
             <Input
@@ -176,10 +238,25 @@ export default function JobsPage() {
               className="w-full px-4 py-2 border-2 border-lavender-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all"
             >
               <option value="all">Barcha turlar</option>
-              <option value="full_time">To'liq vaqt</option>
+              <option value="full_time">To&apos;liq vaqt</option>
               <option value="part_time">Qisman vaqt</option>
               <option value="internship">Amaliyot</option>
               <option value="contract">Kontrakt</option>
+            </select>
+          </div>
+
+          {/* Experience Level Filter */}
+          <div>
+            <select
+              value={selectedExperience}
+              onChange={(e) => setSelectedExperience(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-lavender-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all"
+            >
+              <option value="all">Barcha darajalar</option>
+              <option value="entry">Boshlang&apos;ich</option>
+              <option value="mid">O&apos;rta</option>
+              <option value="senior">Yuqori</option>
+              <option value="lead">Rahbar</option>
             </select>
           </div>
 
