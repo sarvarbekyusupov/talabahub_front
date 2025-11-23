@@ -13,13 +13,15 @@ import { RatingStars } from '@/components/ui/RatingStars';
 import { ReviewForm } from '@/components/ui/ReviewForm';
 import { ReviewList } from '@/components/ui/ReviewList';
 import { api as clientApi } from '@/lib/api';
-import { Event as EventType, Review, Rating, PaginatedResponse } from '@/types';
+import { Event as EventType, Review, Rating, PaginatedResponse, TicketType } from '@/types';
 import { getToken } from '@/lib/auth';
+import { useToast } from '@/components/ui/Toast';
 
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const { showToast } = useToast();
 
   const [event, setEvent] = useState<EventType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,10 @@ export default function EventDetailPage() {
   const [countdown, setCountdown] = useState<string>('');
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
+  const [selectedTicketType, setSelectedTicketType] = useState<number | null>(null);
+  const [ticketQuantity, setTicketQuantity] = useState(1);
+  const [joinWaitlist, setJoinWaitlist] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -80,8 +86,17 @@ export default function EventDetailPage() {
 
   const loadEvent = async () => {
     try {
-      const data = await clientApi.getEvent(id) as EventType;
+      const data = await clientApi.getEvent(id) as any;
       setEvent(data);
+      // Load ticket types if available
+      if (data.ticketTypes && data.ticketTypes.length > 0) {
+        setTicketTypes(data.ticketTypes);
+        // Auto-select first available ticket type
+        const availableTicket = data.ticketTypes.find((t: TicketType) => t.quantity - t.soldCount > 0);
+        if (availableTicket) {
+          setSelectedTicketType(availableTicket.id);
+        }
+      }
     } catch (err: any) {
       setError('Tadbir topilmadi');
     } finally {
@@ -183,13 +198,35 @@ export default function EventDetailPage() {
       return;
     }
 
+    // If ticket types exist, require selection
+    if (ticketTypes.length > 0 && !selectedTicketType) {
+      showToast('Iltimos, chipta turini tanlang', 'error');
+      return;
+    }
+
     setRegistering(true);
     try {
-      await clientApi.registerForEvent(token, id);
-      alert('Ro\'yxatdan muvaffaqiyatli o\'tdingiz!');
+      let result: any;
+      if (ticketTypes.length > 0 && selectedTicketType) {
+        // Use new registration with ticket selection
+        result = await clientApi.registerForEventWithTicket(token, id, {
+          ticketTypeId: selectedTicketType,
+          quantity: ticketQuantity,
+          joinWaitlist,
+        });
+      } else {
+        // Use legacy registration
+        result = await clientApi.registerForEvent(token, id);
+      }
+
+      if (result.isWaitlisted) {
+        showToast(`Kutish ro'yxatiga qo'shildingiz. Sizning o'rningiz: ${result.waitlistPosition}`, 'info');
+      } else {
+        showToast(`Ro'yxatdan muvaffaqiyatli o'tdingiz! Tasdiqlash kodi: ${result.confirmationCode || 'yuborildi'}`, 'success');
+      }
       loadEvent(); // Reload to update participant count
     } catch (err: any) {
-      alert('Ro\'yxatdan o\'tishda xatolik: ' + (err.message || 'Qaytadan urinib ko\'ring'));
+      showToast('Ro\'yxatdan o\'tishda xatolik: ' + (err.message || 'Qaytadan urinib ko\'ring'), 'error');
     } finally {
       setRegistering(false);
     }
@@ -560,22 +597,101 @@ export default function EventDetailPage() {
               </div>
             )}
 
-            {isFull ? (
+            {/* Ticket Type Selection */}
+            {ticketTypes.length > 0 && (
+              <div className="mb-4 space-y-3">
+                <p className="text-sm font-medium text-gray-700">Chipta turini tanlang</p>
+                {ticketTypes.map((ticket) => {
+                  const available = ticket.quantity - ticket.soldCount;
+                  const isAvailable = available > 0;
+                  const isSelected = selectedTicketType === ticket.id;
+
+                  return (
+                    <button
+                      key={ticket.id}
+                      onClick={() => isAvailable && setSelectedTicketType(ticket.id)}
+                      disabled={!isAvailable}
+                      className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+                        isSelected
+                          ? 'border-brand bg-brand/5'
+                          : isAvailable
+                          ? 'border-gray-200 hover:border-brand/50'
+                          : 'border-gray-100 bg-gray-50 cursor-not-allowed'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className={`font-semibold ${!isAvailable ? 'text-gray-400' : 'text-dark'}`}>
+                            {ticket.name}
+                          </p>
+                          {ticket.description && (
+                            <p className="text-xs text-gray-500 mt-1">{ticket.description}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold ${!isAvailable ? 'text-gray-400' : 'text-dark'}`}>
+                            {ticket.price === 0 ? 'Bepul' : `${ticket.price.toLocaleString()} so'm`}
+                          </p>
+                          <p className={`text-xs ${available <= 5 ? 'text-red-500' : 'text-gray-500'}`}>
+                            {isAvailable ? `${available} ta qoldi` : 'Tugagan'}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+
+                {/* Quantity selector */}
+                {selectedTicketType && (
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm font-medium">Miqdor</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setTicketQuantity(Math.max(1, ticketQuantity - 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center font-semibold">{ticketQuantity}</span>
+                      <button
+                        onClick={() => setTicketQuantity(Math.min(5, ticketQuantity + 1))}
+                        className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isFull && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                 <p className="text-yellow-800 text-sm">
-                  Barcha o'rinlar band. Ro'yxatdan o'tish mumkin emas.
+                  Barcha o&apos;rinlar band.
                 </p>
+                <label className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    checked={joinWaitlist}
+                    onChange={(e) => setJoinWaitlist(e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm text-yellow-800">Kutish ro&apos;yxatiga qo&apos;shilish</span>
+                </label>
               </div>
-            ) : (
-              <div className="space-y-3">
-                <Button
-                  fullWidth
-                  size="lg"
-                  onClick={handleRegister}
-                  loading={registering}
-                >
-                  Ro'yxatdan o'tish
-                </Button>
+            )}
+
+            <div className="space-y-3">
+              <Button
+                fullWidth
+                size="lg"
+                onClick={handleRegister}
+                loading={registering}
+                disabled={(ticketTypes.length > 0 && !selectedTicketType) || (!!isFull && !joinWaitlist)}
+              >
+                {isFull && joinWaitlist ? 'Kutish ro\'yxatiga qo\'shilish' : 'Ro\'yxatdan o\'tish'}
+              </Button>
                 <div className="w-full">
                   <SaveButton
                     itemType="event"
@@ -661,7 +777,6 @@ export default function EventDetailPage() {
                   </div>
                 </div>
               </div>
-            )}
 
             {event.isActive && (
               <div className="mt-4">

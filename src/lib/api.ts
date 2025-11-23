@@ -1462,6 +1462,194 @@ class ApiClient {
   async getBlogPlatformAnalytics(token: string) {
     return this.request('/admin/analytics/platform', { token });
   }
+
+  // ========== JOBS MODULE EXTENDED ENDPOINTS ==========
+
+  // Get job recommendations for authenticated user
+  async getJobRecommendations(token: string, params?: Record<string, any>) {
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
+    return this.request(`/jobs/recommendations${query}`, { token });
+  }
+
+  // Apply to a job with resume
+  async applyToJob(token: string, jobId: string, data: { resumeId: number; coverLetter?: string }) {
+    return this.request(`/jobs/${jobId}/apply`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Get job analytics (employer only)
+  async getJobAnalytics(token: string, jobId: string) {
+    return this.request(`/jobs/${jobId}/analytics`, { token });
+  }
+
+  // Update application status (employer only)
+  async updateJobApplicationStatus(token: string, applicationId: string, data: { status: string; feedback?: string }) {
+    return this.request(`/jobs/applications/${applicationId}/status`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Approve job (admin only)
+  async approveJob(token: string, jobId: string) {
+    return this.request(`/jobs/${jobId}/approve`, {
+      method: 'POST',
+      token,
+    });
+  }
+
+  // Reject job (admin only)
+  async rejectJob(token: string, jobId: string, reason: string) {
+    return this.request(`/jobs/${jobId}/reject`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  // ========== EVENTS MODULE EXTENDED ENDPOINTS ==========
+
+  // Create ticket type for event
+  async createTicketType(token: string, eventId: string, data: any) {
+    return this.request(`/events/${eventId}/ticket-types`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Register for event with ticket selection
+  async registerForEventWithTicket(token: string, eventId: string, data: { ticketTypeId: number; quantity?: number; joinWaitlist?: boolean }) {
+    return this.request(`/events/${eventId}/register`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Check in attendee (organizer only)
+  async checkInAttendee(token: string, eventId: string, data: { confirmationCode: string; method?: 'qr' | 'manual' }) {
+    return this.request(`/events/${eventId}/check-in`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Get event attendees (organizer only)
+  async getEventAttendees(token: string, eventId: string, params?: Record<string, any>) {
+    const searchParams = params ? new URLSearchParams(params).toString() : '';
+    const query = searchParams ? `?${searchParams}` : '';
+    return this.request(`/events/${eventId}/attendees${query}`, { token });
+  }
+
+  // Get event waitlist (organizer only)
+  async getEventWaitlist(token: string, eventId: string) {
+    return this.request(`/events/${eventId}/waitlist`, { token });
+  }
+
+  // Process waitlist (organizer only)
+  async processEventWaitlist(token: string, eventId: string, count: number = 1) {
+    return this.request(`/events/${eventId}/waitlist/process`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify({ count }),
+    });
+  }
+
+  // Submit event feedback (attendee only)
+  async submitEventFeedback(token: string, eventId: string, data: {
+    rating: number;
+    comment?: string;
+    isAnonymous?: boolean;
+    categories?: {
+      content?: number;
+      organization?: number;
+      venue?: number;
+      networking?: number;
+    };
+  }) {
+    return this.request(`/events/${eventId}/feedback`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Get event analytics (organizer only)
+  async getEventAnalytics(token: string, eventId: string) {
+    return this.request(`/events/${eventId}/analytics`, { token });
+  }
+
+  // Generate certificates (organizer only)
+  async generateEventCertificates(token: string, eventId: string, data?: { templateId?: number; attendeeIds?: number[] }) {
+    return this.request(`/events/${eventId}/certificates/generate`, {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data || {}),
+    });
+  }
+
+  // Get user's certificate for event
+  async getEventCertificate(token: string, eventId: string, userId: string) {
+    return this.request(`/events/${eventId}/certificates/${userId}`, { token });
+  }
+
+  // Get my certificate for event
+  async getMyEventCertificate(token: string, eventId: string) {
+    return this.request(`/events/${eventId}/certificates/me`, { token });
+  }
+
+  // ========== RESUMES MODULE ENDPOINTS ==========
+
+  // Create a new resume
+  async createResume(token: string, data: any) {
+    return this.request('/resumes', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Get all resumes for authenticated user
+  async getResumes(token: string) {
+    return this.request('/resumes', { token });
+  }
+
+  // Get specific resume by ID
+  async getResume(token: string, resumeId: number) {
+    return this.request(`/resumes/${resumeId}`, { token });
+  }
+
+  // Update resume
+  async updateResume(token: string, resumeId: number, data: any) {
+    return this.request(`/resumes/${resumeId}`, {
+      method: 'PATCH',
+      token,
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Delete resume
+  async deleteResume(token: string, resumeId: number) {
+    return this.request(`/resumes/${resumeId}`, {
+      method: 'DELETE',
+      token,
+    });
+  }
+
+  // Set resume as primary
+  async setResumePrimary(token: string, resumeId: number) {
+    return this.request(`/resumes/${resumeId}/set-primary`, {
+      method: 'POST',
+      token,
+    });
+  }
 }
 
 export const api = new ApiClient(API_BASE_URL);

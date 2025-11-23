@@ -253,3 +253,158 @@ export type UniversityInput = z.infer<typeof universitySchema>;
 export type SearchInput = z.infer<typeof searchSchema>;
 export type JobFilterInput = z.infer<typeof jobFilterSchema>;
 export type CourseFilterInput = z.infer<typeof courseFilterSchema>;
+
+// ========== JOBS MODULE EXTENDED SCHEMAS ==========
+
+export const createJobSchema = z.object({
+  title: z.string().min(5, 'Sarlavha kamida 5 ta belgidan iborat bo\'lishi kerak'),
+  description: z.string().min(50, 'Tavsif kamida 50 ta belgidan iborat bo\'lishi kerak'),
+  companyName: z.string().min(2, 'Kompaniya nomini kiriting'),
+  location: z.string().min(2, 'Manzilni kiriting'),
+  employmentType: z.enum(['full_time', 'part_time', 'contract', 'internship']),
+  experienceLevel: z.enum(['entry', 'mid', 'senior', 'lead']),
+  salaryMin: z.number().min(0, 'Minimal maosh musbat son bo\'lishi kerak').optional(),
+  salaryMax: z.number().min(0, 'Maksimal maosh musbat son bo\'lishi kerak').optional(),
+  skills: z.array(z.string()).min(1, 'Kamida bitta ko\'nikma kiriting'),
+  isPremium: z.boolean().optional(),
+  featuredUntil: z.string().optional(),
+});
+
+export const jobApplySchema = z.object({
+  resumeId: z.number().min(1, 'Rezyumeni tanlang'),
+  coverLetter: z.string().max(2000, 'Qo\'shimcha ma\'lumot maksimal 2000 ta belgidan iborat bo\'lishi mumkin').optional(),
+});
+
+export const updateApplicationStatusSchema = z.object({
+  status: z.enum(['reviewed', 'shortlisted', 'rejected', 'hired']),
+  feedback: z.string().max(1000, 'Fikr-mulohaza maksimal 1000 ta belgidan iborat bo\'lishi mumkin').optional(),
+});
+
+// ========== EVENTS MODULE EXTENDED SCHEMAS ==========
+
+export const createEventExtendedSchema = z.object({
+  title: z.string().min(5, 'Sarlavha kamida 5 ta belgidan iborat bo\'lishi kerak'),
+  description: z.string().min(50, 'Tavsif kamida 50 ta belgidan iborat bo\'lishi kerak'),
+  startDate: z.string().min(1, 'Boshlanish sanasini kiriting'),
+  endDate: z.string().min(1, 'Tugash sanasini kiriting'),
+  location: z.string().min(2, 'Manzilni kiriting'),
+  isVirtual: z.boolean().optional(),
+  virtualLink: z.string().url('Virtual havola noto\'g\'ri formatda').optional(),
+  capacity: z.number().min(1, 'Sig\'im musbat son bo\'lishi kerak'),
+  registrationDeadline: z.string().optional(),
+  isPublic: z.boolean().optional(),
+  categories: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+export const ticketTypeSchema = z.object({
+  name: z.string().min(2, 'Chipta turi nomini kiriting'),
+  price: z.number().min(0, 'Narx musbat son bo\'lishi kerak'),
+  quantity: z.number().min(1, 'Miqdor musbat son bo\'lishi kerak'),
+  description: z.string().max(500).optional(),
+  salesStartDate: z.string().optional(),
+  salesEndDate: z.string().optional(),
+  maxPerUser: z.number().min(1).max(10).optional(),
+});
+
+export const eventRegisterSchema = z.object({
+  ticketTypeId: z.number().min(1, 'Chipta turini tanlang'),
+  quantity: z.number().min(1).max(10).optional(),
+  joinWaitlist: z.boolean().optional(),
+});
+
+export const eventFeedbackSchema = z.object({
+  rating: z.number().min(1, 'Baho 1 dan kichik bo\'lmasligi kerak').max(5, 'Baho 5 dan oshmasligi kerak'),
+  comment: z.string().max(1000, 'Izoh maksimal 1000 ta belgidan iborat bo\'lishi mumkin').optional(),
+  isAnonymous: z.boolean().optional(),
+  categories: z.object({
+    content: z.number().min(1).max(5).optional(),
+    organization: z.number().min(1).max(5).optional(),
+    venue: z.number().min(1).max(5).optional(),
+    networking: z.number().min(1).max(5).optional(),
+  }).optional(),
+});
+
+export const checkInSchema = z.object({
+  confirmationCode: z.string().min(1, 'Tasdiqlash kodini kiriting'),
+  method: z.enum(['qr', 'manual']).optional(),
+});
+
+// ========== RESUMES MODULE SCHEMAS ==========
+
+export const resumeEducationSchema = z.object({
+  institution: z.string().min(2, 'Ta\'lim muassasasi nomini kiriting'),
+  degree: z.string().min(2, 'Darajani kiriting'),
+  field: z.string().min(2, 'Yo\'nalishni kiriting'),
+  startDate: z.string().min(1, 'Boshlanish sanasini kiriting'),
+  endDate: z.string().optional(),
+  gpa: z.number().min(0).max(5).optional(),
+});
+
+export const resumeExperienceSchema = z.object({
+  company: z.string().min(2, 'Kompaniya nomini kiriting'),
+  title: z.string().min(2, 'Lavozimni kiriting'),
+  location: z.string().optional(),
+  startDate: z.string().min(1, 'Boshlanish sanasini kiriting'),
+  endDate: z.string().optional(),
+  current: z.boolean(),
+  description: z.string().max(1000).optional(),
+});
+
+export const resumeSkillSchema = z.object({
+  name: z.string().min(1, 'Ko\'nikma nomini kiriting'),
+  level: z.enum(['beginner', 'intermediate', 'advanced', 'expert']),
+  yearsOfExperience: z.number().min(0).optional(),
+});
+
+export const resumeLanguageSchema = z.object({
+  name: z.string().min(1, 'Til nomini kiriting'),
+  proficiency: z.enum(['basic', 'conversational', 'fluent', 'native']),
+});
+
+export const resumeCertificationSchema = z.object({
+  name: z.string().min(2, 'Sertifikat nomini kiriting'),
+  issuer: z.string().min(2, 'Beruvchi tashkilotni kiriting'),
+  issueDate: z.string().min(1, 'Berilgan sanani kiriting'),
+  expiryDate: z.string().optional(),
+  credentialId: z.string().optional(),
+  credentialUrl: z.string().url('URL noto\'g\'ri formatda').optional().or(z.literal('')),
+});
+
+export const resumeProjectSchema = z.object({
+  name: z.string().min(2, 'Loyiha nomini kiriting'),
+  description: z.string().max(1000).optional(),
+  url: z.string().url('URL noto\'g\'ri formatda').optional().or(z.literal('')),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  technologies: z.array(z.string()),
+});
+
+export const resumeSchema = z.object({
+  title: z.string().min(3, 'Rezyume sarlavhasi kamida 3 ta belgidan iborat bo\'lishi kerak'),
+  summary: z.string().max(2000, 'Qisqacha ma\'lumot maksimal 2000 ta belgidan iborat bo\'lishi mumkin').optional(),
+  isPrimary: z.boolean().optional(),
+  educations: z.array(resumeEducationSchema).optional(),
+  experiences: z.array(resumeExperienceSchema).optional(),
+  skills: z.array(resumeSkillSchema).optional(),
+  languages: z.array(resumeLanguageSchema).optional(),
+  certifications: z.array(resumeCertificationSchema).optional(),
+  projects: z.array(resumeProjectSchema).optional(),
+});
+
+// Type exports for new schemas
+export type CreateJobInput = z.infer<typeof createJobSchema>;
+export type JobApplyInput = z.infer<typeof jobApplySchema>;
+export type UpdateApplicationStatusInput = z.infer<typeof updateApplicationStatusSchema>;
+export type CreateEventExtendedInput = z.infer<typeof createEventExtendedSchema>;
+export type TicketTypeInput = z.infer<typeof ticketTypeSchema>;
+export type EventRegisterInput = z.infer<typeof eventRegisterSchema>;
+export type EventFeedbackInput = z.infer<typeof eventFeedbackSchema>;
+export type CheckInInput = z.infer<typeof checkInSchema>;
+export type ResumeInput = z.infer<typeof resumeSchema>;
+export type ResumeEducationInput = z.infer<typeof resumeEducationSchema>;
+export type ResumeExperienceInput = z.infer<typeof resumeExperienceSchema>;
+export type ResumeSkillInput = z.infer<typeof resumeSkillSchema>;
+export type ResumeLanguageInput = z.infer<typeof resumeLanguageSchema>;
+export type ResumeCertificationInput = z.infer<typeof resumeCertificationSchema>;
+export type ResumeProjectInput = z.infer<typeof resumeProjectSchema>;

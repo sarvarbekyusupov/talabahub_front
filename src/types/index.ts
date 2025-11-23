@@ -726,3 +726,360 @@ export interface SuspendUserRequest {
   duration: '7d' | '30d' | 'permanent';
   reason: string;
 }
+
+// ========== JOBS MODULE EXTENDED TYPES ==========
+
+export type JobStatus = 'pending' | 'approved' | 'rejected';
+export type EmploymentType = 'full_time' | 'part_time' | 'contract' | 'internship';
+export type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'lead';
+export type ApplicationStatus = 'applied' | 'reviewed' | 'shortlisted' | 'rejected' | 'hired';
+
+export interface JobExtended extends Job {
+  status?: JobStatus;
+  employmentType?: EmploymentType;
+  experienceLevel?: ExperienceLevel;
+  skills?: string[];
+  salaryMin?: number;
+  salaryMax?: number;
+  isPremium?: boolean;
+  featuredUntil?: string;
+  applicationCount?: number;
+  relevanceScore?: number;
+}
+
+export interface JobApplicationExtended {
+  id: string;
+  jobId: string;
+  job?: Job;
+  userId: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string;
+  };
+  resumeId: number;
+  resume?: Resume;
+  coverLetter?: string;
+  status: ApplicationStatus;
+  feedback?: string;
+  appliedAt: string;
+  reviewedAt?: string;
+}
+
+export interface JobAnalytics {
+  views: number;
+  applications: number;
+  conversionRate: number;
+  applicationsByDate: { date: string; count: number }[];
+  applicationsByStatus: Record<ApplicationStatus, number>;
+  topApplicantSkills: { skill: string; count: number }[];
+}
+
+export interface CreateJobRequest {
+  title: string;
+  description: string;
+  companyName: string;
+  location: string;
+  employmentType: EmploymentType;
+  experienceLevel: ExperienceLevel;
+  salaryMin?: number;
+  salaryMax?: number;
+  skills: string[];
+  isPremium?: boolean;
+  featuredUntil?: string;
+}
+
+export interface JobApplyRequest {
+  resumeId: number;
+  coverLetter?: string;
+}
+
+// ========== EVENTS MODULE EXTENDED TYPES ==========
+
+export type TicketStatus = 'available' | 'sold_out' | 'ended';
+export type RegistrationStatus = 'registered' | 'attended' | 'cancelled' | 'waitlisted';
+export type CheckInMethod = 'qr' | 'manual';
+
+export interface EventExtended extends Event {
+  startDate?: string;
+  endDate?: string;
+  isVirtual?: boolean;
+  virtualLink?: string;
+  capacity?: number;
+  registrationDeadline?: string;
+  isPublic?: boolean;
+  categories?: string[];
+  tags?: string[];
+  ticketTypes?: TicketType[];
+}
+
+export interface TicketType {
+  id: number;
+  eventId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  soldCount: number;
+  description?: string;
+  salesStartDate?: string;
+  salesEndDate?: string;
+  maxPerUser?: number;
+  status?: TicketStatus;
+}
+
+export interface EventRegistrationExtended {
+  id: string;
+  eventId: string;
+  event?: Event;
+  userId: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string;
+  };
+  ticketTypeId: number;
+  ticketType?: TicketType;
+  quantity: number;
+  confirmationCode: string;
+  qrCodeData?: string;
+  status: RegistrationStatus;
+  checkedInAt?: string;
+  checkInMethod?: CheckInMethod;
+  registeredAt: string;
+}
+
+export interface EventWaitlistEntry {
+  id: string;
+  eventId: string;
+  userId: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  position: number;
+  joinedAt: string;
+}
+
+export interface EventFeedback {
+  id: string;
+  eventId: string;
+  userId: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  };
+  rating: number;
+  comment?: string;
+  isAnonymous: boolean;
+  categories?: {
+    content?: number;
+    organization?: number;
+    venue?: number;
+    networking?: number;
+  };
+  createdAt: string;
+}
+
+export interface EventAnalytics {
+  registrations: {
+    total: number;
+    byStatus: Record<RegistrationStatus, number>;
+    byTicketType: { name: string; count: number; revenue: number }[];
+    timeline: { date: string; count: number }[];
+  };
+  attendance: {
+    checkInRate: number;
+    peakCheckInTime?: string;
+    checkInsByHour: { hour: number; count: number }[];
+  };
+  feedback: {
+    averageRating: number;
+    totalResponses: number;
+    ratingDistribution: Record<number, number>;
+    categoryAverages?: {
+      content?: number;
+      organization?: number;
+      venue?: number;
+      networking?: number;
+    };
+  };
+  revenue: {
+    total: number;
+    byTicketType: { name: string; amount: number }[];
+  };
+  waitlist: {
+    current: number;
+    converted: number;
+    conversionRate: number;
+  };
+}
+
+export interface EventCertificate {
+  id: string;
+  eventId: string;
+  userId: string;
+  certificateNumber: string;
+  eventTitle: string;
+  attendeeName: string;
+  issueDate: string;
+  downloadUrl: string;
+}
+
+export interface CreateEventRequest {
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  isVirtual?: boolean;
+  virtualLink?: string;
+  capacity: number;
+  registrationDeadline?: string;
+  isPublic?: boolean;
+  categories?: string[];
+  tags?: string[];
+}
+
+export interface CreateTicketTypeRequest {
+  name: string;
+  price: number;
+  quantity: number;
+  description?: string;
+  salesStartDate?: string;
+  salesEndDate?: string;
+  maxPerUser?: number;
+}
+
+export interface EventRegisterRequest {
+  ticketTypeId: number;
+  quantity?: number;
+  joinWaitlist?: boolean;
+}
+
+export interface EventFeedbackRequest {
+  rating: number;
+  comment?: string;
+  isAnonymous?: boolean;
+  categories?: {
+    content?: number;
+    organization?: number;
+    venue?: number;
+    networking?: number;
+  };
+}
+
+// ========== RESUMES MODULE TYPES ==========
+
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+export type LanguageProficiency = 'basic' | 'conversational' | 'fluent' | 'native';
+
+export interface Resume {
+  id: number;
+  userId: string;
+  title: string;
+  summary?: string;
+  isPrimary: boolean;
+  educations: ResumeEducation[];
+  experiences: ResumeExperience[];
+  skills: ResumeSkill[];
+  languages: ResumeLanguage[];
+  certifications: ResumeCertification[];
+  projects: ResumeProject[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResumeEducation {
+  id?: number;
+  institution: string;
+  degree: string;
+  field: string;
+  startDate: string;
+  endDate?: string;
+  gpa?: number;
+}
+
+export interface ResumeExperience {
+  id?: number;
+  company: string;
+  title: string;
+  location?: string;
+  startDate: string;
+  endDate?: string;
+  current: boolean;
+  description?: string;
+}
+
+export interface ResumeSkill {
+  id?: number;
+  name: string;
+  level: SkillLevel;
+  yearsOfExperience?: number;
+}
+
+export interface ResumeLanguage {
+  id?: number;
+  name: string;
+  proficiency: LanguageProficiency;
+}
+
+export interface ResumeCertification {
+  id?: number;
+  name: string;
+  issuer: string;
+  issueDate: string;
+  expiryDate?: string;
+  credentialId?: string;
+  credentialUrl?: string;
+}
+
+export interface ResumeProject {
+  id?: number;
+  name: string;
+  description?: string;
+  url?: string;
+  startDate?: string;
+  endDate?: string;
+  technologies: string[];
+}
+
+export interface CreateResumeRequest {
+  title: string;
+  summary?: string;
+  isPrimary?: boolean;
+  educations?: Omit<ResumeEducation, 'id'>[];
+  experiences?: Omit<ResumeExperience, 'id'>[];
+  skills?: Omit<ResumeSkill, 'id'>[];
+  languages?: Omit<ResumeLanguage, 'id'>[];
+  certifications?: Omit<ResumeCertification, 'id'>[];
+  projects?: Omit<ResumeProject, 'id'>[];
+}
+
+export interface UpdateResumeRequest extends Partial<CreateResumeRequest> {}
+
+// ========== API RESPONSE TYPES ==========
+
+export interface EventRegistrationResponse {
+  registration: EventRegistrationExtended;
+  confirmationCode: string;
+  qrCodeData: string;
+  isWaitlisted: boolean;
+  waitlistPosition?: number;
+}
+
+export interface PaginatedMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}

@@ -27,7 +27,16 @@ import {
   BlogSearchResult,
   BlogSearchSuggestions,
   Report,
-  ArticleAuthor
+  ArticleAuthor,
+  Resume,
+  JobExtended,
+  JobApplicationExtended,
+  JobAnalytics,
+  EventExtended,
+  EventRegistrationExtended,
+  EventWaitlistEntry,
+  EventAnalytics,
+  EventCertificate
 } from '@/types';
 import { getToken as getAuthToken } from './auth';
 
@@ -1171,6 +1180,249 @@ export function useBlogPlatformAnalytics() {
 
   return {
     analytics: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// ========== JOBS MODULE EXTENDED HOOKS ==========
+
+// Job Recommendations
+export function useJobRecommendations(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['jobRecommendations', params, token] : null,
+    async () => {
+      const response = await api.getJobRecommendations(token!, params) as any;
+      return response?.data || response || [];
+    },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 120000, // 2 minutes
+    }
+  );
+
+  return {
+    jobs: Array.isArray(data) ? data as JobExtended[] : [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Job Applications (for a specific job - employer view)
+export function useJobApplicationsList(jobId: string, params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token && jobId ? ['jobApplications', jobId, params, token] : null,
+    () => api.getJobApplications(token!, jobId, params) as Promise<PaginatedResponse<JobApplicationExtended>>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    applications: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Job Analytics (employer view)
+export function useJobAnalytics(jobId: string) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token && jobId ? ['jobAnalytics', jobId, token] : null,
+    () => api.getJobAnalytics(token!, jobId) as Promise<JobAnalytics>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 120000, // 2 minutes
+    }
+  );
+
+  return {
+    analytics: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// My Job Applications (user view)
+export function useMyApplications(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['myApplications', params, token] : null,
+    async () => {
+      const response = await api.getMyApplications(token!, params) as any;
+      return response;
+    },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    applications: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// ========== EVENTS MODULE EXTENDED HOOKS ==========
+
+// Event Attendees (organizer view)
+export function useEventAttendees(eventId: string, params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token && eventId ? ['eventAttendees', eventId, params, token] : null,
+    () => api.getEventAttendees(token!, eventId, params) as Promise<PaginatedResponse<EventRegistrationExtended>>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000, // 30 seconds for real-time check-in
+    }
+  );
+
+  return {
+    attendees: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Event Waitlist (organizer view)
+export function useEventWaitlist(eventId: string) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token && eventId ? ['eventWaitlist', eventId, token] : null,
+    async () => {
+      const response = await api.getEventWaitlist(token!, eventId) as any;
+      return response?.data || response || [];
+    },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    waitlist: Array.isArray(data) ? data as EventWaitlistEntry[] : [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Event Analytics (organizer view)
+export function useEventAnalytics(eventId: string) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token && eventId ? ['eventAnalytics', eventId, token] : null,
+    () => api.getEventAnalytics(token!, eventId) as Promise<EventAnalytics>,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 120000, // 2 minutes
+    }
+  );
+
+  return {
+    analytics: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// My Event Certificate
+export function useMyEventCertificate(eventId: string) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token && eventId ? ['myEventCertificate', eventId, token] : null,
+    () => api.getMyEventCertificate(token!, eventId) as Promise<EventCertificate>,
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    certificate: data,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// My Event Registrations
+export function useMyEventRegistrations(params: Record<string, any> = {}) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['myEventRegistrations', params, token] : null,
+    async () => {
+      const response = await api.getMyRegistrations(token!, params) as any;
+      return response;
+    },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    registrations: data?.data || [],
+    meta: data?.meta,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// ========== RESUMES MODULE HOOKS ==========
+
+// All User Resumes
+export function useResumes() {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token ? ['resumes', token] : null,
+    async () => {
+      const response = await api.getResumes(token!) as any;
+      return response?.data || response || [];
+    },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
+
+  return {
+    resumes: Array.isArray(data) ? data as Resume[] : [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Single Resume
+export function useResumeById(resumeId: number) {
+  const token = getToken();
+  const { data, error, isLoading, mutate } = useSWR(
+    token && resumeId ? ['resume', resumeId, token] : null,
+    () => api.getResume(token!, resumeId) as Promise<Resume>,
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    resume: data,
     isLoading,
     error,
     mutate,
