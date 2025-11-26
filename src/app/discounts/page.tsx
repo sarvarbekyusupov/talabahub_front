@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
 import { GridSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { VerificationGuard } from '@/components/verification/VerificationGuard';
+import { useVerificationPermissions } from '@/contexts/VerificationContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useDiscounts } from '@/lib/hooks';
 import { Discount } from '@/types';
@@ -21,6 +23,7 @@ const ITEMS_PER_PAGE = 12;
 
 export default function DiscountsPage() {
   const { discounts, isLoading, error } = useDiscounts();
+  const { canUseDiscounts, isVerified } = useVerificationPermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -181,81 +184,112 @@ export default function DiscountsPage() {
       </div>
 
       {/* Discounts Grid */}
-      {filteredDiscounts.length === 0 ? (
-        <Card>
-          {debouncedSearch ? (
-            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
-          ) : hasActiveFilters ? (
-            <NoFilterResults onClearFilters={clearFilters} />
-          ) : (
+      <VerificationGuard
+        feature="discounts"
+        fallback={
+          <Card>
             <EmptyState
-              title="Chegirmalar yo'q"
-              message="Hozircha hech qanday chegirma qo'shilmagan."
-              showAction={false}
+              title="Verification Required"
+              message="Access student discounts with a verified student status. Complete your verification to unlock exclusive deals and offers."
+              action={
+                <Button onClick={() => window.location.href = '/verification'}>
+                  Complete Verification
+                </Button>
+              }
             />
-          )}
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paginatedDiscounts.map((discount) => (
-            <Link key={discount.id} href={`/discounts/${discount.id}`}>
-              <Card hover className="flex flex-col h-full">
-                {discount.imageUrl && (
-                  <div className="relative w-full h-48">
-                    <Image
-                      src={discount.imageUrl}
-                      alt={discount.title}
-                      fill
-                      className="object-cover rounded-t-2xl"
-                    />
-                  </div>
-                )}
-                <div className="p-6 flex-1 flex flex-col">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-xl font-semibold text-dark flex-1">
-                      {discount.title}
-                    </h3>
-                    <Badge variant="success" size="md">
-                      -{discount.discount}%
-                    </Badge>
-                  </div>
-
-                  <p className="text-dark/60 mb-4 flex-1 line-clamp-3">
-                    {discount.description}
-                  </p>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-dark/50">Brend:</span>
-                      <span className="font-medium text-dark">{discount.brand.name}</span>
+          </Card>
+        }
+      >
+        {filteredDiscounts.length === 0 ? (
+          <Card>
+            {debouncedSearch ? (
+              <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+            ) : hasActiveFilters ? (
+              <NoFilterResults onClearFilters={clearFilters} />
+            ) : (
+              <EmptyState
+                title="Chegirmalar yo'q"
+                message="Hozircha hech qanday chegirma qo'shilmagan."
+                showAction={false}
+              />
+            )}
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedDiscounts.map((discount) => (
+              <Link key={discount.id} href={`/discounts/${discount.id}`}>
+                <Card hover className="flex flex-col h-full">
+                  {discount.imageUrl && (
+                    <div className="relative w-full h-48">
+                      <Image
+                        src={discount.imageUrl}
+                        alt={discount.title}
+                        fill
+                        className="object-cover rounded-t-2xl"
+                      />
+                      {!isVerified && (
+                        <div className="absolute top-2 right-2">
+                          <Badge variant="warning" size="sm">
+                            Verification Required
+                          </Badge>
+                        </div>
+                      )}
                     </div>
-                    {discount.category && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-dark/50">Kategoriya:</span>
-                        <span className="font-medium text-dark">{discount.category.nameUz}</span>
+                  )}
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-xl font-semibold text-dark flex-1">
+                        {discount.title}
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        {!isVerified && (
+                          <Badge variant="warning" size="sm">
+                            Students Only
+                          </Badge>
+                        )}
+                        <Badge variant="success" size="md">
+                          -{discount.discount}%
+                        </Badge>
                       </div>
-                    )}
-                    {discount.promoCode && (
+                    </div>
+
+                    <p className="text-dark/60 mb-4 flex-1 line-clamp-3">
+                      {discount.description}
+                    </p>
+
+                    <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
-                        <span className="text-dark/50">Promo kod:</span>
-                        <code className="bg-accent/10 text-accent-700 px-2 py-1 rounded-lg font-mono text-xs font-semibold">
-                          {discount.promoCode}
-                        </code>
+                        <span className="text-dark/50">Brend:</span>
+                        <span className="font-medium text-dark">{discount.brand.name}</span>
                       </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-dark/50">Amal qiladi:</span>
-                      <span className="text-sm text-dark">
-                        {new Date(discount.validUntil).toLocaleDateString('uz-UZ')}
-                      </span>
+                      {discount.category && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-dark/50">Kategoriya:</span>
+                          <span className="font-medium text-dark">{discount.category.nameUz}</span>
+                        </div>
+                      )}
+                      {discount.promoCode && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-dark/50">Promo kod:</span>
+                          <code className="bg-accent/10 text-accent-700 px-2 py-1 rounded-lg font-mono text-xs font-semibold">
+                            {discount.promoCode}
+                          </code>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-dark/50">Amal qiladi:</span>
+                        <span className="text-sm text-dark">
+                          {new Date(discount.validUntil).toLocaleDateString('uz-UZ')}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      )}
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </VerificationGuard>
 
       {/* Pagination */}
       {filteredDiscounts.length > 0 && (

@@ -3,6 +3,8 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ToastProvider } from "@/components/ui/Toast";
+import { VerificationProvider } from "@/contexts/VerificationContext";
+import { VerificationBanner } from "@/components/verification/VerificationBanner";
 
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "TALABA HUB";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -103,13 +105,16 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="font-sans bg-gray-50">
-        <ToastProvider>
-          <Header />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Footer />
-        </ToastProvider>
+        <VerificationProvider>
+          <ToastProvider>
+            <Header />
+            <VerificationBanner />
+            <main className="min-h-screen">
+              {children}
+            </main>
+            <Footer />
+          </ToastProvider>
+        </VerificationProvider>
       </body>
     </html>
   );

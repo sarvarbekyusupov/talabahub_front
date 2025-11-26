@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/Input';
 import { Pagination } from '@/components/ui/Pagination';
 import { ListSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState, NoSearchResults, NoFilterResults } from '@/components/ui/EmptyState';
+import { VerificationGuard } from '@/components/verification/VerificationGuard';
+import { useVerificationPermissions } from '@/contexts/VerificationContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useJobs, useJobRecommendations } from '@/lib/hooks';
 import { getToken } from '@/lib/auth';
@@ -22,6 +24,7 @@ const ITEMS_PER_PAGE = 10;
 
 export default function JobsPage() {
   const { jobs, isLoading, error } = useJobs();
+  const { canApplyForJobs, isVerified } = useVerificationPermissions();
   const token = getToken();
   const { jobs: recommendedJobs, isLoading: recommendationsLoading } = useJobRecommendations({ limit: 5 });
   const [searchQuery, setSearchQuery] = useState('');
@@ -333,81 +336,105 @@ export default function JobsPage() {
       </div>
 
       {/* Jobs List */}
-      {filteredJobs.length === 0 ? (
-        <Card>
-          {debouncedSearch ? (
-            <NoSearchResults onClearSearch={() => setSearchQuery('')} />
-          ) : hasActiveFilters ? (
-            <NoFilterResults onClearFilters={clearFilters} />
-          ) : (
+      <VerificationGuard
+        feature="jobs"
+        fallback={
+          <Card>
             <EmptyState
-              title="Ish o'rinlari yo'q"
-              message="Hozircha hech qanday ish o'rni qo'shilmagan."
-              showAction={false}
+              title="Verification Required"
+              message="Apply to jobs with a verified student status. Complete your verification to unlock exclusive job opportunities."
+              action={
+                <Button onClick={() => window.location.href = '/verification'}>
+                  Complete Verification
+                </Button>
+              }
             />
-          )}
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {paginatedJobs.map((job) => {
-            const typeBadge = getJobTypeBadge(job.jobType);
-            return (
-              <Link key={job.id} href={`/jobs/${job.id}`}>
-                <Card hover>
-                  <div className="flex flex-col md:flex-row gap-6">
-                    {job.company && job.company.logoUrl && (
-                      <div className="relative w-24 h-24 flex-shrink-0">
-                        <Image
-                          src={job.company.logoUrl}
-                          alt={job.company.name}
-                          fill
-                          className="object-contain rounded-xl"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="text-2xl font-semibold text-dark mb-1">
-                            {job.title}
-                          </h3>
-                          {job.company && <p className="text-lg text-dark/60">{job.company.name}</p>}
+          </Card>
+        }
+      >
+        {filteredJobs.length === 0 ? (
+          <Card>
+            {debouncedSearch ? (
+              <NoSearchResults onClearSearch={() => setSearchQuery('')} />
+            ) : hasActiveFilters ? (
+              <NoFilterResults onClearFilters={clearFilters} />
+            ) : (
+              <EmptyState
+                title="Ish o'rinlari yo'q"
+                message="Hozircha hech qanday ish o'rni qo'shilmagan."
+                showAction={false}
+              />
+            )}
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {paginatedJobs.map((job) => {
+              const typeBadge = getJobTypeBadge(job.jobType);
+              return (
+                <Link key={job.id} href={`/jobs/${job.id}`}>
+                  <Card hover>
+                    <div className="flex flex-col md:flex-row gap-6">
+                      {job.company && job.company.logoUrl && (
+                        <div className="relative w-24 h-24 flex-shrink-0">
+                          <Image
+                            src={job.company.logoUrl}
+                            alt={job.company.name}
+                            fill
+                            className="object-contain rounded-xl"
+                          />
                         </div>
-                        <Badge variant={typeBadge.variant}>
-                          {typeBadge.label}
-                        </Badge>
-                      </div>
-
-                      <p className="text-dark/60 mb-4 line-clamp-2">
-                        {job.description}
-                      </p>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <div className="text-dark/50">Joylashuv</div>
-                          <div className="font-medium text-dark">{job.location}</div>
-                        </div>
-                        {job.salary && (
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-3">
                           <div>
-                            <div className="text-dark/50">Maosh</div>
-                            <div className="font-medium text-dark">{job.salary} so'm</div>
+                            <h3 className="text-2xl font-semibold text-dark mb-1">
+                              {job.title}
+                            </h3>
+                            {job.company && <p className="text-lg text-dark/60">{job.company.name}</p>}
                           </div>
-                        )}
-                        <div>
-                          <div className="text-dark/50">Muddat</div>
-                          <div className="font-medium text-dark">
-                            {new Date(job.applicationDeadline).toLocaleDateString('uz-UZ')}
+                          <div className="flex items-center gap-2">
+                            {!isVerified && (
+                              <Badge variant="warning">
+                                Verification Required
+                              </Badge>
+                            )}
+                            <Badge variant={typeBadge.variant}>
+                              {typeBadge.label}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <p className="text-dark/60 mb-4 line-clamp-2">
+                          {job.description}
+                        </p>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <div className="text-dark/50">Joylashuv</div>
+                            <div className="font-medium text-dark">{job.location}</div>
+                          </div>
+                          {job.salary && (
+                            <div>
+                              <div className="text-dark/50">Maosh</div>
+                              <div className="font-medium text-dark">{job.salary} so'm</div>
+                            </div>
+                          )}
+                          <div>
+                            <div className="text-dark/50">Muddat</div>
+                            <div className="font-medium text-dark">
+                              {new Date(job.applicationDeadline).toLocaleDateString('uz-UZ')}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </VerificationGuard>
 
       {/* Pagination */}
       {filteredJobs.length > 0 && (

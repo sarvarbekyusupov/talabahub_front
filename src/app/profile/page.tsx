@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ImageUpload } from '@/components/ui/ImageUpload';
+import { VerificationStatusBadge } from '@/components/verification/VerificationStatusBadge';
+import { useVerification } from '@/contexts/VerificationContext';
 import { api } from '@/lib/api';
 import { getToken, removeTokens } from '@/lib/auth';
 import { User } from '@/types';
@@ -14,6 +16,7 @@ import { User } from '@/types';
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const { state: verificationState } = useVerification();
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -155,14 +158,49 @@ export default function ProfilePage() {
               {user.firstName} {user.lastName}
             </h2>
             <p className="text-gray-600 mb-4">{user.email}</p>
-            {user.isEmailVerified ? (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                ✓ Tasdiqlangan
-              </span>
-            ) : (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">
-                Tasdiqlanmagan
-              </span>
+
+            {/* Email and Student Verification Status */}
+            <div className="space-y-2 mb-4">
+              {user.isEmailVerified ? (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                  ✓ Email tasdiqlangan
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">
+                  Email tasdiqlanmagan
+                </span>
+              )}
+
+              {verificationState.status && (
+                <VerificationStatusBadge
+                  status={verificationState.status.verificationStatus}
+                  size="sm"
+                />
+              )}
+            </div>
+
+            {/* Verification Action Button */}
+            {!verificationState.status?.isEmailVerified && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.href = '/verification'}
+                className="mt-2"
+              >
+                Talaba statusini tasdiqlash
+              </Button>
+            )}
+
+            {verificationState.status?.isEmailVerified &&
+             verificationState.status.verificationStatus === 'email_verified' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.href = '/verification'}
+                className="mt-2"
+              >
+                Hujjatlarni yuklash
+              </Button>
             )}
           </div>
         </Card>
