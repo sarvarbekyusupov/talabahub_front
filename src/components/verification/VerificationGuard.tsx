@@ -68,7 +68,7 @@ export function VerificationGuard({
       case 'all':
       default:
         if (!permissions.isVerified) {
-          return fallback || <LockedFeature feature="exclusive features" />;
+          return fallback || <LockedFeature feature="exclusive features" showMessage={showMessage} />;
         }
         break;
     }
@@ -80,9 +80,10 @@ export function VerificationGuard({
 interface LockedFeatureProps {
   feature: string;
   className?: string;
+  showMessage?: boolean;
 }
 
-function LockedFeature({ feature, className = '' }: LockedFeatureProps) {
+function LockedFeature({ feature, className = '', showMessage = false }: LockedFeatureProps) {
   return (
     <div className={`bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center ${className}`}>
       <div className="text-4xl mb-4">🔒</div>

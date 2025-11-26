@@ -82,7 +82,7 @@ export function DocumentUpload({
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3030/api';
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = (): Record<string, string> => {
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};
   };

@@ -11,7 +11,7 @@ interface VerificationBannerProps {
 export function VerificationBanner({ className = '' }: VerificationBannerProps) {
   const { state } = useVerification();
 
-  if (!state.status || state.status.verificationStatus === 'verified') {
+  if (!state.status) {
     return null;
   }
 
@@ -81,10 +81,13 @@ export function VerificationBanner({ className = '' }: VerificationBannerProps) 
     },
   };
 
-  const config = bannerConfig[state.status.verificationStatus as UserVerificationStatus];
+  const status = state.status.verificationStatus;
+  if (status === 'verified') return null;
+  const config = bannerConfig[status];
   if (!config) return null;
 
   const handleAction = () => {
+    if (!state.status) return;
     switch (state.status.verificationStatus) {
       case 'unverified':
         // Resend email logic
