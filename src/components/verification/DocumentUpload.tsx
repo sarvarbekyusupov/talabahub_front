@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
-import { CloudUploadIcon, XIcon, PhotographIcon, DocumentIcon } from '@heroicons/react/outline';
+import { CloudArrowUpIcon, XMarkIcon, PhotoIcon, DocumentIcon } from '@heroicons/react/24/outline';
 
 export interface UploadedDocument {
   id: string;
@@ -31,14 +31,14 @@ const documentTypeConfig = {
   student_id_front: {
     title: 'Student ID (Front)',
     description: 'Clear photo of the front of your student ID card',
-    icon: PhotographIcon,
+    icon: PhotoIcon,
     acceptedTypes: 'image/jpeg,image/jpg,image/png,image/webp',
     maxSize: 5 * 1024 * 1024, // 5MB
   },
   student_id_back: {
     title: 'Student ID (Back)',
     description: 'Clear photo of the back of your student ID card',
-    icon: PhotographIcon,
+    icon: PhotoIcon,
     acceptedTypes: 'image/jpeg,image/jpg,image/png,image/webp',
     maxSize: 5 * 1024 * 1024, // 5MB
   },
@@ -225,7 +225,7 @@ export function DocumentUpload({
             className="text-red-500 hover:text-red-700 transition-colors"
             title="Remove document"
           >
-            <XIcon className="w-5 h-5" />
+            <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -289,7 +289,7 @@ export function DocumentUpload({
               </>
             ) : (
               <>
-                <CloudUploadIcon className="w-4 h-4 mr-2" />
+                <CloudArrowUpIcon className="w-4 h-4 mr-2" />
                 Choose File
               </>
             )}

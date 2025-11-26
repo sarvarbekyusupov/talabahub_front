@@ -5,22 +5,18 @@ import { useRouter } from 'next/navigation';
 import { VerificationProvider, useVerification } from '@/contexts/VerificationContext';
 import { DocumentUpload, UploadedDocument } from '@/components/verification/DocumentUpload';
 import { DocumentRequirements } from '@/components/verification/DocumentUpload';
-import { UserVerificationStatus } from '@/contexts/VerificationContext';
 
 // Import icons
 import {
   AcademicCapIcon,
   CheckCircleIcon,
-  ExclamationIcon,
-  UserIcon,
-  PhotographIcon,
-  DocumentIcon,
-  CreditCardIcon
-} from '@heroicons/react/outline';
+  ExclamationTriangleIcon,
+  PhotoIcon
+} from '@heroicons/react/24/outline';
 
 function VerificationPageContent() {
   const router = useRouter();
-  const { state, submitVerification, checkStatus, clearError } = useVerification();
+  const { state, submitVerification, clearError } = useVerification();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     universityId: '',
@@ -111,7 +107,7 @@ function VerificationPageContent() {
 
   const steps = [
     { id: 1, name: 'University Info', icon: AcademicCapIcon },
-    { id: 2, name: 'Documents', icon: PhotographIcon },
+    { id: 2, name: 'Documents', icon: PhotoIcon },
     { id: 3, name: 'Review', icon: CheckCircleIcon },
   ];
 
@@ -206,7 +202,7 @@ function VerificationPageContent() {
         {state.error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex">
-              <ExclamationIcon className="w-5 h-5 text-red-400 mr-3 mt-0.5" />
+              <ExclamationTriangleIcon className="w-5 h-5 text-red-400 mr-3 mt-0.5" />
               <div>
                 <h3 className="text-sm font-medium text-red-800">Error</h3>
                 <p className="mt-1 text-sm text-red-700">{state.error}</p>

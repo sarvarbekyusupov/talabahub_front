@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircleIcon } from '@heroicons/react/outline';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 
 export default function VerificationSuccess() {
   const router = useRouter();

@@ -191,11 +191,8 @@ export default function DiscountsPage() {
             <EmptyState
               title="Verification Required"
               message="Access student discounts with a verified student status. Complete your verification to unlock exclusive deals and offers."
-              action={
-                <Button onClick={() => window.location.href = '/verification'}>
-                  Complete Verification
-                </Button>
-              }
+              onAction={() => window.location.href = '/verification'}
+              actionText="Complete Verification"
             />
           </Card>
         }

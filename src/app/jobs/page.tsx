@@ -343,11 +343,8 @@ export default function JobsPage() {
             <EmptyState
               title="Verification Required"
               message="Apply to jobs with a verified student status. Complete your verification to unlock exclusive job opportunities."
-              action={
-                <Button onClick={() => window.location.href = '/verification'}>
-                  Complete Verification
-                </Button>
-              }
+              onAction={() => window.location.href = '/verification'}
+              actionText="Complete Verification"
             />
           </Card>
         }

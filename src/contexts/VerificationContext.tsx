@@ -34,6 +34,7 @@ export interface VerificationDocument {
   thumbnailUrl?: string;
   originalFilename: string;
   uploadedAt: string;
+  mimeType?: string;
 }
 
 export interface VerificationRequest {

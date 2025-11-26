@@ -43,7 +43,11 @@ function VerificationManagementContent() {
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
   };
 
   const fetchRequests = async () => {
@@ -389,7 +393,7 @@ function VerificationManagementContent() {
                       <h4 className="font-medium text-gray-900 mb-2">
                         {formatDocumentType(doc.documentType)}
                       </h4>
-                      {doc.mimeType.startsWith('image/') ? (
+                      {doc.mimeType?.startsWith('image/') ? (
                         <img
                           src={doc.fileUrl}
                           alt={formatDocumentType(doc.documentType)}
