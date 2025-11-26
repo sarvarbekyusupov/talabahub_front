@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useVerification } from '@/contexts/VerificationContext';
+import { useVerification, VerificationProvider } from '@/contexts/VerificationContext';
 import { VerificationRequest, VerificationStatus } from '@/contexts/VerificationContext';
 import { VerificationStatusBadge } from '@/components/verification/VerificationStatusBadge';
 
