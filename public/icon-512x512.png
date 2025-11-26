@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="128" fill="#6366f1"/>
+
+  <!-- Book icon representing education -->
+  <path d="M128 128C128 110.327 142.327 96 160 96H352C369.673 96 384 110.327 384 128V384C384 401.673 369.673 416 352 416H160C142.327 416 128 401.673 128 384V128Z" fill="white"/>
+  <path d="M256 96V416" stroke="#6366f1" stroke-width="12" stroke-linecap="round"/>
+  <path d="M160 200H240" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+  <path d="M160 250H240" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+  <path d="M160 300H240" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+  <path d="M272 200H352" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+  <path d="M272 250H352" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+  <path d="M272 300H352" stroke="#6366f1" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Star accent (representing opportunities) -->
+  <path d="M420 100L430 120L450 130L430 140L420 160L410 140L390 130L410 120Z" fill="#fbbf24"/>
+</svg>
